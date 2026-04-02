@@ -1,0 +1,31 @@
+name: rawi
+description: "Rawi — Witness history. Carry the story. The complete Seerah as a game."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.3.2
+  latlong2: ^0.9.0
+  google_fonts: ^6.2.1
+  just_audio: ^0.9.40
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/
+    - assets/audio/vo/
+    - assets/audio/companion/
+    - assets/scenes/
+    - assets/figures/
+    - assets/icon/
