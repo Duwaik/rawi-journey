@@ -327,13 +327,23 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   // ── Speech bubble logic ──────────────────────────────────────────────────
 
+  // ── VO Rules ──────────────────────────────────────────────────────────────
+  // 1. STOP previous VO before starting any new VO
+  // 2. Hotspot VO: starts 400ms after panel opens, stops on dismiss
+  // 3. Branch card VO: starts 600ms after card shows, stops on option select
+  // 4. Verdict question VO: starts 600ms after phase change
+  // 5. Verdict explanation VO: starts 500ms after answer reveal animation
+  // 6. Companion bubbles: use SFX layer (short clips, don't duck ambient)
+  // 7. App pause/settings: stop ALL VO immediately
+
   void _showBubble(String text, {String? voPath}) {
     setState(() {
       _bubbleText = text;
       _bubbleVisible = true;
     });
     if (voPath != null) {
-      AudioService.playVoiceover(voPath, volume: 0.6);
+      // Companion bubbles are short — use SFX layer, don't duck ambient
+      AudioService.playSfx(voPath, volume: 0.5);
     }
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) setState(() => _bubbleVisible = false);
@@ -386,7 +396,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // ── Branch choice handler ──────────────────────────────────────────────────
 
   void _onBranchSelected(BranchOption selected) {
-    AudioService.fadeOutVoiceover();
+    AudioService.stopVoiceover(); // Rule 3: immediate stop on option select
     final event = widget.event;
     final bp = event.branchPoint!;
     final isA = selected.targetHotspotId == bp.optionA.targetHotspotId;
@@ -503,8 +513,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   void _playChoiceVo(String type) {
     final path = _choiceVoPath(type);
     if (path != null) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) AudioService.playVoiceover(path);
+      // Rule 4/5: Question VO 600ms after phase, explanation 500ms after reveal
+      final delay = type == 'exp' ? 500 : 600;
+      Future.delayed(Duration(milliseconds: delay), () {
+        if (mounted) {
+          AudioService.stopVoiceover(); // Rule 1: stop previous
+          AudioService.playVoiceover(path);
+        }
       });
     }
   }
@@ -523,9 +538,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   void _playVoForHotspot(SceneHotspot hotspot) {
     final path = _voPath(hotspot);
     if (path != null) {
-      // Delay 300ms to let panel slide up first
-      Future.delayed(const Duration(milliseconds: 300), () {
+      // Rule 2: Hotspot VO starts 400ms after panel opens
+      Future.delayed(const Duration(milliseconds: 400), () {
         if (mounted && _activeHotspot == hotspot) {
+          AudioService.stopVoiceover(); // Rule 1: stop previous
           AudioService.playVoiceover(path);
         }
       });
@@ -611,7 +627,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       widget.event.questions.isEmpty || _answers.every((a) => a != null);
 
   void _dismissPanel() {
-    AudioService.fadeOutVoiceover();
+    AudioService.stopVoiceover(); // Rule: immediate stop on panel dismiss
     final dismissed = _activeHotspot;
     setState(() {
       if (dismissed != null && _pendingDiscovery.contains(dismissed.id)) {
@@ -631,11 +647,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       if (!PrefsService.isChoiceTutorialSeen) {
         setState(() => _showChoiceTutorial = true);
       }
-      // Play branch prompt VO
+      // Rule 3: Branch card VO starts 600ms after card shows
       final branchVoPath = _choiceVoPath('branch');
       if (branchVoPath != null) {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && _showBranchCard) AudioService.playVoiceover(branchVoPath);
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted && _showBranchCard && !_showChoiceTutorial) {
+            AudioService.stopVoiceover(); // Rule 1: stop previous
+            AudioService.playVoiceover(branchVoPath);
+          }
         });
       }
       return;
@@ -1040,6 +1059,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 onTap: () {
                   PrefsService.setChoiceTutorialSeen();
                   setState(() => _showChoiceTutorial = false);
+                  // Now play branch VO since tutorial is dismissed
+                  if (_showBranchCard) {
+                    final branchVoPath = _choiceVoPath('branch');
+                    if (branchVoPath != null) {
+                      Future.delayed(const Duration(milliseconds: 400), () {
+                        if (mounted && _showBranchCard) {
+                          AudioService.playVoiceover(branchVoPath);
+                        }
+                      });
+                    }
+                  }
                 },
                 behavior: HitTestBehavior.opaque,
                 child: Container(
