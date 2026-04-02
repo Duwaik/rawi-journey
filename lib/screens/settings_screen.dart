@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../models/badge_definition.dart';
 import '../services/prefs_service.dart';
 import 'splash_screen.dart';
 
@@ -223,7 +224,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 16),
                   _buildResetButton(),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
+
+                  // ── Badges section ────────────────────────────────
+                  _SectionHeader(
+                      label: _isAr ? 'الأوسمة' : 'Badges', isAr: _isAr),
+                  const SizedBox(height: 8),
+                  _buildBadgesGrid(),
+
+                  const SizedBox(height: 28),
 
                   // ── About ─────────────────────────────────────────
                   _SectionHeader(
@@ -278,6 +287,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBadgesGrid() {
+    final earned = PrefsService.earnedBadges;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.textMuted.withAlpha(30)),
+      ),
+      child: Column(
+        children: [
+          // 3-column grid
+          Wrap(
+            spacing: 8,
+            runSpacing: 12,
+            children: allBadges.map((badge) {
+              final isEarned = earned.contains(badge.id);
+              return SizedBox(
+                width: 90,
+                child: Column(
+                  children: [
+                    // Icon
+                    Opacity(
+                      opacity: isEarned ? 1.0 : 0.25,
+                      child: Text(
+                        isEarned ? badge.icon : '🔒',
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Name
+                    Text(
+                      isEarned
+                          ? (_isAr ? badge.nameAr : badge.name)
+                          : '???',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        color: isEarned
+                            ? AppColors.gold
+                            : AppColors.textMuted.withAlpha(80),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          // Earned count
+          const SizedBox(height: 10),
+          Text(
+            '${earned.length}/${allBadges.length}',
+            style: GoogleFonts.nunito(
+              color: AppColors.textMuted.withAlpha(100),
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }
