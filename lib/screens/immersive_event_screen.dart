@@ -14,6 +14,7 @@ import '../models/branch_point.dart';
 import '../widgets/cinematic/branch_decision_card.dart';
 import '../widgets/cinematic/companion_figure.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
+import '../widgets/cinematic/xp_reward_animation.dart';
 import '../widgets/cinematic/companion_speech_bubble.dart';
 import '../widgets/cinematic/crescent_moon.dart';
 import '../widgets/cinematic/discovery_panel.dart';
@@ -47,6 +48,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _showTutorial = false;
   // _showChoiceTutorial removed — Crossroads is self-explanatory
   bool _isCompleting = false;
+  bool _showContinueButton = false;
+  int _previousXp = 0; // captured before completion for XP animation
 
   late final SceneConfig _scene;
 
@@ -698,10 +701,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _playChoiceVo('exp');
 
     if (_allAnswered) {
-      // Show complete phase — Continue button will handle writes + pop
       setState(() {
         _phase = _Phase.complete;
         _isCompleting = true;
+        _previousXp = PrefsService.xp; // Capture before writes for animation
+        _showContinueButton = false; // Will show after XP animation
       });
     }
   }
@@ -1281,67 +1285,62 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                       isAr: _isAr,
                     ),
 
-                  // XP badge + Continue button (after answering)
+                  // XP animation + Continue button (after answering)
                   if (answered) ...[
                     const SizedBox(height: 20),
 
-                    // XP badge — prominent, stays visible
+                    // Animated XP reveal (first time) or static badge (replay)
                     if (!_alreadyCompleted)
-                      TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0.8, end: 1.0),
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                        builder: (context, scale, child) =>
-                            Transform.scale(scale: scale, child: child),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.star_rounded,
-                                color: AppColors.gold, size: 24),
-                            const SizedBox(width: 8),
-                            Text(
-                              '+${widget.event.xpReward} XP',
-                              style: GoogleFonts.nunito(
-                                color: AppColors.gold,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
+                      XpRewardAnimation(
+                        xpEarned: widget.event.xpReward,
+                        previousTotal: _previousXp,
+                        onComplete: () {
+                          // Show Continue button 1s after XP animation
+                          Future.delayed(const Duration(seconds: 1), () {
+                            if (mounted) setState(() => _showContinueButton = true);
+                          });
+                        },
                       ),
 
                     const SizedBox(height: 16),
 
-                    // Continue Journey button — awaits writes then pops
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _alreadyCompleted ? _continue : _completeAndPop,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _alreadyCompleted
-                              ? AppColors.card
-                              : AppColors.gold,
-                          foregroundColor: _alreadyCompleted
-                              ? AppColors.textMuted
-                              : AppColors.bg,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          _alreadyCompleted
-                              ? (_isAr ? 'العودة للأحداث  ←' : 'Back to Events  →')
-                              : (_isAr ? 'أكمل الرحلة  ←' : 'Continue Journey  →'),
-                          style: GoogleFonts.nunito(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
+                    // Continue button — fades in after XP animation (or immediately for replay)
+                    if (_showContinueButton || _alreadyCompleted)
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOut,
+                        builder: (context, opacity, child) =>
+                            Opacity(opacity: opacity, child: child),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _alreadyCompleted ? _continue : _completeAndPop,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _alreadyCompleted
+                                  ? AppColors.card
+                                  : AppColors.gold,
+                              foregroundColor: _alreadyCompleted
+                                  ? AppColors.textMuted
+                                  : AppColors.bg,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              _alreadyCompleted
+                                  ? (_isAr ? 'العودة للأحداث  ←' : 'Back to Events  →')
+                                  : (_isAr ? 'أكمل الرحلة  ←' : 'Continue Journey  →'),
+                              style: GoogleFonts.nunito(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ],
               ),
