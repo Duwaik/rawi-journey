@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/badge_definition.dart';
 
 class PrefsService {
   static SharedPreferences? _prefs;
@@ -141,6 +142,58 @@ class PrefsService {
       _prefs?.getBool(_keyChoiceTutSeen) ?? false;
   static Future<void> setChoiceTutorialSeen() async =>
       await _prefs?.setBool(_keyChoiceTutSeen, true);
+
+  // ── BADGES ────────────────────────────────────────────────────────────────
+  static const String _keyEarnedBadges = 'earned_badges';
+
+  static List<String> get earnedBadges =>
+      _prefs?.getStringList(_keyEarnedBadges) ?? [];
+
+  static Future<void> _awardBadge(String badgeId) async {
+    final current = earnedBadges;
+    if (!current.contains(badgeId)) {
+      current.add(badgeId);
+      await _prefs?.setStringList(_keyEarnedBadges, current);
+    }
+  }
+
+  /// Check all badge triggers after event completion. Returns newly earned badges.
+  static Future<List<BadgeDefinition>> checkAndAwardBadges() async {
+    final newBadges = <BadgeDefinition>[];
+    final earned = earnedBadges;
+
+    for (final badge in allBadges) {
+      if (earned.contains(badge.id)) continue;
+
+      bool qualifies = false;
+
+      switch (badge.trigger.type) {
+        case BadgeTriggerType.firstEvent:
+          qualifies = true; // completing any event qualifies
+        case BadgeTriggerType.eventCount:
+          final count = List.generate(36, (i) => i + 1)
+              .where((o) => isEventCompleted(o))
+              .length;
+          qualifies = count >= (badge.trigger.value ?? 999);
+        case BadgeTriggerType.chapterComplete:
+          final range = badge.trigger.eventRange!;
+          qualifies = List.generate(
+            range[1] - range[0] + 1,
+            (i) => range[0] + i,
+          ).every((o) => isEventCompleted(o));
+        case BadgeTriggerType.allEvents:
+          qualifies = List.generate(36, (i) => i + 1)
+              .every((o) => isEventCompleted(o));
+      }
+
+      if (qualifies) {
+        await _awardBadge(badge.id);
+        newBadges.add(badge);
+      }
+    }
+
+    return newBadges;
+  }
 
   // ── HELPERS ───────────────────────────────────────────────────────────────
   static String _todayStr() {
