@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
+import '../../services/audio_service.dart';
 import 'go_deeper_section.dart';
 
 /// Slide-up panel showing a discovery fragment when a hotspot is tapped.
@@ -14,6 +15,7 @@ class DiscoveryPanel extends StatefulWidget {
   final String? imagePath;
   final bool centerMode;
   final String? deeperContent;
+  final String? voPath;
 
   const DiscoveryPanel({
     super.key,
@@ -25,6 +27,7 @@ class DiscoveryPanel extends StatefulWidget {
     this.imagePath,
     this.centerMode = false,
     this.deeperContent,
+    this.voPath,
   });
 
   @override
@@ -177,26 +180,51 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
 
                     const SizedBox(height: 16),
 
-                    // Tap to continue
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.gold.withAlpha(30),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.gold.withAlpha(80),
-                          width: 1,
+                    // Tap to continue + VO replay
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.voPath != null)
+                          GestureDetector(
+                            onTap: () {
+                              AudioService.stopVoiceover();
+                              AudioService.playVoiceover(widget.voPath!);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.gold.withAlpha(25),
+                                border: Border.all(
+                                    color: AppColors.gold.withAlpha(80)),
+                              ),
+                              child: Icon(Icons.volume_up_rounded,
+                                  size: 16, color: AppColors.gold.withAlpha(200)),
+                            ),
+                          ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.gold.withAlpha(30),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppColors.gold.withAlpha(80),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            widget.isAr ? 'اضغط للمتابعة' : 'Tap to continue',
+                            style: GoogleFonts.nunito(
+                              color: AppColors.gold.withAlpha(220),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        widget.isAr ? 'اضغط للمتابعة' : 'Tap to continue',
-                        style: GoogleFonts.nunito(
-                          color: AppColors.gold.withAlpha(220),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      ],
                     ),
                   ],
                 ),

@@ -1009,6 +1009,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               icon: _activeHotspot!.icon, isAr: _isAr, onDismiss: _dismissPanel,
               imagePath: _activeHotspot!.imagePath,
               deeperContent: _isAr ? _activeHotspot!.deeperContentAr : _activeHotspot!.deeperContent,
+              voPath: _voPath(_activeHotspot!),
               centerMode: true),
 
           // ── The Reflection (linear events 4+) ─────────────────────
@@ -1180,15 +1181,40 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Text(
-                    _isAr ? 'ماذا يحفظ التاريخ؟' : 'What does history remember?',
+                  // Header + VO replay
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _isAr ? 'ماذا يحفظ التاريخ؟' : 'What does history remember?',
                     style: GoogleFonts.lora(
                       color: _eraColor.withAlpha(200),
                       fontSize: 14,
                       fontStyle: FontStyle.italic,
                       fontWeight: FontWeight.w600,
                     ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          final path = _choiceVoPath(answered ? 'exp' : 'q');
+                          if (path != null) {
+                            AudioService.stopVoiceover();
+                            AudioService.playVoiceover(path);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.gold.withAlpha(25),
+                            border: Border.all(color: AppColors.gold.withAlpha(80)),
+                          ),
+                          child: Icon(Icons.volume_up_rounded,
+                              size: 16, color: AppColors.gold.withAlpha(200)),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
 
