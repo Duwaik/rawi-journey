@@ -13,6 +13,8 @@ import '../data/companion_dialogue.dart';
 import '../models/branch_point.dart';
 import '../widgets/cinematic/branch_decision_card.dart';
 import '../widgets/cinematic/companion_figure.dart';
+import '../models/badge_definition.dart';
+import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
 import '../widgets/cinematic/xp_reward_animation.dart';
 import '../widgets/cinematic/companion_speech_bubble.dart';
@@ -50,6 +52,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _isCompleting = false;
   bool _showContinueButton = false;
   int _previousXp = 0; // captured before completion for XP animation
+  List<BadgeDefinition> _newBadges = []; // badges earned this session
 
   late final SceneConfig _scene;
 
@@ -694,33 +697,48 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
   }
 
-  void _selectChoice(int qIdx, int choiceIdx) {
+  void _selectChoice(int qIdx, int choiceIdx) async {
     if (_answers[qIdx] != null) return;
     setState(() => _answers[qIdx] = choiceIdx);
     _revealCtrl.forward();
     _playChoiceVo('exp');
 
     if (_allAnswered) {
+      final prevXp = PrefsService.xp;
       setState(() {
         _phase = _Phase.complete;
         _isCompleting = true;
-        _previousXp = PrefsService.xp; // Capture before writes for animation
-        _showContinueButton = false; // Will show after XP animation
+        _previousXp = prevXp;
+        _showContinueButton = false;
       });
+
+      // Write immediately — data saved before any animation
+      if (!_alreadyCompleted) {
+        await PrefsService.completeEvent(widget.event.globalOrder, widget.event.xpReward);
+        await PrefsService.clearHotspotProgress(widget.event.id);
+        final badges = await PrefsService.checkAndAwardBadges();
+        if (mounted && badges.isNotEmpty) {
+          setState(() => _newBadges = badges);
+        }
+      }
     }
   }
 
   /// "Continue Journey" button handler — awaits ALL writes then pops.
   /// NO timer. NO auto-pop. User controls when they leave.
   Future<void> _completeAndPop() async {
-    if (!_alreadyCompleted) {
-      // Atomic write: complete event + clear progress + advance order
-      await PrefsService.completeEvent(widget.event.globalOrder, widget.event.xpReward);
-      await PrefsService.clearHotspotProgress(widget.event.id);
-      // All writes confirmed — safe to navigate
+    // Show badge overlays if earned (writes already done in _selectChoice)
+    if (_newBadges.isNotEmpty && mounted) {
+      for (final badge in _newBadges) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => BadgeOverlay(badge: badge),
+        );
+      }
     }
     if (!mounted) return;
-    Navigator.pop(context, true); // Pass true = event completed
+    Navigator.pop(context, true);
   }
 
   /// Back to events for replays.
