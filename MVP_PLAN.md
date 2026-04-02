@@ -2,10 +2,12 @@
 # 3 Playable Events + Complete Gaming UX
 
 > Created: 2026-04-01
-> Updated: 2026-04-02 (branching system + terminology)
+> Updated: 2026-04-02 (branching system + UI redesign + critical flow fix)
 > Goal: A demo-ready app that feels like a real game from first tap to last hotspot
+> **Status: MVP BUILT** — 3 branching events, full gaming UX, 150+ audio files, timeline event list
 >
 > **Event Terminology:** The Gate → The Crossroads → The Paths → The Gathering → The Verdict (branching). The Reflection (linear).
+> **Architecture:** See `ARCHITECTURE.md` for full details.
 
 ---
 

@@ -4,9 +4,11 @@
 > بسم الله الرحمن الرحيم
 > "Witness history. Carry the story."
 
-**Last updated:** 2026-04-01
+**Last updated:** 2026-04-02
 **Project path:** `D:\Rawi_Journey`
-**App package:** `com.rawi.journey` ✅ (configured in build.gradle.kts + MainActivity.kt)
+**App package:** `com.rawi.journey` ✅
+**GitHub:** `github.com/Duwaik/rawi-journey` (private)
+**Architecture:** See `ARCHITECTURE.md` for full file tree, data flow, audio layers, and nav flow
 
 ---
 
@@ -381,16 +383,21 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 
 ## 11. Content Production Plan
 
-### Current State (2026-04-01)
-- **M1 data:** 36 of 47 events written in `m1_data.dart`
-- **Scene configs:** 2 complete (Event 1, Event 2). Event 3 designed, not coded.
-- **Images:** All 10 images for MVP generated ✅ (3 scenes + 13 bubbles)
-- **Audio:** 10 WAV files (1 ambient + 9 SFX for Events 1-2)
-- **Screens built:** Hub, immersive event, flat event, era complete
-- **Screens missing:** Splash, intro cinematic, registration, settings
+### Current State (2026-04-02)
+- **Dart code:** 41 files, ~11,000 lines
+- **M1 data:** 36 events in `m1_data.dart`, Events 1-3 with branching
+- **Scene configs:** 3 complete (Events 1-3) with alt paths for branching
+- **Branching system:** Gate → Crossroads → Paths → Gathering → Verdict
+- **Images:** 16 scene/bubble JPGs, 4 companion figures, 1 app icon
+- **Audio:** 150 files (14 WAV SFX + 84 VO MP3 + 52 companion MP3)
+- **VO voices:** Syrian Arabic (`ar-SY-LaithNeural`/`AmanyNeural`) + British English (`en-GB-RyanNeural`/`SoniaNeural`)
+- **Screens built:** Splash, intro cinematic, registration (4-step), event list (timeline), cinematic transition, immersive event (branching + linear), flat event, settings (page + overlay), era complete, tutorial
+- **Event list:** Timeline journey view with chapter headers, gold thread, progress dots
+- **Testing:** 3 rounds, 31+ bugs fixed, 5 branching safety tests
+- **Frameworks ready:** Go Deeper (content pending), Collections (metadata pending)
 
 ### MVP (v0.6) — See `MVP_PLAN.md`
-3 fully playable immersive events + complete gaming UX shell
+3 fully playable branching events + complete gaming UX + VO + RTL
 
 ### Post-MVP Roadmap
 1. Expand M1 to 47 events (11 more event data + scene configs)

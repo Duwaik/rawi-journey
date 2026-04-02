@@ -55,3 +55,20 @@ ACTUAL (broken):
 ```
 
 Root cause likely: `_completeAndReturn()` either isn't being called, or the pop happens before `completeEvent()` finishes. Need to trace the exact execution path for branching events — the `convergenceQuestion` phase may have a different completion path than the linear `choose` phase.
+
+---
+
+## Post-R3 Fixes (same session)
+
+| # | Fix | Details |
+|---|-----|---------|
+| POST-1 | **Crossroads tutorial timing** | Tutorial overlay removed entirely (Fix 3 from UI spec). Crossroads card is self-explanatory. |
+| POST-2 | **Locked hotspot visibility** | Dark circle backing (40px, black 40%) behind locked diamonds. |
+| POST-3 | **The Verdict cinematic styling** | Gold border, deeper dim, gold answer borders, gold explanation section. |
+| POST-4 | **Chapter preview redesign** | Cinematic black bg, gold text blocks, chapter names with event counts. |
+| POST-5 | **VO timing rules** | Strict start/stop rules, no overlaps, companion bubbles on SFX layer. |
+| POST-6 | **VO replay button** | Speaker icon on discovery panels + Verdict card. |
+| POST-7 | **"What does history remember?"** | Verdict header changed from "What would you do?" for branching events. |
+| POST-8 | **Event list timeline redesign** | Chapter headers, gold timeline thread, progress dots, card visual states. |
+| POST-9 | **CRITICAL: Completion flow fix** | Deleted auto-pop timer. Manual "Continue Journey" button. Await all writes. Back blocked during Verdict. XP badge in-card. |
+| POST-10 | **Terminology update** | Gate, Crossroads, Paths, Gathering, Verdict, Reflection — everywhere. |
