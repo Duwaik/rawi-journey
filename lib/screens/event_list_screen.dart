@@ -94,11 +94,14 @@ class _EventListScreenState extends State<EventListScreen> {
           pageBuilder: (context, animation, secondaryAnimation) =>
               CinematicTransitionScreen(
             event: event,
-            onComplete: () {
-              Navigator.pushReplacement(
+            onComplete: () async {
+              final result = await Navigator.push(
                 context,
                 flyDownRoute(ImmersiveEventScreen(event: event)),
               );
+              if (context.mounted) {
+                Navigator.pop(context, result);
+              }
             },
           ),
         ),
