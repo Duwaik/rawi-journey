@@ -691,50 +691,35 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
   }
 
-  void _selectChoice(int qIdx, int choiceIdx) async {
+  void _selectChoice(int qIdx, int choiceIdx) {
     if (_answers[qIdx] != null) return;
     setState(() => _answers[qIdx] = choiceIdx);
     _revealCtrl.forward();
     _playChoiceVo('exp');
 
-    if (_allAnswered && !_alreadyCompleted) {
-      // Complete event IMMEDIATELY — prefs written before any navigation
+    if (_allAnswered) {
+      // Show complete phase — Continue button will handle writes + pop
       setState(() {
         _phase = _Phase.complete;
         _isCompleting = true;
       });
-      await PrefsService.completeEvent(widget.event.globalOrder, widget.event.xpReward);
-      await PrefsService.clearHotspotProgress(widget.event.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.star_rounded, color: AppColors.gold, size: 20),
-              const SizedBox(width: 8),
-              Text('+${widget.event.xpReward} XP',
-                  style: GoogleFonts.nunito(
-                      color: AppColors.gold, fontSize: 16,
-                      fontWeight: FontWeight.w800)),
-            ],
-          ),
-          backgroundColor: AppColors.card,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 2),
-        ));
-      }
-      // Wait for user to read explanation, then auto-pop
-      await Future.delayed(const Duration(seconds: 3));
-      if (!mounted) return;
-      Navigator.pop(context);
-    } else if (_allAnswered && _alreadyCompleted) {
-      // Replay — just update phase
-      setState(() => _phase = _Phase.complete);
     }
   }
 
-  /// Manual pop for replays only.
+  /// "Continue Journey" button handler — awaits ALL writes then pops.
+  /// NO timer. NO auto-pop. User controls when they leave.
+  Future<void> _completeAndPop() async {
+    if (!_alreadyCompleted) {
+      // Atomic write: complete event + clear progress + advance order
+      await PrefsService.completeEvent(widget.event.globalOrder, widget.event.xpReward);
+      await PrefsService.clearHotspotProgress(widget.event.id);
+      // All writes confirmed — safe to navigate
+    }
+    if (!mounted) return;
+    Navigator.pop(context, true); // Pass true = event completed
+  }
+
+  /// Back to events for replays.
   void _continue() {
     Navigator.pop(context);
   }
@@ -756,6 +741,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        // Block back during unanswered Verdict — user must answer + tap Continue
+        if (_phase == _Phase.convergenceQuestion && !_allAnswered) return;
+        if (_phase == _Phase.choose && !_allAnswered) return;
+        // Block back during completion writes
+        if (_isCompleting && !_alreadyCompleted) return;
         // Save hotspot progress before leaving
         if (!_alreadyCompleted && !_isCompleting) {
           final allFound = _discovered.union(_pendingDiscovery);
@@ -1261,10 +1251,67 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                       isAr: _isAr,
                     ),
 
-                  // Replay button (only for already completed)
-                  if (_alreadyCompleted) ...[
+                  // XP badge + Continue button (after answering)
+                  if (answered) ...[
+                    const SizedBox(height: 20),
+
+                    // XP badge — prominent, stays visible
+                    if (!_alreadyCompleted)
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.8, end: 1.0),
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        builder: (context, scale, child) =>
+                            Transform.scale(scale: scale, child: child),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.star_rounded,
+                                color: AppColors.gold, size: 24),
+                            const SizedBox(width: 8),
+                            Text(
+                              '+${widget.event.xpReward} XP',
+                              style: GoogleFonts.nunito(
+                                color: AppColors.gold,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                     const SizedBox(height: 16),
-                    _buildContinueButton(),
+
+                    // Continue Journey button — awaits writes then pops
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _alreadyCompleted ? _continue : _completeAndPop,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _alreadyCompleted
+                              ? AppColors.card
+                              : AppColors.gold,
+                          foregroundColor: _alreadyCompleted
+                              ? AppColors.textMuted
+                              : AppColors.bg,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          _alreadyCompleted
+                              ? (_isAr ? 'العودة للأحداث  ←' : 'Back to Events  →')
+                              : (_isAr ? 'أكمل الرحلة  ←' : 'Continue Journey  →'),
+                          style: GoogleFonts.nunito(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -1308,10 +1355,29 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                         fontSize: 11, height: 1.4))),
               ]),
               const SizedBox(height: 20),
-              if (event.questions.isNotEmpty && !_alreadyCompleted)
+              if (event.questions.isNotEmpty)
                 _buildChoiceCards(),
-              // Only show button for replays — first time auto-pops via _completeAndReturn
-              if (_alreadyCompleted) _buildContinueButton(),
+              // Continue button — appears after answering (both first time + replay)
+              if (_allAnswered) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity, height: 50,
+                  child: ElevatedButton(
+                    onPressed: _alreadyCompleted ? _continue : _completeAndPop,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _alreadyCompleted ? AppColors.card : _eraColor,
+                      foregroundColor: _alreadyCompleted ? AppColors.textMuted : AppColors.bg,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 0),
+                    child: Text(
+                      _alreadyCompleted
+                          ? (_isAr ? 'العودة للأحداث  ←' : 'Back to Events  →')
+                          : (_isAr ? 'أكمل الرحلة  ←' : 'Continue Journey  →'),
+                      style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -1438,26 +1504,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     );
   }
 
-  Widget _buildContinueButton() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: SizedBox(
-        width: double.infinity, height: 50,
-        child: ElevatedButton(
-          onPressed: _continue,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.card,
-            foregroundColor: AppColors.textMuted,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            elevation: 0),
-          child: Text(
-            _isAr ? 'العودة للأحداث  ←' : 'Back to Events  →',
-            style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700,
-                letterSpacing: 0.5)),
-        ),
-      ),
-    );
-  }
+  // _buildContinueButton removed — Continue button now inline in both Verdict and Reflection
 }
 
 // ── Footprint trail painter ──────────────────────────────────────────────────

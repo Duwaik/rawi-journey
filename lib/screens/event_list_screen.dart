@@ -66,8 +66,10 @@ class _EventListScreenState extends State<EventListScreen> {
   }
 
   void _refresh() {
+    // Force full rebuild — re-read ALL prefs (currentOrder, completed flags, XP)
     setState(() {
       _currentOrder = PrefsService.currentOrder;
+      // setState triggers full rebuild — all cards re-read completion status
     });
   }
 
