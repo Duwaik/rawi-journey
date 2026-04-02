@@ -51,7 +51,8 @@ d:\Rawi_Journey\
 │   │   │                                          branchPoint, convergenceHotspotId)
 │   │   ├── scene_config.dart                  # SceneConfig, SceneHotspot, ParticleType
 │   │   │                                        + pathWaypointsAlt, deeperContent fields
-│   │   └── branch_point.dart                  # BranchPoint, BranchOption (The Crossroads)
+│   │   ├── branch_point.dart                  # BranchPoint, BranchOption (The Crossroads)
+│   │   └── badge_definition.dart              # BadgeDefinition, BadgeTrigger (Sprint 28)
 │   │
 │   ├── data\
 │   │   ├── m1_data.dart                       # 36 events (Milestone 1) with branching
@@ -271,6 +272,7 @@ VO Rules:
 | `journey_current_order` | int | 1 | Next event to complete |
 | `journey_completed_prefix_N` | bool | false | Per-event completion flag |
 | `hotspot_progress_EVENT_ID` | StringList | [] | Saved discovered hotspot IDs |
+| `earned_badges` | StringList | [] | Badge IDs the user has earned |
 
 ---
 
@@ -293,4 +295,9 @@ for linear events. Verified by 5 unit tests in `branching_test.dart`.
 | 21-24 | Branching system (Gate → Crossroads → Paths → Gathering → Verdict) |
 | 25 | Go Deeper + transition polish + language fix |
 | 26 | Round 3 fixes (6 bugs) |
-| 27+ | UI fixes, VO timing, event list redesign, critical flow fix |
+| 27 | UI fixes, VO timing, event list redesign, critical flow fix, collapsible eras |
+| 28 | Badge data model + definitions (7 badges) |
+| 29 | XP count-up animation (star pop, particle burst, total line) |
+| 30 | Badge overlay + completion flow wiring |
+| 31 | Badges on settings/profile screen |
+| 32 | Hotspot visibility enhancement |

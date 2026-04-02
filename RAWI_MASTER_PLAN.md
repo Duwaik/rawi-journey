@@ -394,7 +394,7 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 - **Screens built:** Splash, intro cinematic, registration (4-step), event list (timeline), cinematic transition, immersive event (branching + linear), flat event, settings (page + overlay), era complete, tutorial
 - **Event list:** Timeline journey view with chapter headers, gold thread, progress dots
 - **Testing:** 3 rounds, 31+ bugs fixed, 5 branching safety tests
-- **Frameworks ready:** Go Deeper (content pending), Collections (metadata pending)
+- **Frameworks ready:** Go Deeper (content pending), Collections (metadata pending), Badges (Sprints 28-31)
 
 ### MVP (v0.6) — See `MVP_PLAN.md`
 3 fully playable branching events + complete gaming UX + VO + RTL
