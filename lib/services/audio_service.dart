@@ -10,9 +10,9 @@ class AudioService {
   static AudioPlayer? _vo;
 
   /// Start looping an ambient audio asset at the given volume.
-  /// Skips playback if music is disabled in preferences.
+  /// Ambient audio disabled — will be reimplemented with better approach.
   static Future<void> playAmbient(String assetPath, {double volume = 0.3}) async {
-    if (!PrefsService.musicEnabled) return;
+    return; // Disabled: ambient loop was annoying per user feedback
     await stopAmbient();
     _ambient = AudioPlayer();
     try {
