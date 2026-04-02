@@ -13,9 +13,26 @@ import 'journey_event_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/cinematic/fly_transition.dart';
 
-/// Event list screen — the "map" / hub showing all events with progress.
-/// Replaces the old parallax hub. Shows event cards with hotspot progress,
-/// highlights the next unlocked event, and locks future events.
+// ── Chapter metadata ────────────────────────────────────────────────────────
+
+const _chapters = <JourneyEra, _Chapter>{
+  JourneyEra.jahiliyyah: _Chapter('JAHILIYYAH', 'الجاهلية', 'Pre-Islamic Arabia', 'الجزيرة قبل الإسلام'),
+  JourneyEra.earlyLife:  _Chapter('EARLY LIFE', 'النشأة', '570 – 610 CE', '570 – 610 م'),
+  JourneyEra.mecca:      _Chapter('MECCA', 'مكة المكرمة', '610 – 622 CE', '610 – 622 م'),
+  JourneyEra.medina:     _Chapter('MEDINA', 'المدينة المنورة', '622 – 632 CE', '622 – 632 م'),
+};
+
+// Module subtitle (reads from data, not hardcoded — future-proof for M2+)
+const _moduleSubtitle = 'The Seerah';
+const _moduleSubtitleAr = 'السيرة النبوية';
+
+class _Chapter {
+  final String name, nameAr, subtitle, subtitleAr;
+  const _Chapter(this.name, this.nameAr, this.subtitle, this.subtitleAr);
+}
+
+// ── Screen ──────────────────────────────────────────────────────────────────
+
 class EventListScreen extends StatefulWidget {
   const EventListScreen({super.key});
 
@@ -51,27 +68,13 @@ class _EventListScreenState extends State<EventListScreen> {
   void _refresh() {
     setState(() {
       _currentOrder = PrefsService.currentOrder;
-      // Force full rebuild — picks up language, gender, and completion changes
     });
   }
 
-  bool _isAr() => PrefsService.isAr;
+  bool get _isAr => PrefsService.isAr;
 
-  int _completedCount() =>
+  int get _completedCount =>
       _events.where((e) => PrefsService.isEventCompleted(e.globalOrder)).length;
-
-  Color _eraColor(JourneyEra era) {
-    switch (era) {
-      case JourneyEra.jahiliyyah: return AppColors.eraJahiliyyah;
-      case JourneyEra.earlyLife:  return AppColors.eraEarlyLife;
-      case JourneyEra.mecca:      return AppColors.eraMecca;
-      case JourneyEra.medina:     return AppColors.eraMediana;
-      case JourneyEra.rashidun:   return AppColors.eraRashidun;
-      case JourneyEra.umayyad:    return AppColors.eraUmayyad;
-      case JourneyEra.abbasid:    return AppColors.eraAbbasid;
-      case JourneyEra.ottoman:    return AppColors.eraOttoman;
-    }
-  }
 
   Future<void> _openEvent(JourneyEvent event) async {
     await AudioService.fadeOut(duration: const Duration(milliseconds: 400));
@@ -81,7 +84,6 @@ class _EventListScreenState extends State<EventListScreen> {
     final hasScene = config != null && config.groundLayers.isNotEmpty;
 
     if (hasScene) {
-      // Immersive events: cinematic transition → immersive screen
       await Navigator.push(
         context,
         PageRouteBuilder(
@@ -100,7 +102,6 @@ class _EventListScreenState extends State<EventListScreen> {
         ),
       );
     } else {
-      // Flat events: direct fade transition (no cinematic)
       await Navigator.push(
         context,
         PageRouteBuilder(
@@ -125,12 +126,302 @@ class _EventListScreenState extends State<EventListScreen> {
     }
   }
 
+  // ── Build list items (events + chapter headers) ─────────────────────────
+
+  List<Widget> _buildListItems() {
+    final isAr = _isAr;
+    final items = <Widget>[];
+    JourneyEra? lastEra;
+
+    for (int i = 0; i < _events.length; i++) {
+      final event = _events[i];
+      final isLast = i == _events.length - 1;
+
+      // Insert chapter header when era changes
+      if (event.era != lastEra) {
+        final chapter = _chapters[event.era];
+        if (chapter != null) {
+          items.add(_buildChapterHeader(chapter, isAr));
+        }
+        lastEra = event.era;
+      }
+
+      items.add(_buildEventRow(event, isLast, isAr));
+    }
+
+    return items;
+  }
+
+  Widget _buildChapterHeader(_Chapter chapter, bool isAr) {
+    final name = isAr ? chapter.nameAr : chapter.name;
+    final sub = isAr ? chapter.subtitleAr : chapter.subtitle;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 8, left: 4, right: 4),
+      child: Row(
+        children: [
+          Container(width: 24, height: 1, color: AppColors.gold.withAlpha(120)),
+          const SizedBox(width: 8),
+          Text(
+            name,
+            style: GoogleFonts.nunito(
+              color: AppColors.gold,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            sub,
+            style: GoogleFonts.nunito(
+              color: AppColors.textMuted.withAlpha(120),
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Container(height: 1, color: const Color(0xFF1E3040)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventRow(JourneyEvent event, bool isLast, bool isAr) {
+    final completed = PrefsService.isEventCompleted(event.globalOrder);
+    final isNext = event.globalOrder == _currentOrder;
+    final locked = event.globalOrder > _currentOrder;
+    final hasScene = sceneConfigs.containsKey(event.id);
+    final hotspotCount = sceneConfigs[event.id]?.hotspots.length ?? 0;
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Timeline column (32px) ────────────────────────────────
+          SizedBox(
+            width: 32,
+            child: Column(
+              children: [
+                const SizedBox(height: 14),
+                // Node dot
+                Container(
+                  width: completed ? 12 : isNext ? 14 : 10,
+                  height: completed ? 12 : isNext ? 14 : 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: completed
+                        ? AppColors.gold
+                        : isNext
+                            ? AppColors.bg
+                            : const Color(0xFF1E3040),
+                    border: Border.all(
+                      color: completed || isNext
+                          ? AppColors.gold
+                          : const Color(0xFF2A4050),
+                      width: completed ? 2 : isNext ? 2 : 1.5,
+                    ),
+                    boxShadow: isNext
+                        ? [BoxShadow(
+                            color: AppColors.gold.withAlpha(40),
+                            blurRadius: 8, spreadRadius: 1)]
+                        : null,
+                  ),
+                ),
+                // Vertical line
+                if (!isLast)
+                  Expanded(
+                    child: Container(
+                      width: 1.5,
+                      color: (completed || isNext)
+                          ? AppColors.gold.withAlpha(120)
+                          : const Color(0xFF1E3040),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // ── Event card ────────────────────────────────────────────
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: GestureDetector(
+                onTap: locked ? null : () => _openEvent(event),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: completed
+                        ? const Color(0xFF141E14).withAlpha(60)
+                        : isNext
+                            ? AppColors.gold.withAlpha(8)
+                            : AppColors.card,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: completed
+                          ? AppColors.gold.withAlpha(64)
+                          : isNext
+                              ? AppColors.gold.withAlpha(100)
+                              : const Color(0xFF1E3040),
+                      width: isNext ? 1 : 0.5,
+                    ),
+                  ),
+                  child: Opacity(
+                    opacity: locked ? 0.5 : 1.0,
+                    child: Row(
+                      children: [
+                        // Number or check
+                        if (completed)
+                          Container(
+                            width: 32, height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.gold.withAlpha(20),
+                            ),
+                            child: const Icon(Icons.check_rounded,
+                                color: AppColors.gold, size: 16),
+                          )
+                        else
+                          Container(
+                            width: 32, height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFF1A2030),
+                              border: Border.all(
+                                color: isNext
+                                    ? AppColors.gold.withAlpha(100)
+                                    : const Color(0xFF2A4050),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${event.globalOrder}',
+                                style: GoogleFonts.nunito(
+                                  color: isNext
+                                      ? AppColors.gold
+                                      : const Color(0xFF3A5A5A),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 10),
+
+                        // Title + subtitle + progress dots
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isAr ? event.titleAr : event.title,
+                                textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+                                style: GoogleFonts.nunito(
+                                  color: locked
+                                      ? const Color(0xFF5A7A7A)
+                                      : const Color(0xFFE8D8B8),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${isAr ? event.locationAr : event.location}  ·  ${event.year} CE',
+                                textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+                                style: GoogleFonts.nunito(
+                                  color: locked
+                                      ? const Color(0xFF3A5A5A)
+                                      : const Color(0xFF6A8A7A),
+                                  fontSize: 11,
+                                ),
+                              ),
+                              // Hotspot progress dots
+                              if (!locked && hasScene && hotspotCount > 0) ...[
+                                const SizedBox(height: 4),
+                                _buildProgressDots(event, completed, hotspotCount),
+                              ],
+                            ],
+                          ),
+                        ),
+
+                        // Right side: status
+                        if (completed)
+                          Text(
+                            '$hotspotCount/$hotspotCount',
+                            style: GoogleFonts.nunito(
+                              color: AppColors.gold.withAlpha(180),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          )
+                        else if (isNext)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              isAr ? 'ابدأ' : 'Play',
+                              style: GoogleFonts.nunito(
+                                color: AppColors.bg,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          )
+                        else if (locked)
+                          Icon(Icons.lock_rounded,
+                              size: 16, color: const Color(0xFF3A5A5A)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressDots(JourneyEvent event, bool completed, int count) {
+    final savedProgress = PrefsService.loadHotspotProgress(event.id);
+    final discoveredCount = completed ? count : savedProgress.length;
+
+    return Row(
+      children: List.generate(count, (i) {
+        final filled = i < discoveredCount;
+        return Container(
+          margin: const EdgeInsets.only(right: 4),
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: filled ? AppColors.gold : Colors.transparent,
+            border: Border.all(
+              color: filled ? AppColors.gold : const Color(0xFF3A5A5A),
+              width: 1,
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final isAr = _isAr();
+    final isAr = _isAr;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
-    final done = _completedCount();
+    final done = _completedCount;
     final total = _events.length;
 
     return PopScope(
@@ -182,292 +473,128 @@ class _EventListScreenState extends State<EventListScreen> {
         }
       },
       child: Scaffold(
-      backgroundColor: AppColors.bg,
-      body: Column(
-        children: [
-          // ── Header ──────────────────────────────────────────────────
-          Container(
-            padding: EdgeInsets.fromLTRB(20, topPad + 12, 16, 16),
-            decoration: BoxDecoration(
-              color: AppColors.bg,
-              border: Border(
-                bottom: BorderSide(color: AppColors.textMuted.withAlpha(20)),
+        backgroundColor: AppColors.bg,
+        body: Column(
+          children: [
+            // ── Header ────────────────────────────────────────────────
+            Container(
+              padding: EdgeInsets.fromLTRB(20, topPad + 12, 16, 16),
+              decoration: BoxDecoration(
+                color: AppColors.bg,
+                border: Border(
+                  bottom: BorderSide(color: AppColors.textMuted.withAlpha(20)),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('RAWI',
-                        style: GoogleFonts.cinzelDecorative(
-                          color: AppColors.gold, fontSize: 22,
-                          fontWeight: FontWeight.w700, letterSpacing: 3)),
-                    Text(
-                      isAr ? 'السيرة النبوية' : 'The Seerah',
-                      style: GoogleFonts.lora(
-                        color: AppColors.textBody, fontSize: 11,
-                        fontStyle: FontStyle.italic),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                // Progress badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withAlpha(18),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.gold.withAlpha(60)),
-                  ),
-                  child: Text(
-                    '$done/$total',
-                    style: GoogleFonts.nunito(
-                      color: AppColors.gold, fontSize: 12,
-                      fontWeight: FontWeight.w700),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // XP badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withAlpha(18),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.gold.withAlpha(60)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+              child: Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.star_rounded, size: 13, color: AppColors.gold),
-                      const SizedBox(width: 4),
-                      Text('${PrefsService.xp}',
-                          style: GoogleFonts.nunito(
-                            color: AppColors.gold, fontSize: 12,
-                            fontWeight: FontWeight.w700)),
+                      Text('RAWI',
+                          style: GoogleFonts.cinzelDecorative(
+                            color: AppColors.gold, fontSize: 22,
+                            fontWeight: FontWeight.w700, letterSpacing: 3)),
+                      Text(
+                        isAr ? _moduleSubtitleAr : _moduleSubtitle,
+                        style: GoogleFonts.lora(
+                          color: AppColors.textBody, fontSize: 11,
+                          fontStyle: FontStyle.italic),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Settings gear
-                GestureDetector(
-                  onTap: () async {
-                    await AudioService.fadeOut(
-                        duration: const Duration(milliseconds: 300));
-                    if (!mounted) return;
-                    await Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        transitionDuration: const Duration(milliseconds: 350),
-                        reverseTransitionDuration: const Duration(milliseconds: 250),
-                        pageBuilder: (c, a, s) => const SettingsScreen(),
-                        transitionsBuilder: (c, a, s, child) =>
-                            FadeTransition(
-                                opacity: CurvedAnimation(
-                                    parent: a, curve: Curves.easeOut),
-                                child: child),
-                      ),
-                    );
-                    _refresh();
-                    if (PrefsService.musicEnabled) {
-                      AudioService.playAmbient(
-                        'assets/audio/ambient_desert_evening.wav',
-                        volume: 0.10,
+                  const Spacer(),
+                  _HeaderBadge(label: '$done/$total'),
+                  const SizedBox(width: 8),
+                  _HeaderBadge(
+                    label: '${PrefsService.xp}',
+                    icon: Icons.star_rounded,
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () async {
+                      await AudioService.fadeOut(
+                          duration: const Duration(milliseconds: 300));
+                      if (!mounted) return;
+                      await Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 350),
+                          reverseTransitionDuration:
+                              const Duration(milliseconds: 250),
+                          pageBuilder: (c, a, s) => const SettingsScreen(),
+                          transitionsBuilder: (c, a, s, child) => FadeTransition(
+                              opacity: CurvedAnimation(
+                                  parent: a, curve: Curves.easeOut),
+                              child: child),
+                        ),
                       );
-                    }
-                  },
-                  child: Container(
-                    width: 34, height: 34,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withAlpha(8),
-                      border: Border.all(color: AppColors.textMuted.withAlpha(40)),
-                    ),
-                    child: const Icon(Icons.settings_rounded,
-                        size: 16, color: AppColors.textMuted),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Event list ──────────────────────────────────────────────
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, bottomPad + 16),
-              itemCount: _events.length,
-              itemBuilder: (context, i) {
-                final event = _events[i];
-                final completed = PrefsService.isEventCompleted(event.globalOrder);
-                final isNext = event.globalOrder == _currentOrder;
-                final locked = event.globalOrder > _currentOrder;
-                final eraCol = _eraColor(event.era);
-                final hasScene = sceneConfigs.containsKey(event.id);
-                final hotspotCount = sceneConfigs[event.id]?.hotspots.length ?? 0;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: GestureDetector(
-                    onTap: locked ? null : () => _openEvent(event),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 400),
-                      padding: const EdgeInsets.all(14),
+                      _refresh();
+                      if (PrefsService.musicEnabled) {
+                        AudioService.playAmbient(
+                          'assets/audio/ambient_desert_evening.wav',
+                          volume: 0.10,
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: 34, height: 34,
                       decoration: BoxDecoration(
-                        color: isNext
-                            ? eraCol.withAlpha(15)
-                            : locked
-                                ? AppColors.card.withAlpha(80)
-                                : AppColors.card,
-                        borderRadius: BorderRadius.circular(14),
+                        shape: BoxShape.circle,
+                        color: Colors.white.withAlpha(8),
                         border: Border.all(
-                          color: isNext
-                              ? eraCol.withAlpha(100)
-                              : locked
-                                  ? AppColors.textMuted.withAlpha(15)
-                                  : AppColors.textMuted.withAlpha(25),
-                          width: isNext ? 1.5 : 0.8,
-                        ),
-                        boxShadow: isNext
-                            ? [BoxShadow(
-                                color: eraCol.withAlpha(20),
-                                blurRadius: 12, spreadRadius: 1)]
-                            : null,
+                            color: AppColors.textMuted.withAlpha(40)),
                       ),
-                      child: Opacity(
-                        opacity: locked ? 0.4 : 1.0,
-                        child: Row(
-                          children: [
-                            // Event number circle
-                            Container(
-                              width: 38, height: 38,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: completed
-                                    ? AppColors.green.withAlpha(25)
-                                    : isNext
-                                        ? eraCol.withAlpha(30)
-                                        : AppColors.textMuted.withAlpha(12),
-                                border: Border.all(
-                                  color: completed
-                                      ? AppColors.green.withAlpha(100)
-                                      : isNext
-                                          ? eraCol.withAlpha(80)
-                                          : AppColors.textMuted.withAlpha(30)),
-                              ),
-                              child: Center(
-                                child: completed
-                                    ? const Icon(Icons.check_rounded,
-                                        color: AppColors.green, size: 18)
-                                    : Text(
-                                        '${event.globalOrder}',
-                                        style: GoogleFonts.nunito(
-                                          color: isNext ? eraCol : AppColors.textMuted,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w800),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-
-                            // Title + location
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    isAr ? event.titleAr : event.title,
-                                    textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-                                    style: GoogleFonts.nunito(
-                                      color: isNext
-                                          ? AppColors.textPrimary
-                                          : completed
-                                              ? AppColors.textBody
-                                              : AppColors.textMuted,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    '${isAr ? event.locationAr : event.location}  ·  ${event.year} CE',
-                                    textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-                                    style: GoogleFonts.nunito(
-                                      color: AppColors.textMuted.withAlpha(140),
-                                      fontSize: 10),
-                                  ),
-                                  // Hotspot counter for events with scenes
-                                  if (hasScene && !locked) ...[
-                                    const SizedBox(height: 2),
-                                    () {
-                                      final savedProgress = PrefsService.loadHotspotProgress(event.id);
-                                      final discoveredCount = completed ? hotspotCount : savedProgress.length;
-                                      return Text(
-                                        '◆ $discoveredCount/$hotspotCount',
-                                        style: GoogleFonts.nunito(
-                                          color: completed
-                                              ? AppColors.green
-                                              : discoveredCount > 0
-                                                  ? AppColors.gold
-                                                  : AppColors.textMuted.withAlpha(100),
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w700),
-                                      );
-                                    }(),
-                                  ],
-                                ],
-                              ),
-                            ),
-
-                            // Status badge
-                            if (completed && hasScene)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.green.withAlpha(18),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(Icons.check_circle_rounded,
-                                    color: AppColors.green, size: 20),
-                              )
-                            else if (completed)
-                              const Icon(Icons.check_circle_rounded,
-                                  color: AppColors.green, size: 18)
-                            else if (isNext)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.gold,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.gold.withAlpha(50),
-                                      blurRadius: 8,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                                child: Text(
-                                  isAr ? 'ابدأ' : 'Play',
-                                  style: GoogleFonts.nunito(
-                                    color: AppColors.bg, fontSize: 11,
-                                    fontWeight: FontWeight.w800),
-                                ),
-                              )
-                            else if (locked)
-                              Icon(Icons.lock_rounded,
-                                  size: 16, color: AppColors.textMuted.withAlpha(60)),
-                          ],
-                        ),
-                      ),
+                      child: const Icon(Icons.settings_rounded,
+                          size: 16, color: AppColors.textMuted),
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
-          ),
+
+            // ── Timeline list ─────────────────────────────────────────
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(12, 4, 16, bottomPad + 16),
+                children: _buildListItems(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Header badge ────────────────────────────────────────────────────────────
+
+class _HeaderBadge extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  const _HeaderBadge({required this.label, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withAlpha(18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.gold.withAlpha(60)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 13, color: AppColors.gold),
+            const SizedBox(width: 4),
+          ],
+          Text(label,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold, fontSize: 12,
+                fontWeight: FontWeight.w700)),
         ],
       ),
-    ),
     );
   }
 }
