@@ -389,7 +389,7 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 - **Scene configs:** 3 complete (Events 1-3) with alt paths for branching
 - **Branching system:** Gate → Crossroads → Paths → Gathering → Verdict
 - **Images:** 16 scene/bubble JPGs, 4 companion figures, 1 app icon
-- **Audio:** 150 files (14 WAV SFX + 84 VO MP3 + 52 companion MP3)
+- **Audio:** 150 files (14 WAV SFX + 84 VO MP3 + 52 companion MP3). Ambient loop DISABLED (annoying per tester) — will redesign.
 - **VO voices:** Syrian Arabic (`ar-SY-LaithNeural`/`AmanyNeural`) + British English (`en-GB-RyanNeural`/`SoniaNeural`)
 - **Screens built:** Splash, intro cinematic, registration (4-step), event list (timeline), cinematic transition, immersive event (branching + linear), flat event, settings (page + overlay), era complete, tutorial
 - **Event list:** Timeline journey view with chapter headers, gold thread, progress dots

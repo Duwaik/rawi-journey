@@ -229,10 +229,10 @@ In-Game (Immersive)
 ## Audio Architecture
 
 ```
-Layer 1 — Ambient (looping)
-  Volume: 0.10-0.25 (ducks to 0.06-0.08 during VO)
-  Respects: PrefsService.musicEnabled
-  Stops: on pause, settings, app background
+Layer 1 — Ambient (DISABLED — will reimagine)
+  playAmbient() returns immediately. Looping desert ambient was
+  reported annoying. All call sites preserved for future re-enable.
+  Plan: short atmospheric stings on scene load, not continuous loop.
 
 Layer 2 — Voice Over (one-shot)
   Volume: 0.6-0.7

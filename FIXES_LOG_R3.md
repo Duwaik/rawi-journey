@@ -72,3 +72,11 @@ Root cause likely: `_completeAndReturn()` either isn't being called, or the pop 
 | POST-8 | **Event list timeline redesign** | Chapter headers, gold timeline thread, progress dots, card visual states. |
 | POST-9 | **CRITICAL: Completion flow fix** | Deleted auto-pop timer. Manual "Continue Journey" button. Await all writes. Back blocked during Verdict. XP badge in-card. |
 | POST-10 | **Terminology update** | Gate, Crossroads, Paths, Gathering, Verdict, Reflection — everywhere. |
+| POST-11 | **pushReplacement fix** | Root cause of stale events list — push+await+pop chain instead of pushReplacement. |
+| POST-12 | **VO buttons split** | Replay (🔄) + mute (🔇) instead of single confusing speaker icon. |
+| POST-13 | **Collapsible eras** | Only active era expanded by default. Tap header to toggle. |
+| POST-14 | **Card overflow fix** | Event 3 two-line title overflow — Row crossAxisAlignment.start. |
+| POST-15 | **XP animation** | Star pop, count-up tween, particle burst, total XP line, delayed Continue. |
+| POST-16 | **Badge system** | 7 badges, BadgeDefinition model, checkAndAwardBadges, badge overlay, profile grid. |
+| POST-17 | **Hotspot visibility** | Dark backing on all states, gold outline ring, stronger glow. |
+| POST-18 | **Ambient audio disabled** | Looping desert ambient reported annoying. Will redesign. |
