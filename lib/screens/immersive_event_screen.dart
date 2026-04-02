@@ -45,7 +45,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _alreadyCompleted = false;
   bool _showSettings = false;
   bool _showTutorial = false;
-  bool _showChoiceTutorial = false;
+  // _showChoiceTutorial removed — Crossroads is self-explanatory
   bool _isCompleting = false;
 
   late final SceneConfig _scene;
@@ -643,16 +643,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         _branchChoice == null) {
       // The Gate just dismissed — show The Crossroads
       setState(() => _showBranchCard = true);
-      // Show choice tutorial on FIRST branch card (not convergence)
-      if (!PrefsService.isChoiceTutorialSeen) {
-        setState(() => _showChoiceTutorial = true);
-      }
       // Rule 3: Branch card VO starts 600ms after card shows
       final branchVoPath = _choiceVoPath('branch');
       if (branchVoPath != null) {
         Future.delayed(const Duration(milliseconds: 600), () {
-          if (mounted && _showBranchCard && !_showChoiceTutorial) {
-            AudioService.stopVoiceover(); // Rule 1: stop previous
+          if (mounted && _showBranchCard) {
+            AudioService.stopVoiceover();
             AudioService.playVoiceover(branchVoPath);
           }
         });
@@ -681,9 +677,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           if (mounted) {
             setState(() => _phase = _Phase.choose);
             _phaseCtrl.forward();
-            if (!PrefsService.isChoiceTutorialSeen) {
-              setState(() => _showChoiceTutorial = true);
-            }
             _playChoiceVo('q');
           }
         });
@@ -1053,88 +1046,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── Choice tutorial (first choice phase only) ─────────────
-          if (_showChoiceTutorial)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  PrefsService.setChoiceTutorialSeen();
-                  setState(() => _showChoiceTutorial = false);
-                  // Now play branch VO since tutorial is dismissed
-                  if (_showBranchCard) {
-                    final branchVoPath = _choiceVoPath('branch');
-                    if (branchVoPath != null) {
-                      Future.delayed(const Duration(milliseconds: 400), () {
-                        if (mounted && _showBranchCard) {
-                          AudioService.playVoiceover(branchVoPath);
-                        }
-                      });
-                    }
-                  }
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  color: Colors.black.withAlpha(180),
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 64, height: 64,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.gold.withAlpha(25),
-                              border: Border.all(
-                                  color: AppColors.gold.withAlpha(80), width: 2),
-                            ),
-                            child: const Icon(Icons.help_outline_rounded,
-                                size: 28, color: AppColors.gold),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            _isAr
-                                ? 'مفترق الطرق'
-                                : 'The Crossroads',
-                            textAlign: TextAlign.center,
-                            textDirection:
-                                _isAr ? TextDirection.rtl : TextDirection.ltr,
-                            style: GoogleFonts.cinzelDecorative(
-                              fontSize: 18,
-                              color: AppColors.gold,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _isAr
-                                ? 'لقد شهدت ما حدث. الآن اختر طريقك — كل مسار يكشف منظوراً مختلفاً لنفس الحقيقة.'
-                                : 'You have witnessed what happened. Now choose your path — each direction reveals a different perspective of the same truth.',
-                            textAlign: TextAlign.center,
-                            textDirection:
-                                _isAr ? TextDirection.rtl : TextDirection.ltr,
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              color: AppColors.textBody,
-                              height: 1.6,
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          Text(
-                            _isAr ? 'انقر للمتابعة' : 'Tap to continue',
-                            style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              color: AppColors.textMuted.withAlpha(140),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          // Crossroads tutorial removed — card is self-explanatory
         ],
       ),
     ),
@@ -1152,11 +1064,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     final options = _isAr ? q.optionsAr : q.options;
     final explanation = _isAr ? q.explanationAr : q.explanation;
     final answered = _answers[0] != null;
-    final isCorrect = _answers[0] == q.correctIndex;
 
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withAlpha(160),
+        color: Colors.black.withAlpha(180), // Deeper dim — scene holds its breath
         child: Center(
           child: Container(
             margin: EdgeInsets.fromLTRB(16, 60, 16, bottomPad + 16),
@@ -1164,13 +1075,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               maxHeight: MediaQuery.of(context).size.height * 0.8,
             ),
             decoration: BoxDecoration(
-              color: AppColors.bg.withAlpha(245),
+              color: const Color(0xFF0A0E14).withAlpha(250),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _eraColor.withAlpha(80), width: 1.5),
+              border: Border.all(
+                color: AppColors.gold.withAlpha(100), // Gold border — cinematic
+                width: 1.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: _eraColor.withAlpha(20),
-                  blurRadius: 20,
+                  color: AppColors.gold.withAlpha(25),
+                  blurRadius: 24,
                   spreadRadius: 2,
                 ),
               ],
@@ -1236,21 +1150,21 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     final isCorrectOpt = i == q.correctIndex;
                     Color borderColor, bgColor, textColor;
                     if (!answered) {
-                      borderColor = AppColors.gold.withAlpha(50);
-                      bgColor = AppColors.card.withAlpha(200);
+                      borderColor = AppColors.gold.withAlpha(76); // Gold at 30%
+                      bgColor = AppColors.gold.withAlpha(8);
                       textColor = AppColors.textPrimary;
                     } else if (isCorrectOpt) {
-                      borderColor = _eraColor;
-                      bgColor = _eraColor.withAlpha(22);
+                      borderColor = AppColors.gold; // Full gold reveal
+                      bgColor = AppColors.gold.withAlpha(25);
                       textColor = AppColors.textPrimary;
                     } else if (isSelected) {
-                      borderColor = AppColors.divider.withAlpha(90);
+                      borderColor = AppColors.textMuted.withAlpha(40);
                       bgColor = AppColors.bg;
-                      textColor = AppColors.textMuted;
+                      textColor = AppColors.textMuted.withAlpha(120);
                     } else {
-                      borderColor = AppColors.divider.withAlpha(60);
+                      borderColor = AppColors.textMuted.withAlpha(20);
                       bgColor = AppColors.bg;
-                      textColor = AppColors.textMuted.withAlpha(140);
+                      textColor = AppColors.textMuted.withAlpha(100);
                     }
                     return GestureDetector(
                       onTap: () => _selectChoice(0, i),
@@ -1282,7 +1196,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
                                 child: Icon(Icons.check_circle_rounded,
-                                    color: _eraColor, size: 18),
+                                    color: AppColors.gold, size: 18),
                               ),
                           ],
                         ),
@@ -1298,10 +1212,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: isCorrect ? _eraColor.withAlpha(14) : AppColors.card,
+                          color: AppColors.gold.withAlpha(10),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: isCorrect ? _eraColor.withAlpha(80) : AppColors.divider,
+                            color: AppColors.gold.withAlpha(50),
                           ),
                         ),
                         child: Column(

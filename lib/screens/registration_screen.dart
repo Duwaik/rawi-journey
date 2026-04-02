@@ -345,79 +345,132 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   // ── Page 4: Milestone Preview ───────────────────────────────────────────
 
+  // Chapter data for cinematic preview
+  static const _chapterData = <_ChapterInfo>[
+    _ChapterInfo('JAHILIYYAH', 'الجاهلية', 'Pre-Islamic Arabia', 'الجزيرة قبل الإسلام', 3, true),
+    _ChapterInfo('EARLY LIFE', 'النشأة', 'The Prophetic Childhood', 'الطفولة النبوية', 8, false),
+    _ChapterInfo('MECCA', 'مكة المكرمة', 'The Call and the Struggle', 'الدعوة والابتلاء', 11, false),
+    _ChapterInfo('MEDINA', 'المدينة المنورة', 'The Community and the Victory', 'المجتمع والنصر', 14, false),
+  ];
+
   Widget _buildMilestonePage(bool isAr) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+    return Container(
+      color: Colors.black,
       child: Column(
         children: [
           const Spacer(flex: 2),
-          Text(
-            isAr
-                ? 'رحلتك عبر أربعة فصول'
-                : 'Your journey spans four chapters',
-            textAlign: TextAlign.center,
-            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-            style: GoogleFonts.cinzelDecorative(
-              fontSize: 20,
-              color: AppColors.gold,
-              height: 1.5,
+
+          // Title
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              isAr
+                  ? 'رحلتك عبر أربعة فصول'
+                  : 'Your journey spans four chapters',
+              textAlign: TextAlign.center,
+              textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.cinzelDecorative(
+                fontSize: 20,
+                color: AppColors.gold,
+                height: 1.5,
+              ),
             ),
           ),
-          const SizedBox(height: 32),
-
-          _MilestoneCard(
-            number: '01',
-            title: 'The Prophetic Dawn',
-            titleAr: 'فجر النبوة',
-            events: 47,
-            active: true,
-          ),
-          const SizedBox(height: 10),
-          _MilestoneCard(
-            number: '02',
-            title: 'The Community Rises',
-            titleAr: 'نهوض الأمة',
-            events: 35,
-            active: false,
-          ),
-          const SizedBox(height: 10),
-          _MilestoneCard(
-            number: '03',
-            title: 'The Turning Tide',
-            titleAr: 'تحوّل المسار',
-            events: 38,
-            active: false,
-          ),
-          const SizedBox(height: 10),
-          _MilestoneCard(
-            number: '04',
-            title: 'The Final Chapter',
-            titleAr: 'الفصل الأخير',
-            events: 35,
-            active: false,
+          const SizedBox(height: 8),
+          Text(
+            isAr ? '36 حدثاً عبر السيرة النبوية' : '36 events across the Prophetic era',
+            style: GoogleFonts.nunito(
+              color: AppColors.textMuted.withAlpha(120),
+              fontSize: 12,
+            ),
           ),
 
-          const SizedBox(height: 36),
+          const SizedBox(height: 28),
 
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
-              onPressed: _finish,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gold,
-                foregroundColor: AppColors.bg,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+          // Chapters — cinematic text blocks
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              children: [
+                for (final ch in _chapterData) ...[
+                  // Gold separator
+                  Container(
+                    width: double.infinity,
+                    height: 1,
+                    color: AppColors.gold.withAlpha(ch.active ? 80 : 30),
+                  ),
+                  const SizedBox(height: 14),
+                  // Chapter block
+                  Opacity(
+                    opacity: ch.active ? 1.0 : 0.45,
+                    child: Column(
+                      children: [
+                        Text(
+                          isAr ? ch.nameAr : ch.name,
+                          style: GoogleFonts.nunito(
+                            color: AppColors.gold,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          isAr ? ch.subtitleAr : ch.subtitle,
+                          style: GoogleFonts.lora(
+                            color: const Color(0xFFD6CCBE),
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          isAr ? '${ch.eventCount} أحداث' : '${ch.eventCount} events',
+                          style: GoogleFonts.nunito(
+                            color: AppColors.textMuted.withAlpha(100),
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                // Final separator
+                Container(
+                  width: double.infinity,
+                  height: 1,
+                  color: AppColors.gold.withAlpha(30),
                 ),
-                elevation: 0,
-              ),
-              child: Text(
-                isAr ? 'ابدأ الرحلة  ←' : 'Start the Journey  →',
-                style: GoogleFonts.nunito(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
+              ],
+            ),
+          ),
+
+          const Spacer(flex: 1),
+
+          // CTA
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: _finish,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.bg,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  isAr ? 'ابدأ الرحلة  ←' : 'Start the Journey  →',
+                  style: GoogleFonts.nunito(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
             ),
@@ -596,118 +649,9 @@ class _LanguageCard extends StatelessWidget {
   }
 }
 
-class _MilestoneCard extends StatelessWidget {
-  final String number;
-  final String title;
-  final String titleAr;
-  final int events;
+class _ChapterInfo {
+  final String name, nameAr, subtitle, subtitleAr;
+  final int eventCount;
   final bool active;
-
-  const _MilestoneCard({
-    required this.number,
-    required this.title,
-    required this.titleAr,
-    required this.events,
-    required this.active,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: active
-            ? AppColors.gold.withAlpha(18)
-            : Colors.white.withAlpha(6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: active
-              ? AppColors.gold.withAlpha(60)
-              : Colors.white.withAlpha(15),
-          width: active ? 1.5 : 0.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: active
-                  ? AppColors.gold.withAlpha(40)
-                  : Colors.white.withAlpha(8),
-              border: Border.all(
-                color: active
-                    ? AppColors.gold.withAlpha(120)
-                    : Colors.white.withAlpha(20),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                number,
-                style: GoogleFonts.nunito(
-                  color: active ? AppColors.gold : AppColors.textMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.nunito(
-                    color: active
-                        ? AppColors.textPrimary
-                        : AppColors.textMuted.withAlpha(140),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  titleAr,
-                  style: GoogleFonts.lora(
-                    color: active
-                        ? AppColors.gold.withAlpha(160)
-                        : AppColors.textMuted.withAlpha(80),
-                    fontSize: 11,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  textDirection: TextDirection.rtl,
-                ),
-              ],
-            ),
-          ),
-          if (active)
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withAlpha(25),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '$events events',
-                style: GoogleFonts.nunito(
-                  color: AppColors.gold,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            )
-          else
-            Icon(
-              Icons.lock_outline_rounded,
-              size: 16,
-              color: AppColors.textMuted.withAlpha(80),
-            ),
-        ],
-      ),
-    );
-  }
+  const _ChapterInfo(this.name, this.nameAr, this.subtitle, this.subtitleAr, this.eventCount, this.active);
 }

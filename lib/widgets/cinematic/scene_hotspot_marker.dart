@@ -117,6 +117,17 @@ class _SceneHotspotMarkerState extends State<SceneHotspotMarker>
                         },
                       ),
 
+                    // Dark backing circle for locked hotspots (contrast)
+                    if (locked)
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black.withAlpha(100),
+                        ),
+                      ),
+
                     // Core diamond — rotated square with icon
                     Transform.rotate(
                       angle: 0.7854,
