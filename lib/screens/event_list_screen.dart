@@ -311,7 +311,9 @@ class _EventListScreenState extends State<EventListScreen> {
                   child: Opacity(
                     opacity: locked ? 0.5 : 1.0,
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(height: 4),
                         // Number or check
                         if (completed)
                           Container(
