@@ -117,16 +117,19 @@ class _SceneHotspotMarkerState extends State<SceneHotspotMarker>
                         },
                       ),
 
-                    // Dark backing circle for locked hotspots (contrast)
-                    if (locked)
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.black.withAlpha(100),
+                    // Dark backing circle (ALL states — guaranteed contrast)
+                    Container(
+                      width: locked ? 50 : 46,
+                      height: locked ? 50 : 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black.withAlpha(locked ? 130 : 80),
+                        border: Border.all(
+                          color: AppColors.gold.withAlpha(locked ? 30 : 50),
+                          width: 1,
                         ),
                       ),
+                    ),
 
                     // Core diamond — rotated square with icon
                     Transform.rotate(
@@ -138,33 +141,33 @@ class _SceneHotspotMarkerState extends State<SceneHotspotMarker>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
                           color: locked
-                              ? AppColors.textMuted.withAlpha(30)
+                              ? AppColors.textMuted.withAlpha(35)
                               : discovered
-                                  ? AppColors.gold.withAlpha(25)
-                                  : AppColors.gold.withAlpha(70),
+                                  ? AppColors.gold.withAlpha(30)
+                                  : AppColors.gold.withAlpha(80),
                           border: Border.all(
                             color: locked
-                                ? AppColors.textMuted.withAlpha(80)
+                                ? AppColors.gold.withAlpha(50)
                                 : discovered
-                                    ? AppColors.gold.withAlpha(80)
+                                    ? AppColors.gold.withAlpha(100)
                                     : AppColors.gold,
                             width: locked ? 1.5 : 2.0,
                           ),
                           boxShadow: locked
+                              ? null
+                              : discovered
                               ? [
                                   BoxShadow(
-                                    color: AppColors.textMuted.withAlpha(30),
+                                    color: AppColors.gold.withAlpha(30),
                                     blurRadius: 8,
                                     spreadRadius: 1,
                                   ),
                                 ]
-                              : discovered
-                              ? null
                               : [
                                   BoxShadow(
-                                    color: AppColors.gold.withAlpha(100),
-                                    blurRadius: 16,
-                                    spreadRadius: 4,
+                                    color: AppColors.gold.withAlpha(120),
+                                    blurRadius: 20,
+                                    spreadRadius: 5,
                                   ),
                                 ],
                         ),
