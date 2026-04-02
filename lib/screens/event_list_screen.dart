@@ -43,6 +43,15 @@ class EventListScreen extends StatefulWidget {
 class _EventListScreenState extends State<EventListScreen> {
   late List<JourneyEvent> _events;
   late int _currentOrder;
+  final Set<JourneyEra> _expandedEras = {};
+
+  JourneyEra? _activeEra() {
+    final activeEvent = _events.firstWhere(
+      (e) => e.globalOrder == _currentOrder,
+      orElse: () => _events.first,
+    );
+    return activeEvent.era;
+  }
 
   @override
   void initState() {
@@ -50,6 +59,9 @@ class _EventListScreenState extends State<EventListScreen> {
     _events = List.of(m1Events)
       ..sort((a, b) => a.globalOrder.compareTo(b.globalOrder));
     _currentOrder = PrefsService.currentOrder;
+    // Expand active era by default
+    final active = _activeEra();
+    if (active != null) _expandedEras.add(active);
 
     if (PrefsService.musicEnabled) {
       AudioService.playAmbient(
@@ -66,10 +78,11 @@ class _EventListScreenState extends State<EventListScreen> {
   }
 
   void _refresh() {
-    // Force full rebuild — re-read ALL prefs (currentOrder, completed flags, XP)
     setState(() {
       _currentOrder = PrefsService.currentOrder;
-      // setState triggers full rebuild — all cards re-read completion status
+      // Auto-expand the active era on refresh
+      final active = _activeEra();
+      if (active != null) _expandedEras.add(active);
     });
   }
 
@@ -146,49 +159,71 @@ class _EventListScreenState extends State<EventListScreen> {
       if (event.era != lastEra) {
         final chapter = _chapters[event.era];
         if (chapter != null) {
-          items.add(_buildChapterHeader(chapter, isAr));
+          items.add(_buildChapterHeader(chapter, event.era, isAr));
         }
         lastEra = event.era;
       }
 
-      items.add(_buildEventRow(event, isLast, isAr));
+      // Only show events if era is expanded
+      if (_expandedEras.contains(event.era)) {
+        items.add(_buildEventRow(event, isLast, isAr));
+      }
     }
 
     return items;
   }
 
-  Widget _buildChapterHeader(_Chapter chapter, bool isAr) {
+  Widget _buildChapterHeader(_Chapter chapter, JourneyEra era, bool isAr) {
     final name = isAr ? chapter.nameAr : chapter.name;
     final sub = isAr ? chapter.subtitleAr : chapter.subtitle;
+    final expanded = _expandedEras.contains(era);
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 8, left: 4, right: 4),
-      child: Row(
-        children: [
-          Container(width: 24, height: 1, color: AppColors.gold.withAlpha(120)),
-          const SizedBox(width: 8),
-          Text(
-            name,
-            style: GoogleFonts.nunito(
-              color: AppColors.gold,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.5,
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (expanded) {
+            _expandedEras.remove(era);
+          } else {
+            _expandedEras.add(era);
+          }
+        });
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 8, left: 4, right: 4),
+        child: Row(
+          children: [
+            Container(width: 24, height: 1, color: AppColors.gold.withAlpha(120)),
+            const SizedBox(width: 8),
+            Text(
+              name,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.5,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            sub,
-            style: GoogleFonts.nunito(
-              color: AppColors.textMuted.withAlpha(120),
-              fontSize: 10,
+            const SizedBox(width: 8),
+            Text(
+              sub,
+              style: GoogleFonts.nunito(
+                color: AppColors.textMuted.withAlpha(120),
+                fontSize: 10,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(height: 1, color: const Color(0xFF1E3040)),
-          ),
-        ],
+            const Spacer(),
+            AnimatedRotation(
+              turns: expanded ? 0.5 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              child: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 18,
+                color: AppColors.gold.withAlpha(expanded ? 180 : 80),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../services/audio_service.dart';
+import '../../services/prefs_service.dart';
 import 'go_deeper_section.dart';
 
 /// Slide-up panel showing a discovery fragment when a hotspot is tapped.
@@ -185,25 +186,56 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (widget.voPath != null)
+                        if (widget.voPath != null) ...[
+                          // Replay VO
                           GestureDetector(
                             onTap: () {
                               AudioService.stopVoiceover();
                               AudioService.playVoiceover(widget.voPath!);
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(8),
-                              margin: const EdgeInsets.only(right: 10),
+                              padding: const EdgeInsets.all(7),
+                              margin: const EdgeInsets.only(right: 6),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: AppColors.gold.withAlpha(25),
                                 border: Border.all(
                                     color: AppColors.gold.withAlpha(80)),
                               ),
-                              child: Icon(Icons.volume_up_rounded,
-                                  size: 16, color: AppColors.gold.withAlpha(200)),
+                              child: Icon(Icons.replay_rounded,
+                                  size: 14, color: AppColors.gold.withAlpha(200)),
                             ),
                           ),
+                          // Mute/unmute VO
+                          GestureDetector(
+                            onTap: () {
+                              if (PrefsService.voEnabled) {
+                                AudioService.stopVoiceover();
+                                PrefsService.setVoEnabled(false);
+                              } else {
+                                PrefsService.setVoEnabled(true);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(7),
+                              margin: const EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.gold.withAlpha(15),
+                                border: Border.all(
+                                    color: AppColors.gold.withAlpha(50)),
+                              ),
+                              child: Icon(
+                                PrefsService.voEnabled
+                                    ? Icons.volume_up_rounded
+                                    : Icons.volume_off_rounded,
+                                size: 14,
+                                color: PrefsService.voEnabled
+                                    ? AppColors.gold.withAlpha(180)
+                                    : AppColors.textMuted.withAlpha(120)),
+                            ),
+                          ),
+                        ],
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 8),

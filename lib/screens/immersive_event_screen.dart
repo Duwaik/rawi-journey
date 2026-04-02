@@ -1099,6 +1099,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     ),
                         ),
                       ),
+                      // Replay VO
                       GestureDetector(
                         onTap: () {
                           final path = _choiceVoPath(answered ? 'exp' : 'q');
@@ -1108,14 +1109,43 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(7),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppColors.gold.withAlpha(25),
                             border: Border.all(color: AppColors.gold.withAlpha(80)),
                           ),
-                          child: Icon(Icons.volume_up_rounded,
-                              size: 16, color: AppColors.gold.withAlpha(200)),
+                          child: Icon(Icons.replay_rounded,
+                              size: 14, color: AppColors.gold.withAlpha(200)),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      // Mute/unmute VO
+                      GestureDetector(
+                        onTap: () {
+                          if (PrefsService.voEnabled) {
+                            AudioService.stopVoiceover();
+                            PrefsService.setVoEnabled(false);
+                          } else {
+                            PrefsService.setVoEnabled(true);
+                          }
+                          setState(() {});
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.gold.withAlpha(15),
+                            border: Border.all(color: AppColors.gold.withAlpha(50)),
+                          ),
+                          child: Icon(
+                            PrefsService.voEnabled
+                                ? Icons.volume_up_rounded
+                                : Icons.volume_off_rounded,
+                            size: 14,
+                            color: PrefsService.voEnabled
+                                ? AppColors.gold.withAlpha(180)
+                                : AppColors.textMuted.withAlpha(120)),
                         ),
                       ),
                     ],
