@@ -215,6 +215,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                               } else {
                                 PrefsService.setVoEnabled(true);
                               }
+                              setState(() {}); // Rebuild to update icon
                             },
                             child: Container(
                               padding: const EdgeInsets.all(7),

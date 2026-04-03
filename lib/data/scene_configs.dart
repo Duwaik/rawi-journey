@@ -73,9 +73,9 @@ final Map<String, SceneConfig> sceneConfigs = {
     ],
     // Walking path: start bottom → merchants → Ka'bah → idols → poet
     pathWaypoints: const [
-      // Path A: Start → Ka'bah (anchor) → Merchants → Idols → Poet (convergence)
+      // Path A: Start → Ka'bah (GATE) → Merchants → Idols → Poet (GATHERING)
       Offset(0.50, 0.80),  // Start
-      Offset(0.50, 0.72),  // Walk up
+      Offset(0.47, 0.72),  // Walk up-left (curve)
       Offset(0.50, 0.62),  // Ka'bah (GATE)
       Offset(0.62, 0.54),  // Turn right-up toward merchants
       Offset(0.75, 0.45),  // Merchants (PATH A)
@@ -85,10 +85,10 @@ final Map<String, SceneConfig> sceneConfigs = {
       Offset(0.35, 0.38),  // Turn up toward poet
       Offset(0.50, 0.30),  // Poet (GATHERING)
     ],
-    // Path B: Start → Ka'bah (anchor) → Idols → Merchants → Poet (convergence)
+    // Path B: Start → Ka'bah (GATE) → Idols → Merchants → Poet (GATHERING)
     pathWaypointsAlt: const [
       Offset(0.50, 0.80),  // Start
-      Offset(0.50, 0.72),  // Walk up
+      Offset(0.53, 0.72),  // Walk up-right (curve)
       Offset(0.50, 0.62),  // Ka'bah (GATE)
       Offset(0.38, 0.54),  // Turn left-up toward idols
       Offset(0.25, 0.45),  // Idols (PATH B first)
@@ -178,8 +178,8 @@ final Map<String, SceneConfig> sceneConfigs = {
       Offset(0.45, 0.60),  // Army (GATE)
       Offset(0.34, 0.52),  // Turn left-up toward elephants
       Offset(0.22, 0.42),  // Elephants (PATH A)
-      Offset(0.40, 0.40),  // Cross toward center
-      Offset(0.60, 0.40),  // Walk right toward muttalib
+      Offset(0.40, 0.38),  // Cross toward center (curve up)
+      Offset(0.58, 0.37),  // Walk right toward muttalib (curve)
       Offset(0.75, 0.40),  // Muttalib (PATH B)
       Offset(0.65, 0.33),  // Turn up toward birds
       Offset(0.50, 0.25),  // Birds (GATHERING)
@@ -191,8 +191,8 @@ final Map<String, SceneConfig> sceneConfigs = {
       Offset(0.45, 0.60),  // Army (GATE)
       Offset(0.58, 0.52),  // Turn right-up toward muttalib
       Offset(0.75, 0.40),  // Muttalib (PATH B first)
-      Offset(0.55, 0.40),  // Cross toward center
-      Offset(0.35, 0.42),  // Walk left toward elephants
+      Offset(0.55, 0.38),  // Cross toward center (curve up)
+      Offset(0.38, 0.39),  // Walk left toward elephants (curve)
       Offset(0.22, 0.42),  // Elephants (PATH A second)
       Offset(0.35, 0.34),  // Turn up toward birds
       Offset(0.50, 0.25),  // Birds (GATHERING)
@@ -279,8 +279,8 @@ final Map<String, SceneConfig> sceneConfigs = {
       Offset(0.45, 0.62),  // Flood (GATE)
       Offset(0.35, 0.52),  // Turn left-up toward dispute
       Offset(0.25, 0.42),  // Dispute (PATH A)
-      Offset(0.42, 0.40),  // Cross toward center
-      Offset(0.58, 0.42),  // Walk right toward alamin
+      Offset(0.42, 0.38),  // Cross toward center (curve up)
+      Offset(0.57, 0.39),  // Walk right toward alamin (curve)
       Offset(0.72, 0.42),  // Al-Amin (PATH B)
       Offset(0.62, 0.35),  // Turn up toward cloak
       Offset(0.50, 0.28),  // Cloak (GATHERING)
@@ -292,8 +292,8 @@ final Map<String, SceneConfig> sceneConfigs = {
       Offset(0.45, 0.62),  // Flood (GATE)
       Offset(0.55, 0.52),  // Turn right-up toward alamin
       Offset(0.72, 0.42),  // Al-Amin (PATH B first)
-      Offset(0.55, 0.40),  // Cross toward center
-      Offset(0.38, 0.42),  // Walk left toward dispute
+      Offset(0.55, 0.38),  // Cross toward center (curve up)
+      Offset(0.40, 0.39),  // Walk left toward dispute (curve)
       Offset(0.25, 0.42),  // Dispute (PATH A second)
       Offset(0.35, 0.35),  // Turn up toward cloak
       Offset(0.50, 0.28),  // Cloak (GATHERING)

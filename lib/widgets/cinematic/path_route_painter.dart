@@ -54,24 +54,24 @@ class PathRoutePainter extends CustomPainter {
 
       if (isCompleted) {
         _drawDottedLine(canvas, p1, p2,
-            color: _silver.withAlpha(35), dotRadius: 1.5, gap: 10);
+            color: _silver.withAlpha(70), dotRadius: 1.5, gap: 8);
       } else if (isActive) {
         // Active: bright silver, glowing line
         final glowPaint = Paint()
-          ..color = _silver.withAlpha(45)
+          ..color = _silver.withAlpha(60)
           ..strokeWidth = 8
           ..strokeCap = StrokeCap.round
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
         canvas.drawLine(p1, p2, glowPaint);
 
         final linePaint = Paint()
-          ..color = _silver.withAlpha(140)
-          ..strokeWidth = 2.0
+          ..color = _silver.withAlpha(180)
+          ..strokeWidth = 2.5
           ..strokeCap = StrokeCap.round;
         canvas.drawLine(p1, p2, linePaint);
       } else {
         _drawDottedLine(canvas, p1, p2,
-            color: _silver.withAlpha(22), dotRadius: 1.2, gap: 12);
+            color: _silver.withAlpha(45), dotRadius: 1.2, gap: 10);
       }
     }
   }
