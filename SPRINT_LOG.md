@@ -756,3 +756,29 @@ All events: Anchor(~0.60y) → Branches(~0.42y triangle) → Convergence(~0.28y)
 | File | Type | Details |
 |------|------|---------|
 | `m1_data.dart` | MODIFIED | Black Stone (605 CE) moved from position 3 to position 8, Ta'if (619 CE) moved to position 17 (after Year of Grief) |
+
+---
+
+## Sprint 38 — RawiDialog, Intro Bilingual, Mandatory Name
+**Date:** 2026-04-03
+**Status:** COMPLETE
+
+| File | Fix |
+|------|-----|
+| `rawi_dialog.dart` (NEW) | Reusable gold/navy dialog — replaced all 3 AlertDialogs |
+| `intro_cinematic_screen.dart` | Device locale detection for Arabic intro text |
+| `registration_screen.dart` | Name mandatory 2-15 chars, Skip removed, device locale for initial lang |
+
+---
+
+## Sprint 39 — Name Personalization, Accessibility, Settings Polish
+**Date:** 2026-04-03
+**Status:** COMPLETE
+
+| File | Fix |
+|------|-----|
+| `companion_dialogue.dart` | {name} placeholder in allDone lines, name param in get() |
+| `immersive_event_screen.dart` | All bubble calls pass PrefsService.userName |
+| `settings_screen.dart` | Name always shown, "Rawi since" date, text scale toggle |
+| `prefs_service.dart` | firstLaunchDate, textScale getters/setters |
+| `main.dart` | MediaQuery.textScaler override for accessibility |

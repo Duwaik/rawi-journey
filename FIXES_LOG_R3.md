@@ -83,3 +83,9 @@ Root cause likely: `_completeAndReturn()` either isn't being called, or the pop 
 | POST-19 | **Badge overlay redesign** | Full-screen 85% overlay, sequential completion flow (badges awarded one at a time). |
 | POST-20 | **Audit fixes** | Signing config added, latlong2 removed, dead code cleaned, performance improvements, persistence fixes. |
 | POST-21 | **Chronological reorder** | Black Stone (605 CE) moved from Jahiliyyah pos 3 → Early Life pos 8. Ta'if (619 CE) moved to pos 17 (after Year of Grief). |
+| POST-22 | **RawiDialog** | Reusable gold/navy dialog widget, replaced all AlertDialogs. |
+| POST-23 | **Intro bilingual** | Device locale detection, Arabic text on Arabic devices. |
+| POST-24 | **Name mandatory** | 2-15 chars, Skip removed, Continue disabled until valid. |
+| POST-25 | **Name personalization** | {name} in companion bubbles, "Well done, {name}" on allDone. |
+| POST-26 | **Settings polish** | Name + "Rawi since" date + Accessibility text scale toggle. |
+| POST-27 | **Accessibility** | Text scale Normal/Large (1.0x/1.3x) via MediaQuery override. |
