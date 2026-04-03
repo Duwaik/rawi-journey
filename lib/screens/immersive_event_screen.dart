@@ -16,6 +16,7 @@ import '../widgets/cinematic/companion_figure.dart';
 import '../models/badge_definition.dart';
 import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
+import '../widgets/scroll_hint_wrapper.dart';
 import '../widgets/cinematic/xp_reward_animation.dart';
 import '../widgets/cinematic/companion_speech_bubble.dart';
 import '../widgets/cinematic/crescent_moon.dart';
@@ -55,7 +56,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _showBadgeOverlay = false;
   int _previousXp = 0;
   List<BadgeDefinition> _newBadges = [];
-  BadgeDefinition? _currentBadge; // badge currently showing in overlay
+  BadgeDefinition? _currentBadge;
+  final ScrollController _verdictScrollCtrl = ScrollController();
+  final ScrollController _reflectionScrollCtrl = ScrollController(); // badge currently showing in overlay
 
   late final SceneConfig _scene;
 
@@ -247,6 +250,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   @override
   void dispose() {
     _idleTimer?.cancel();
+    _verdictScrollCtrl.dispose();
+    _reflectionScrollCtrl.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _gameLoop.removeListener(_onFrame);
     _gameLoop.dispose();
@@ -1250,14 +1255,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 ),
               ],
             ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header + VO replay
-                  Row(
+            child: ScrollHintWrapper(
+              controller: _verdictScrollCtrl,
+              child: SingleChildScrollView(
+                controller: _verdictScrollCtrl,
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header + VO replay
+                    Row(
                     children: [
                       Expanded(
                         child: Text(
@@ -1496,7 +1504,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   ],
                 ],
               ),
-            ),
+            ), // SingleChildScrollView
+            ), // ScrollHintWrapper
           ),
         ),
       ),
@@ -1521,14 +1530,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             stops: const [0.0, 0.12, 0.3],
           ),
         ),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPad),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                const Icon(Icons.menu_book_rounded, size: 12, color: AppColors.textMuted),
+        child: ScrollHintWrapper(
+          controller: _reflectionScrollCtrl,
+          child: SingleChildScrollView(
+            controller: _reflectionScrollCtrl,
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPad),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  const Icon(Icons.menu_book_rounded, size: 12, color: AppColors.textMuted),
                 const SizedBox(width: 6),
                 Expanded(child: Text(event.source,
                     style: GoogleFonts.nunito(
@@ -1561,7 +1573,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ],
             ],
           ),
-        ),
+        ), // SingleChildScrollView
+        ), // ScrollHintWrapper
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../services/audio_service.dart';
 import '../../services/prefs_service.dart';
+import '../scroll_hint_wrapper.dart';
 import 'go_deeper_section.dart';
 
 /// Slide-up panel showing a discovery fragment when a hotspot is tapped.
@@ -41,6 +42,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
   late final Animation<double> _scaleAnim;
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
+  final ScrollController _scrollCtrl = ScrollController();
 
   @override
   void initState() {
@@ -74,6 +76,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
   @override
   void dispose() {
     _anim.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
@@ -118,7 +121,15 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                     ),
                   ],
                 ),
-                child: Column(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.75,
+                  ),
+                  child: ScrollHintWrapper(
+                    controller: _scrollCtrl,
+                    child: SingleChildScrollView(
+                      controller: _scrollCtrl,
+                      child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Bubble image (larger in center mode)
@@ -126,8 +137,8 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxHeight: 180,
+                          constraints: BoxConstraints(
+                            maxHeight: 170 * PrefsService.textScale,
                           ),
                           child: Image.asset(
                             widget.imagePath!,
@@ -261,6 +272,9 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                     ),
                   ],
                 ),
+              ), // SingleChildScrollView
+            ), // ScrollHintWrapper
+          ), // ConstrainedBox
               ),
             ),
           ),
@@ -330,7 +344,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                       children: [
                         Container(
                           width: 100,
-                          height: 100,
+                          height: 100 * PrefsService.textScale,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(

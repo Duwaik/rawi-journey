@@ -71,9 +71,12 @@ class RawiApp extends StatelessWidget {
         ),
       ),
       builder: (context, child) {
+        // Absolute text scale — ignores device system scale.
+        // Small=0.85, Normal=1.0, Large=1.2
         final scale = PrefsService.textScale;
+        final data = MediaQuery.of(context);
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
+          data: data.copyWith(
             textScaler: TextScaler.linear(scale),
           ),
           child: child!,
