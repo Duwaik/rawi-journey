@@ -70,6 +70,15 @@ class RawiApp extends StatelessWidget {
           ),
         ),
       ),
+      builder: (context, child) {
+        final scale = PrefsService.textScale;
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(scale),
+          ),
+          child: child!,
+        );
+      },
       home: const SplashScreen(),
     );
   }

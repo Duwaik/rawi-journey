@@ -18,11 +18,13 @@ class PrefsService {
   static const String _keyJourneyCompleted = 'journey_completed_prefix';
   static const String _keyWelcomeSeen      = 'welcome_seen';
   static const String _keyOnboardingDone   = 'onboarding_complete';
+  static const String _keyFirstLaunch      = 'first_launch_date';
   static const String _keyUserName         = 'user_name';
   static const String _keyUserGender       = 'user_gender';
   static const String _keyMusicEnabled     = 'music_enabled';
   static const String _keyVoEnabled        = 'vo_enabled';
   static const String _keySfxEnabled       = 'sfx_enabled';
+  static const String _keyTextScale        = 'text_scale';
   static const String _keyTutorialSeen     = 'tutorial_seen';
   static const String _keyChoiceTutSeen    = 'choice_tutorial_seen';
 
@@ -91,8 +93,16 @@ class PrefsService {
   // ── ONBOARDING ────────────────────────────────────────────────────────────
   static bool get isOnboardingComplete =>
       _prefs?.getBool(_keyOnboardingDone) ?? false;
-  static Future<void> setOnboardingComplete() async =>
-      await _prefs?.setBool(_keyOnboardingDone, true);
+  static Future<void> setOnboardingComplete() async {
+    await _prefs?.setBool(_keyOnboardingDone, true);
+    // Record first launch date if not already set
+    if (_prefs?.getString(_keyFirstLaunch) == null) {
+      await _prefs?.setString(_keyFirstLaunch, _todayStr());
+    }
+  }
+
+  static String get firstLaunchDate =>
+      _prefs?.getString(_keyFirstLaunch) ?? _todayStr();
 
   // ── USER PROFILE ──────────────────────────────────────────────────────────
   static String get userName => _prefs?.getString(_keyUserName) ?? '';
@@ -146,6 +156,12 @@ class PrefsService {
       _prefs?.getBool(_keyChoiceTutSeen) ?? false;
   static Future<void> setChoiceTutorialSeen() async =>
       await _prefs?.setBool(_keyChoiceTutSeen, true);
+
+  // ── TEXT SCALE (Accessibility) ─────────────────────────────────────────────
+  static double get textScale =>
+      _prefs?.getDouble(_keyTextScale) ?? 1.0;
+  static Future<void> setTextScale(double v) async =>
+      await _prefs?.setDouble(_keyTextScale, v);
 
   // ── BADGES ────────────────────────────────────────────────────────────────
   static const String _keyEarnedBadges = 'earned_badges';

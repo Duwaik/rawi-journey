@@ -48,14 +48,18 @@ class CompanionDialogue {
 
   /// All hotspots done, before choice phase.
   static const allDone = <DialogueLine>[
-    DialogueLine('alldone_01', 'A moment of reflection approaches...', 'لحظة تأمل تقترب...'),
-    DialogueLine('alldone_02', 'You have witnessed everything. Now — choose.', 'شهدت كل شيء. الآن — اختر.'),
+    DialogueLine('alldone_01', 'Well done, {name}. A moment of reflection approaches...', 'أحسنت يا {name}. لحظة تأمل تقترب...'),
+    DialogueLine('alldone_02', 'You have witnessed everything, {name}. Now — choose.', 'شهدت كل شيء يا {name}. الآن — اختر.'),
   ];
 
-  /// Get a line from a list, cycling by index.
-  static String get(List<DialogueLine> lines, int index, {required bool isAr}) {
+  /// Get a line from a list, cycling by index. Optionally personalizes with name.
+  static String get(List<DialogueLine> lines, int index, {required bool isAr, String? name}) {
     final line = lines[index % lines.length];
-    return isAr ? line.ar : line.en;
+    var text = isAr ? line.ar : line.en;
+    if (name != null && name.isNotEmpty) {
+      text = text.replaceAll('{name}', name);
+    }
+    return text;
   }
 
   /// Get line ID for VO file lookup.

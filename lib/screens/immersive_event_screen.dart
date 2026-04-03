@@ -386,7 +386,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
     final lineId = CompanionDialogue.getId(lines, _idleTriggerCount);
     _showBubble(
-      CompanionDialogue.get(lines, _idleTriggerCount, isAr: _isAr),
+      CompanionDialogue.get(lines, _idleTriggerCount, isAr: _isAr, name: PrefsService.userName),
       voPath: _companionVoPath(lineId),
     );
     _resetIdleTimer(); // restart for next idle cycle
@@ -586,13 +586,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       if (count >= 4) {
         final lid = CompanionDialogue.getId(CompanionDialogue.revisitFirm, count);
         _showBubble(CompanionDialogue.get(
-            CompanionDialogue.revisitFirm, count, isAr: _isAr),
+            CompanionDialogue.revisitFirm, count, isAr: _isAr, name: PrefsService.userName),
             voPath: _companionVoPath(lid));
         return;
       } else if (count >= 3) {
         final lid = CompanionDialogue.getId(CompanionDialogue.revisitWarn, count);
         _showBubble(CompanionDialogue.get(
-            CompanionDialogue.revisitWarn, count, isAr: _isAr),
+            CompanionDialogue.revisitWarn, count, isAr: _isAr, name: PrefsService.userName),
             voPath: _companionVoPath(lid));
         return;
       }
@@ -680,7 +680,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // Linear mode: full-screen choose overlay
         final adLid = CompanionDialogue.getId(CompanionDialogue.allDone, _discovered.length);
         _showBubble(CompanionDialogue.get(
-            CompanionDialogue.allDone, _discovered.length, isAr: _isAr),
+            CompanionDialogue.allDone, _discovered.length, isAr: _isAr, name: PrefsService.userName),
             voPath: _companionVoPath(adLid));
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
@@ -695,7 +695,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _postDiscoveryCount++;
       final pdLid = CompanionDialogue.getId(CompanionDialogue.postDiscovery, _postDiscoveryCount);
       _showBubble(CompanionDialogue.get(
-          CompanionDialogue.postDiscovery, _postDiscoveryCount, isAr: _isAr),
+          CompanionDialogue.postDiscovery, _postDiscoveryCount, isAr: _isAr, name: PrefsService.userName),
           voPath: _companionVoPath(pdLid));
     }
   }

@@ -166,14 +166,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: _cycleGender,
                   ),
 
-                  if (PrefsService.userName.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    _InfoRow(
-                      icon: Icons.badge_outlined,
-                      label: _isAr ? 'الاسم' : 'Name',
-                      value: PrefsService.userName,
-                    ),
-                  ],
+                  const SizedBox(height: 8),
+                  _InfoRow(
+                    icon: Icons.badge_outlined,
+                    label: _isAr ? 'الاسم' : 'Name',
+                    value: PrefsService.userName.isNotEmpty
+                        ? PrefsService.userName
+                        : (_isAr ? 'رحّال' : 'Traveler'),
+                  ),
+                  const SizedBox(height: 8),
+                  _InfoRow(
+                    icon: Icons.calendar_today_rounded,
+                    label: _isAr ? 'راوي منذ' : 'Rawi since',
+                    value: PrefsService.firstLaunchDate,
+                  ),
 
                   const SizedBox(height: 28),
 
@@ -202,6 +208,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       label: _isAr ? 'الأوسمة' : 'Badges', isAr: _isAr),
                   const SizedBox(height: 8),
                   _buildBadgesGrid(),
+
+                  const SizedBox(height: 28),
+
+                  // ── Accessibility section ─────────────────────────
+                  _SectionHeader(
+                      label: _isAr ? 'إمكانية الوصول' : 'Accessibility',
+                      isAr: _isAr),
+                  const SizedBox(height: 8),
+                  _TapRow(
+                    icon: Icons.text_fields_rounded,
+                    label: _isAr ? 'حجم الخط' : 'Text Size',
+                    value: PrefsService.textScale == 1.0
+                        ? (_isAr ? 'عادي' : 'Normal')
+                        : (_isAr ? 'كبير' : 'Large'),
+                    onTap: () {
+                      final current = PrefsService.textScale;
+                      final next = current == 1.0 ? 1.3 : 1.0;
+                      PrefsService.setTextScale(next);
+                      setState(() {});
+                    },
+                  ),
 
                   const SizedBox(height: 28),
 
