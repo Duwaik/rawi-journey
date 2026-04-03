@@ -9,9 +9,10 @@ import 'package:rawi/data/scene_configs.dart';
 void main() {
   group('Branching system — linear fallback safety', () {
     test('Events without branchPoint resolve to linear flow (isBranching == false)', () {
-      // Events 4–36 have no branchPoint — they MUST stay linear.
+      // Only j_1_1_1, j_1_1_2, j_1_1_3 have branching. All others MUST be linear.
+      const branchingIds = {'j_1_1_1', 'j_1_1_2', 'j_1_1_3'};
       for (final event in m1Events) {
-        if (event.globalOrder > 3) {
+        if (!branchingIds.contains(event.id)) {
           expect(
             event.isBranching,
             isFalse,

@@ -151,9 +151,219 @@ final List<JourneyEvent> m1Events = [
   ),
 
   JourneyEvent(
-    id: 'j_1_1_3',
-    era: JourneyEra.jahiliyyah,
+    id: 'j_1_2_1',
+    era: JourneyEra.earlyLife,
     globalOrder: 3,
+    latitude: 21.4225, longitude: 39.8262,
+    year: 570,
+    title: 'The Birth of the Prophet ﷺ',
+    titleAr: 'مولد النبي ﷺ',
+    location: 'Mecca',
+    locationAr: 'مكة المكرمة',
+    narrative:
+        'It is the month of Rabi\' al-Awwal, in the Year of the Elephant. You are in the narrow streets of the Banu Hashim quarter of Mecca. The night is quiet — the city still talks of the army that was destroyed, of the birds, of the stones. And now, in a modest home, a child is born.\n\n'
+        'His father, Abdullah, did not live to see this moment — he died before the boy drew his first breath. His mother, Aminah bint Wahb, holds him close. His grandfather Abd al-Muttalib — one of the most powerful men in Mecca — takes the infant to the Ka\'bah and names him Muhammad. "The Praised One." It is a name the Arabs have never used before.\n\n'
+        'Within days, the child is given to a wet-nurse from the tribe of Banu Sa\'d. Halima al-Sa\'diyya carries him into the open desert — into clean air, wide skies, and the pure Arabic of the Bedouin. An orphan from his first breath. A prophet before the world knew it.',
+    narrativeAr:
+        'إنه شهر ربيع الأول، في عام الفيل. أنت في أزقة حي بني هاشم الضيقة في مكة. الليل هادئ — المدينة لا تزال تتحدث عن الجيش الذي دُمّر، عن الطيور، عن الحجارة. والآن، في بيت متواضع، يُولد طفل.\n\n'
+        'أبوه عبد الله لم يعش ليرى هذه اللحظة — مات قبل أن يأخذ الطفل نفَسه الأول. أمه آمنة بنت وهب تضمّه إليها. جدّه عبد المطلب — أحد أقوى رجال مكة — يحمل الرضيع إلى الكعبة ويسميه محمداً. "المحمود." اسم لم يستخدمه العرب من قبل.\n\n'
+        'في غضون أيام، يُسلَّم الطفل إلى مرضعة من قبيلة بني سعد. حليمة السعدية تحمله إلى الصحراء المفتوحة — إلى هواء نقي وسماوات واسعة وعربية البدو الصافية. يتيم منذ أول نفَس. نبيّ قبل أن يعرف العالم.',
+    source: 'Sahih Bukhari 3551 — lineage and birth of the Prophet ﷺ',
+    xpReward: 30,
+    questions: [
+      JourneyQuestion(
+        id: 'q_1_2_1_a',
+        question: 'A child has been born in Banu Hashim tonight. His father did not live to see him. Where does your gaze settle?',
+        questionAr: 'وُلد طفل في بني هاشم الليلة. أبوه لم يعش ليراه. أين يستقر نظرك؟',
+        options: [
+          'On the newborn in his mother\'s arms — fragile, fatherless, and utterly still',
+          'On his grandfather Abd al-Muttalib, carrying him to the Ka\'bah to name him',
+          'On the stars above Mecca — the same sky that sent the birds against Abraha',
+        ],
+        optionsAr: [
+          'على المولود بين ذراعي أمه — ضعيف، يتيم، ساكن تماماً',
+          'على جدّه عبد المطلب، يحمله إلى الكعبة ليسمّيه',
+          'على نجوم مكة — السماء ذاتها التي أرسلت الطير على أبرهة',
+        ],
+        correctIndex: 1,
+        explanation: 'History records: Abd al-Muttalib named him Muhammad — "the Praised One" — a name never before used among the Arabs. He carried him to the Ka\'bah and gave thanks. The most important birth in human history arrived quietly, in an orphan\'s first breath.',
+        explanationAr: 'يسجّل التاريخ: سمّاه عبد المطلب محمداً — "المحمود" — اسم لم يُستخدم من قبل بين العرب. حمله إلى الكعبة وشكر الله. أهم ولادة في تاريخ البشرية جاءت بهدوء، في أول نفَس يتيم.',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_1_2_2',
+    era: JourneyEra.earlyLife,
+    globalOrder: 4,
+    latitude: 21.4225, longitude: 39.8262,
+    year: 575,
+    title: 'Under the Care of Abd al-Muttalib',
+    titleAr: 'في كنف عبد المطلب',
+    location: 'Mecca',
+    locationAr: 'مكة المكرمة',
+    narrative:
+        'You see the boy at the Ka\'bah courtyard. He is six years old — and he has just lost his mother. Aminah died on the road back from Medina, at a place called Al-Abwa\'. He watched her fall ill. He watched her stop breathing. And now he sits beside his grandfather on the mat that no other child is allowed to touch.\n\n'
+        'Abd al-Muttalib keeps the boy closer than his own sons. When the elders of Quraysh gather at the Ka\'bah, Muhammad ﷺ sits at his grandfather\'s side — a privilege no one questions. The old man\'s hand rests on the boy\'s shoulder. There is something in this child that everyone senses but no one can name.\n\n'
+        'Two years pass. You see the old man growing weaker. Before he dies, he calls his son Abu Talib to his side and entrusts Muhammad ﷺ to him. The boy has lost his father before birth, his mother at six, and now his grandfather at eight. Every earthly protection is being stripped away — one by one.',
+    narrativeAr:
+        'ترى الصبي في فناء الكعبة. عمره ست سنوات — وقد فقد أمه للتوّ. آمنة ماتت في طريق العودة من المدينة، في مكان يُسمى الأبواء. شاهدها تمرض. شاهدها تتوقف عن التنفس. والآن يجلس بجانب جدّه على البساط الذي لا يُسمح لطفل آخر بلمسه.\n\n'
+        'عبد المطلب يبقي الصبي أقرب إليه من أبنائه. حين يجتمع شيوخ قريش عند الكعبة، يجلس محمد ﷺ إلى جانب جدّه — امتياز لا يعترض عليه أحد. يد الشيخ تستقر على كتف الصبي. شيء في هذا الطفل يحسّه الجميع لكن لا أحد يستطيع تسميته.\n\n'
+        'يمرّ عامان. ترى الشيخ يضعف. قبل أن يموت، يستدعي ابنه أبا طالب ويأتمنه على محمد ﷺ. الصبي فقد أباه قبل الولادة، وأمه في السادسة، وجدّه الآن في الثامنة. كل حماية أرضية تُنتزع — واحدة تلو الأخرى.',
+    source: 'Sahih Muslim 2353 — account of the Prophet\'s ﷺ early guardianship',
+    xpReward: 25,
+    questions: [
+      JourneyQuestion(
+        id: 'q_1_2_2_a',
+        question: 'Muhammad ﷺ has lost his mother. He sits beside his grandfather at the Ka\'bah — the one seat no other child may touch. Where does your gaze settle?',
+        questionAr: 'فقد محمد ﷺ أمه. يجلس بجانب جدّه عند الكعبة — المقعد الذي لا يلمسه طفل سواه. أين يستقر نظرك؟',
+        options: [
+          'On the boy\'s face — quiet, watchful, carrying something you cannot name',
+          'On the elders who glance at him with curiosity — sensing what they cannot explain',
+          'On Abd al-Muttalib\'s hand resting on the boy\'s shoulder — a protection that will not last',
+        ],
+        optionsAr: [
+          'على وجه الصبي — هادئ، يقظ، يحمل شيئاً لا تستطيع تسميته',
+          'على الشيوخ الذين يلمحونه بفضول — يحسّون بما لا يستطيعون تفسيره',
+          'على يد عبد المطلب المستقرة على كتف الصبي — حماية لن تدوم',
+        ],
+        correctIndex: 2,
+        explanation: 'History records: Abd al-Muttalib gave the boy an honor given to no other child — a seat beside him at the Ka\'bah. Two years later, he too would die. But before leaving, he entrusted Muhammad ﷺ to his son Abu Talib. Every earthly protection was being removed — so that the boy would learn to rely only on Allah.',
+        explanationAr: 'يسجّل التاريخ: منح عبد المطلب الصبي شرفاً لم يمنحه لطفل سواه — مقعداً بجانبه عند الكعبة. بعد عامين، سيموت هو أيضاً. لكنه قبل رحيله أوصى بمحمد ﷺ إلى ابنه أبي طالب. كل حماية أرضية كانت تُنزع — ليتعلم الصبي الاعتماد على الله وحده.',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_1_2_3',
+    era: JourneyEra.earlyLife,
+    globalOrder: 5,
+    latitude: 21.4225, longitude: 39.8262,
+    year: 578,
+    title: 'The Guardian: Abu Talib',
+    titleAr: 'الكافل: أبو طالب',
+    location: 'Mecca',
+    locationAr: 'مكة المكرمة',
+    narrative:
+        'You walk alongside the trade caravan heading north toward Syria. The sun is fierce, the camels are heavy-laden, and Abu Talib — not a wealthy man, but a man of honor — leads the way. Beside him, a boy of twelve: Muhammad ﷺ, eyes wide, taking in lands he has never seen.\n\n'
+        'Abu Talib did not have to take this orphan. He has children of his own and barely enough to feed them. But he welcomed Muhammad ﷺ as a son — a place at his table, a place in his home, a place in his heart. And now he brings the boy on this journey because he cannot bear to leave him behind.\n\n'
+        'You watch Abu Talib throughout the journey — the way he positions himself between the boy and the sun, the way he checks on him at every rest stop, the way he watches over him in his sleep. This is not duty. This is love. A love that will one day shield a prophet from the most powerful forces in Arabia.',
+    narrativeAr:
+        'تمشي بجانب القافلة التجارية المتجهة شمالاً نحو الشام. الشمس حارقة، والجمال مُثقلة، وأبو طالب — ليس رجلاً ثرياً، لكنه رجل شرف — يقود الطريق. إلى جانبه، صبي في الثانية عشرة: محمد ﷺ، عيناه واسعتان، يتأمل أراضي لم يرها من قبل.\n\n'
+        'لم يكن على أبي طالب أن يأخذ هذا اليتيم. لديه أبناؤه ويكاد لا يجد ما يكفيهم. لكنه رحّب بمحمد ﷺ كابن — مكان على مائدته، مكان في بيته، مكان في قلبه. والآن يصطحب الصبي في هذه الرحلة لأنه لا يطيق أن يتركه.\n\n'
+        'تراقب أبا طالب طوال الرحلة — كيف يضع نفسه بين الصبي والشمس، كيف يطمئن عليه في كل استراحة، كيف يحرسه في نومه. هذا ليس واجباً. هذه محبة. محبة ستحمي يوماً نبيّاً من أقوى القوى في جزيرة العرب.',
+    source: 'Sahih Bukhari 3884 — the Prophet ﷺ on Abu Talib\'s guardianship',
+    xpReward: 25,
+    questions: [
+      JourneyQuestion(
+        id: 'q_1_2_3_a',
+        question: 'Abu Talib leads the caravan to Syria. The young Muhammad ﷺ walks beside him. You travel with them. What do you observe most closely?',
+        questionAr: 'أبو طالب يقود القافلة إلى الشام. محمد ﷺ الصغير يمشي بجانبه. ترافقهم في الطريق. ما الذي تراقبه عن كثب؟',
+        options: [
+          'The boy\'s eager eyes — seeing new lands for the first time',
+          'Abu Talib — who never lets the boy out of his sight, not once',
+          'The merchants on the road who already seem to respect the boy\'s presence',
+        ],
+        optionsAr: [
+          'عينا الصبي المتلهفتين — يرى أراضي جديدة للمرة الأولى',
+          'أبو طالب — الذي لا يترك الصبي يغيب عن نظره لحظة واحدة',
+          'التجار على الطريق الذين يبدو أنهم يحترمون حضور الصبي',
+        ],
+        correctIndex: 1,
+        explanation: 'History records: Abu Talib raised him as his own son and protected him for decades — even after Islam came and the most powerful men in Mecca demanded Muhammad ﷺ be surrendered. Though Abu Talib never embraced Islam himself, his love was a mercy from Allah that allowed the Prophet ﷺ to continue his mission.',
+        explanationAr: 'يسجّل التاريخ: ربّاه أبو طالب كابنه وحماه لعقود — حتى بعد مجيء الإسلام ومطالبة أقوى رجال مكة بتسليم محمد ﷺ. وإن لم يعتنق أبو طالب الإسلام بنفسه، فإن محبته كانت رحمة من الله أتاحت للنبي ﷺ مواصلة رسالته.',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_1_2_4',
+    era: JourneyEra.earlyLife,
+    globalOrder: 6,
+    latitude: 21.4225, longitude: 39.8262,
+    year: 590,
+    title: 'Hilf al-Fudul — The Pact of the Virtuous',
+    titleAr: 'حلف الفضول',
+    location: 'Mecca',
+    locationAr: 'مكة المكرمة',
+    narrative:
+        'You are near the Ka\'bah when you hear it — a Yemeni merchant standing in the open, his voice cracking with frustration. He came to Mecca, sold his goods to a man of Quraysh, and was never paid. He has no tribe here. No protection. No one to fight for him. So he does the only thing he can: he stands in the most public place in Mecca and calls out to anyone who still believes in honor.\n\n'
+        'Something shifts. You watch as the noblest clans of Mecca stir — not all of them, but enough. They gather in the house of Abdullah ibn Jud\'an and swear a covenant: from this day forward, they will stand together against any injustice in Mecca. No victim — whether local or foreigner — will be denied their rights while they draw breath.\n\n'
+        'Among those present is a young man named Muhammad ﷺ. He says nothing during the gathering. But decades later — as a Prophet — he will say of this night: "I was present at a pact so excellent that I would not exchange my part in it for a herd of red camels; and if I were called to it in Islam, I would respond."',
+    narrativeAr:
+        'أنت قرب الكعبة حين تسمعه — تاجر يمني يقف في العراء، صوته يتكسّر من الإحباط. جاء مكة وباع بضاعته لرجل من قريش ولم يُدفع حقه. ليس له هنا قبيلة. لا حماية. لا أحد يقاتل عنه. فيفعل الشيء الوحيد الذي يستطيعه: يقف في أكثر أماكن مكة علنية ويصرخ مناشداً كل من يؤمن بالشرف.\n\n'
+        'شيء يتحرك. تشاهد أشرف أحياء مكة تنتفض — ليس كلهم، لكن ما يكفي. يجتمعون في دار عبد الله بن جدعان ويقسمون عهداً: من هذا اليوم، سيقفون معاً ضد أي ظلم في مكة. لن يُحرم مظلوم — سواء أكان محلياً أم غريباً — من حقه ما داموا أحياء.\n\n'
+        'بين الحاضرين شاب اسمه محمد ﷺ. لا يتكلم خلال الاجتماع. لكن بعد عقود — وهو نبيّ — سيقول عن هذه الليلة: "شهدت في دار ابن جدعان حلفاً ما أُحب أن لي به حُمر النعم، ولو دُعيت إليه في الإسلام لأجبت."',
+    source: 'Seerah Ibn Hisham — Hilf al-Fudul; referenced by Prophet ﷺ in Sahih narrations',
+    xpReward: 30,
+    questions: [
+      JourneyQuestion(
+        id: 'q_1_2_4_a',
+        question: 'A Yemeni merchant stands at the Ka\'bah, cheated and unheard. The tribes gather. You are there. What do you do?',
+        questionAr: 'تاجر يمني يقف عند الكعبة، مغبون ومهمَل. القبائل تتجمع. أنت هناك. ماذا تفعل؟',
+        options: [
+          'Stay silent — this is between the merchant and the Quraysh, it is not your concern',
+          'Stand beside the merchant and add your voice to his call',
+          'Watch to see how the nobles of Mecca respond — this will reveal what kind of people they are',
+        ],
+        optionsAr: [
+          'تلزم الصمت — هذا بين التاجر وقريش، ليس شأنك',
+          'تقف بجانب التاجر وتضم صوتك إلى ندائه',
+          'تراقب كيف يستجيب أشراف مكة — هذا سيكشف أي نوع من الناس هم',
+        ],
+        correctIndex: 2,
+        explanation: 'History records: The noblest clans gathered and swore a covenant to defend any victim of injustice in Mecca. Muhammad ﷺ was present — and would later say he would honor this pact even in Islam. Allah had planted justice in His final Prophet ﷺ from youth — values that would define the civilization of Islam itself.',
+        explanationAr: 'يسجّل التاريخ: اجتمع أشرف الأحياء وأقسموا عهداً بالدفاع عن كل مظلوم في مكة. كان محمد ﷺ حاضراً — وسيقول لاحقاً إنه سيفي بهذا الحلف حتى في الإسلام. زرع الله العدل في نبيّه الخاتم ﷺ منذ الصغر — قيم ستحدد حضارة الإسلام ذاتها.',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_1_2_5',
+    era: JourneyEra.earlyLife,
+    globalOrder: 7,
+    latitude: 21.4225, longitude: 39.8262,
+    year: 595,
+    title: 'Marriage to Khadijah RA',
+    titleAr: 'الزواج من خديجة رضي الله عنها',
+    location: 'Mecca',
+    locationAr: 'مكة المكرمة',
+    narrative:
+        'You see Muhammad ﷺ returning from Syria at the head of Khadijah\'s trade caravan. He is twenty-five years old. The journey was successful — more successful than any caravan she has sent before. Her servant Maysara walks beside him, and you can hear Maysara talking — not about the profits, but about the man. His honesty. His kindness. The way people were drawn to him at every stop.\n\n'
+        'Khadijah bint Khuwaylid is one of the most respected women in Mecca — a successful merchant of noble lineage, widowed twice, approximately forty years old. She has heard everything Maysara has to say. And she has made her decision.\n\n'
+        'She proposes marriage. In the culture of that time, for a woman of her standing to propose — extraordinary. Muhammad ﷺ accepts. You witness the beginning of the greatest partnership in human history. She will be his wife, his first believer, his anchor, the mother of his children, and his closest companion for twenty-five years. When the weight of revelation comes — and it will shake him to the core — she will be the first to steady him.',
+    narrativeAr:
+        'ترى محمداً ﷺ عائداً من الشام على رأس قافلة خديجة التجارية. عمره خمسة وعشرون عاماً. الرحلة كانت ناجحة — أنجح من أي قافلة أرسلتها من قبل. خادمها ميسرة يمشي بجانبه، وتسمع ميسرة يتحدث — لا عن الأرباح، بل عن الرجل. أمانته. لطفه. الطريقة التي انجذب إليه بها الناس في كل محطة.\n\n'
+        'خديجة بنت خويلد من أكثر نساء مكة احتراماً — تاجرة ناجحة ذات حسب ونسب، أُرملت مرتين، في نحو الأربعين من عمرها. سمعت كل ما قاله ميسرة. واتخذت قرارها.\n\n'
+        'تعرض الزواج. في ثقافة ذلك الزمان، أن تعرض امرأة في مكانتها الزواج — أمر استثنائي. محمد ﷺ يقبل. تشهد بداية أعظم شراكة في تاريخ البشرية. ستكون زوجته وأول من يؤمن به وسنده وأم أبنائه وأقرب مؤنسيه لخمسة وعشرين عاماً. وحين يأتي ثقل الوحي — وسيهزّه حتى الأعماق — ستكون أول من يثبّته.',
+    source: 'Sahih Bukhari 3820 — on Khadijah RA and her merits',
+    xpReward: 35,
+    questions: [
+      JourneyQuestion(
+        id: 'q_1_2_5_a',
+        question: 'Muhammad ﷺ returns from the Syria trade. Maysara cannot stop describing what he witnessed. Khadijah listens. Where does your gaze settle?',
+        questionAr: 'يعود محمد ﷺ من تجارة الشام. ميسرة لا يتوقف عن وصف ما شاهده. خديجة تصغي. أين يستقر نظرك؟',
+        options: [
+          'On the caravan\'s goods — the wealth he has earned is unprecedented',
+          'On Muhammad\'s ﷺ face — something has shifted in how he carries himself',
+          'On Khadijah — whose expression says she has already made her decision',
+        ],
+        optionsAr: [
+          'على بضائع القافلة — الثروة التي جلبها لم يُسبق إليها',
+          'على وجه محمد ﷺ — شيء ما تغيّر في طريقة حضوره',
+          'على خديجة — التي يقول تعبير وجهها إنها اتخذت قرارها بالفعل',
+        ],
+        correctIndex: 2,
+        explanation: 'History records: Khadijah proposed marriage to Muhammad ﷺ. At twenty-five and forty, they became husband and wife — the partnership that would anchor the most important mission in history. She would be the first to believe, the first to comfort, and the last person he would forget.',
+        explanationAr: 'يسجّل التاريخ: خديجة هي من عرضت الزواج على محمد ﷺ. في الخامسة والعشرين والأربعين، صارا زوجين — الشراكة التي ستُرسي أهم رسالة في التاريخ. ستكون أول من يؤمن، وأول من يواسي، وآخر من يُنسى.',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_1_1_3',
+    era: JourneyEra.earlyLife,
+    globalOrder: 8,
     latitude: 21.4225, longitude: 39.8262,
     year: 605,
     title: 'The Black Stone — A Wise Arbitration',
@@ -211,220 +421,6 @@ final List<JourneyEvent> m1Events = [
         correctIndex: 1,
         explanation: 'History records: Al-Amin listened, then laid his cloak on the ground. He placed the Stone on it and asked every tribe to lift a corner together. Every tribe shared the honor. No blood was shed. The people had already given him the name "The Trustworthy" — long before prophethood. Allah was preparing His Prophet ﷺ.',
         explanationAr: 'يسجّل التاريخ: استمع الأمين، ثم بسط رداءه على الأرض. وضع الحجر عليه وطلب من كل قبيلة أن ترفع طرفاً معاً. نال الجميع نصيبهم من الشرف. لم تُراق قطرة دم. كان الناس قد أسموه "الأمين" — قبل النبوة بسنين. كان الله يهيّئ نبيّه ﷺ.',
-      ),
-    ],
-  ),
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // CHAPTER 2 — EARLY LIFE (570–610 CE) — 8 events
-  // ══════════════════════════════════════════════════════════════════════════
-
-  JourneyEvent(
-    id: 'j_1_2_1',
-    era: JourneyEra.earlyLife,
-    globalOrder: 4,
-    latitude: 21.4225, longitude: 39.8262,
-    year: 570,
-    title: 'The Birth of the Prophet ﷺ',
-    titleAr: 'مولد النبي ﷺ',
-    location: 'Mecca',
-    locationAr: 'مكة المكرمة',
-    narrative:
-        'It is the month of Rabi\' al-Awwal, in the Year of the Elephant. You are in the narrow streets of the Banu Hashim quarter of Mecca. The night is quiet — the city still talks of the army that was destroyed, of the birds, of the stones. And now, in a modest home, a child is born.\n\n'
-        'His father, Abdullah, did not live to see this moment — he died before the boy drew his first breath. His mother, Aminah bint Wahb, holds him close. His grandfather Abd al-Muttalib — one of the most powerful men in Mecca — takes the infant to the Ka\'bah and names him Muhammad. "The Praised One." It is a name the Arabs have never used before.\n\n'
-        'Within days, the child is given to a wet-nurse from the tribe of Banu Sa\'d. Halima al-Sa\'diyya carries him into the open desert — into clean air, wide skies, and the pure Arabic of the Bedouin. An orphan from his first breath. A prophet before the world knew it.',
-    narrativeAr:
-        'إنه شهر ربيع الأول، في عام الفيل. أنت في أزقة حي بني هاشم الضيقة في مكة. الليل هادئ — المدينة لا تزال تتحدث عن الجيش الذي دُمّر، عن الطيور، عن الحجارة. والآن، في بيت متواضع، يُولد طفل.\n\n'
-        'أبوه عبد الله لم يعش ليرى هذه اللحظة — مات قبل أن يأخذ الطفل نفَسه الأول. أمه آمنة بنت وهب تضمّه إليها. جدّه عبد المطلب — أحد أقوى رجال مكة — يحمل الرضيع إلى الكعبة ويسميه محمداً. "المحمود." اسم لم يستخدمه العرب من قبل.\n\n'
-        'في غضون أيام، يُسلَّم الطفل إلى مرضعة من قبيلة بني سعد. حليمة السعدية تحمله إلى الصحراء المفتوحة — إلى هواء نقي وسماوات واسعة وعربية البدو الصافية. يتيم منذ أول نفَس. نبيّ قبل أن يعرف العالم.',
-    source: 'Sahih Bukhari 3551 — lineage and birth of the Prophet ﷺ',
-    xpReward: 30,
-    questions: [
-      JourneyQuestion(
-        id: 'q_1_2_1_a',
-        question: 'A child has been born in Banu Hashim tonight. His father did not live to see him. Where does your gaze settle?',
-        questionAr: 'وُلد طفل في بني هاشم الليلة. أبوه لم يعش ليراه. أين يستقر نظرك؟',
-        options: [
-          'On the newborn in his mother\'s arms — fragile, fatherless, and utterly still',
-          'On his grandfather Abd al-Muttalib, carrying him to the Ka\'bah to name him',
-          'On the stars above Mecca — the same sky that sent the birds against Abraha',
-        ],
-        optionsAr: [
-          'على المولود بين ذراعي أمه — ضعيف، يتيم، ساكن تماماً',
-          'على جدّه عبد المطلب، يحمله إلى الكعبة ليسمّيه',
-          'على نجوم مكة — السماء ذاتها التي أرسلت الطير على أبرهة',
-        ],
-        correctIndex: 1,
-        explanation: 'History records: Abd al-Muttalib named him Muhammad — "the Praised One" — a name never before used among the Arabs. He carried him to the Ka\'bah and gave thanks. The most important birth in human history arrived quietly, in an orphan\'s first breath.',
-        explanationAr: 'يسجّل التاريخ: سمّاه عبد المطلب محمداً — "المحمود" — اسم لم يُستخدم من قبل بين العرب. حمله إلى الكعبة وشكر الله. أهم ولادة في تاريخ البشرية جاءت بهدوء، في أول نفَس يتيم.',
-      ),
-    ],
-  ),
-
-  JourneyEvent(
-    id: 'j_1_2_2',
-    era: JourneyEra.earlyLife,
-    globalOrder: 5,
-    latitude: 21.4225, longitude: 39.8262,
-    year: 575,
-    title: 'Under the Care of Abd al-Muttalib',
-    titleAr: 'في كنف عبد المطلب',
-    location: 'Mecca',
-    locationAr: 'مكة المكرمة',
-    narrative:
-        'You see the boy at the Ka\'bah courtyard. He is six years old — and he has just lost his mother. Aminah died on the road back from Medina, at a place called Al-Abwa\'. He watched her fall ill. He watched her stop breathing. And now he sits beside his grandfather on the mat that no other child is allowed to touch.\n\n'
-        'Abd al-Muttalib keeps the boy closer than his own sons. When the elders of Quraysh gather at the Ka\'bah, Muhammad ﷺ sits at his grandfather\'s side — a privilege no one questions. The old man\'s hand rests on the boy\'s shoulder. There is something in this child that everyone senses but no one can name.\n\n'
-        'Two years pass. You see the old man growing weaker. Before he dies, he calls his son Abu Talib to his side and entrusts Muhammad ﷺ to him. The boy has lost his father before birth, his mother at six, and now his grandfather at eight. Every earthly protection is being stripped away — one by one.',
-    narrativeAr:
-        'ترى الصبي في فناء الكعبة. عمره ست سنوات — وقد فقد أمه للتوّ. آمنة ماتت في طريق العودة من المدينة، في مكان يُسمى الأبواء. شاهدها تمرض. شاهدها تتوقف عن التنفس. والآن يجلس بجانب جدّه على البساط الذي لا يُسمح لطفل آخر بلمسه.\n\n'
-        'عبد المطلب يبقي الصبي أقرب إليه من أبنائه. حين يجتمع شيوخ قريش عند الكعبة، يجلس محمد ﷺ إلى جانب جدّه — امتياز لا يعترض عليه أحد. يد الشيخ تستقر على كتف الصبي. شيء في هذا الطفل يحسّه الجميع لكن لا أحد يستطيع تسميته.\n\n'
-        'يمرّ عامان. ترى الشيخ يضعف. قبل أن يموت، يستدعي ابنه أبا طالب ويأتمنه على محمد ﷺ. الصبي فقد أباه قبل الولادة، وأمه في السادسة، وجدّه الآن في الثامنة. كل حماية أرضية تُنتزع — واحدة تلو الأخرى.',
-    source: 'Sahih Muslim 2353 — account of the Prophet\'s ﷺ early guardianship',
-    xpReward: 25,
-    questions: [
-      JourneyQuestion(
-        id: 'q_1_2_2_a',
-        question: 'Muhammad ﷺ has lost his mother. He sits beside his grandfather at the Ka\'bah — the one seat no other child may touch. Where does your gaze settle?',
-        questionAr: 'فقد محمد ﷺ أمه. يجلس بجانب جدّه عند الكعبة — المقعد الذي لا يلمسه طفل سواه. أين يستقر نظرك؟',
-        options: [
-          'On the boy\'s face — quiet, watchful, carrying something you cannot name',
-          'On the elders who glance at him with curiosity — sensing what they cannot explain',
-          'On Abd al-Muttalib\'s hand resting on the boy\'s shoulder — a protection that will not last',
-        ],
-        optionsAr: [
-          'على وجه الصبي — هادئ، يقظ، يحمل شيئاً لا تستطيع تسميته',
-          'على الشيوخ الذين يلمحونه بفضول — يحسّون بما لا يستطيعون تفسيره',
-          'على يد عبد المطلب المستقرة على كتف الصبي — حماية لن تدوم',
-        ],
-        correctIndex: 2,
-        explanation: 'History records: Abd al-Muttalib gave the boy an honor given to no other child — a seat beside him at the Ka\'bah. Two years later, he too would die. But before leaving, he entrusted Muhammad ﷺ to his son Abu Talib. Every earthly protection was being removed — so that the boy would learn to rely only on Allah.',
-        explanationAr: 'يسجّل التاريخ: منح عبد المطلب الصبي شرفاً لم يمنحه لطفل سواه — مقعداً بجانبه عند الكعبة. بعد عامين، سيموت هو أيضاً. لكنه قبل رحيله أوصى بمحمد ﷺ إلى ابنه أبي طالب. كل حماية أرضية كانت تُنزع — ليتعلم الصبي الاعتماد على الله وحده.',
-      ),
-    ],
-  ),
-
-  JourneyEvent(
-    id: 'j_1_2_3',
-    era: JourneyEra.earlyLife,
-    globalOrder: 6,
-    latitude: 21.4225, longitude: 39.8262,
-    year: 578,
-    title: 'The Guardian: Abu Talib',
-    titleAr: 'الكافل: أبو طالب',
-    location: 'Mecca',
-    locationAr: 'مكة المكرمة',
-    narrative:
-        'You walk alongside the trade caravan heading north toward Syria. The sun is fierce, the camels are heavy-laden, and Abu Talib — not a wealthy man, but a man of honor — leads the way. Beside him, a boy of twelve: Muhammad ﷺ, eyes wide, taking in lands he has never seen.\n\n'
-        'Abu Talib did not have to take this orphan. He has children of his own and barely enough to feed them. But he welcomed Muhammad ﷺ as a son — a place at his table, a place in his home, a place in his heart. And now he brings the boy on this journey because he cannot bear to leave him behind.\n\n'
-        'You watch Abu Talib throughout the journey — the way he positions himself between the boy and the sun, the way he checks on him at every rest stop, the way he watches over him in his sleep. This is not duty. This is love. A love that will one day shield a prophet from the most powerful forces in Arabia.',
-    narrativeAr:
-        'تمشي بجانب القافلة التجارية المتجهة شمالاً نحو الشام. الشمس حارقة، والجمال مُثقلة، وأبو طالب — ليس رجلاً ثرياً، لكنه رجل شرف — يقود الطريق. إلى جانبه، صبي في الثانية عشرة: محمد ﷺ، عيناه واسعتان، يتأمل أراضي لم يرها من قبل.\n\n'
-        'لم يكن على أبي طالب أن يأخذ هذا اليتيم. لديه أبناؤه ويكاد لا يجد ما يكفيهم. لكنه رحّب بمحمد ﷺ كابن — مكان على مائدته، مكان في بيته، مكان في قلبه. والآن يصطحب الصبي في هذه الرحلة لأنه لا يطيق أن يتركه.\n\n'
-        'تراقب أبا طالب طوال الرحلة — كيف يضع نفسه بين الصبي والشمس، كيف يطمئن عليه في كل استراحة، كيف يحرسه في نومه. هذا ليس واجباً. هذه محبة. محبة ستحمي يوماً نبيّاً من أقوى القوى في جزيرة العرب.',
-    source: 'Sahih Bukhari 3884 — the Prophet ﷺ on Abu Talib\'s guardianship',
-    xpReward: 25,
-    questions: [
-      JourneyQuestion(
-        id: 'q_1_2_3_a',
-        question: 'Abu Talib leads the caravan to Syria. The young Muhammad ﷺ walks beside him. You travel with them. What do you observe most closely?',
-        questionAr: 'أبو طالب يقود القافلة إلى الشام. محمد ﷺ الصغير يمشي بجانبه. ترافقهم في الطريق. ما الذي تراقبه عن كثب؟',
-        options: [
-          'The boy\'s eager eyes — seeing new lands for the first time',
-          'Abu Talib — who never lets the boy out of his sight, not once',
-          'The merchants on the road who already seem to respect the boy\'s presence',
-        ],
-        optionsAr: [
-          'عينا الصبي المتلهفتين — يرى أراضي جديدة للمرة الأولى',
-          'أبو طالب — الذي لا يترك الصبي يغيب عن نظره لحظة واحدة',
-          'التجار على الطريق الذين يبدو أنهم يحترمون حضور الصبي',
-        ],
-        correctIndex: 1,
-        explanation: 'History records: Abu Talib raised him as his own son and protected him for decades — even after Islam came and the most powerful men in Mecca demanded Muhammad ﷺ be surrendered. Though Abu Talib never embraced Islam himself, his love was a mercy from Allah that allowed the Prophet ﷺ to continue his mission.',
-        explanationAr: 'يسجّل التاريخ: ربّاه أبو طالب كابنه وحماه لعقود — حتى بعد مجيء الإسلام ومطالبة أقوى رجال مكة بتسليم محمد ﷺ. وإن لم يعتنق أبو طالب الإسلام بنفسه، فإن محبته كانت رحمة من الله أتاحت للنبي ﷺ مواصلة رسالته.',
-      ),
-    ],
-  ),
-
-  JourneyEvent(
-    id: 'j_1_2_4',
-    era: JourneyEra.earlyLife,
-    globalOrder: 7,
-    latitude: 21.4225, longitude: 39.8262,
-    year: 590,
-    title: 'Hilf al-Fudul — The Pact of the Virtuous',
-    titleAr: 'حلف الفضول',
-    location: 'Mecca',
-    locationAr: 'مكة المكرمة',
-    narrative:
-        'You are near the Ka\'bah when you hear it — a Yemeni merchant standing in the open, his voice cracking with frustration. He came to Mecca, sold his goods to a man of Quraysh, and was never paid. He has no tribe here. No protection. No one to fight for him. So he does the only thing he can: he stands in the most public place in Mecca and calls out to anyone who still believes in honor.\n\n'
-        'Something shifts. You watch as the noblest clans of Mecca stir — not all of them, but enough. They gather in the house of Abdullah ibn Jud\'an and swear a covenant: from this day forward, they will stand together against any injustice in Mecca. No victim — whether local or foreigner — will be denied their rights while they draw breath.\n\n'
-        'Among those present is a young man named Muhammad ﷺ. He says nothing during the gathering. But decades later — as a Prophet — he will say of this night: "I was present at a pact so excellent that I would not exchange my part in it for a herd of red camels; and if I were called to it in Islam, I would respond."',
-    narrativeAr:
-        'أنت قرب الكعبة حين تسمعه — تاجر يمني يقف في العراء، صوته يتكسّر من الإحباط. جاء مكة وباع بضاعته لرجل من قريش ولم يُدفع حقه. ليس له هنا قبيلة. لا حماية. لا أحد يقاتل عنه. فيفعل الشيء الوحيد الذي يستطيعه: يقف في أكثر أماكن مكة علنية ويصرخ مناشداً كل من يؤمن بالشرف.\n\n'
-        'شيء يتحرك. تشاهد أشرف أحياء مكة تنتفض — ليس كلهم، لكن ما يكفي. يجتمعون في دار عبد الله بن جدعان ويقسمون عهداً: من هذا اليوم، سيقفون معاً ضد أي ظلم في مكة. لن يُحرم مظلوم — سواء أكان محلياً أم غريباً — من حقه ما داموا أحياء.\n\n'
-        'بين الحاضرين شاب اسمه محمد ﷺ. لا يتكلم خلال الاجتماع. لكن بعد عقود — وهو نبيّ — سيقول عن هذه الليلة: "شهدت في دار ابن جدعان حلفاً ما أُحب أن لي به حُمر النعم، ولو دُعيت إليه في الإسلام لأجبت."',
-    source: 'Seerah Ibn Hisham — Hilf al-Fudul; referenced by Prophet ﷺ in Sahih narrations',
-    xpReward: 30,
-    questions: [
-      JourneyQuestion(
-        id: 'q_1_2_4_a',
-        question: 'A Yemeni merchant stands at the Ka\'bah, cheated and unheard. The tribes gather. You are there. What do you do?',
-        questionAr: 'تاجر يمني يقف عند الكعبة، مغبون ومهمَل. القبائل تتجمع. أنت هناك. ماذا تفعل؟',
-        options: [
-          'Stay silent — this is between the merchant and the Quraysh, it is not your concern',
-          'Stand beside the merchant and add your voice to his call',
-          'Watch to see how the nobles of Mecca respond — this will reveal what kind of people they are',
-        ],
-        optionsAr: [
-          'تلزم الصمت — هذا بين التاجر وقريش، ليس شأنك',
-          'تقف بجانب التاجر وتضم صوتك إلى ندائه',
-          'تراقب كيف يستجيب أشراف مكة — هذا سيكشف أي نوع من الناس هم',
-        ],
-        correctIndex: 2,
-        explanation: 'History records: The noblest clans gathered and swore a covenant to defend any victim of injustice in Mecca. Muhammad ﷺ was present — and would later say he would honor this pact even in Islam. Allah had planted justice in His final Prophet ﷺ from youth — values that would define the civilization of Islam itself.',
-        explanationAr: 'يسجّل التاريخ: اجتمع أشرف الأحياء وأقسموا عهداً بالدفاع عن كل مظلوم في مكة. كان محمد ﷺ حاضراً — وسيقول لاحقاً إنه سيفي بهذا الحلف حتى في الإسلام. زرع الله العدل في نبيّه الخاتم ﷺ منذ الصغر — قيم ستحدد حضارة الإسلام ذاتها.',
-      ),
-    ],
-  ),
-
-  JourneyEvent(
-    id: 'j_1_2_5',
-    era: JourneyEra.earlyLife,
-    globalOrder: 8,
-    latitude: 21.4225, longitude: 39.8262,
-    year: 595,
-    title: 'Marriage to Khadijah RA',
-    titleAr: 'الزواج من خديجة رضي الله عنها',
-    location: 'Mecca',
-    locationAr: 'مكة المكرمة',
-    narrative:
-        'You see Muhammad ﷺ returning from Syria at the head of Khadijah\'s trade caravan. He is twenty-five years old. The journey was successful — more successful than any caravan she has sent before. Her servant Maysara walks beside him, and you can hear Maysara talking — not about the profits, but about the man. His honesty. His kindness. The way people were drawn to him at every stop.\n\n'
-        'Khadijah bint Khuwaylid is one of the most respected women in Mecca — a successful merchant of noble lineage, widowed twice, approximately forty years old. She has heard everything Maysara has to say. And she has made her decision.\n\n'
-        'She proposes marriage. In the culture of that time, for a woman of her standing to propose — extraordinary. Muhammad ﷺ accepts. You witness the beginning of the greatest partnership in human history. She will be his wife, his first believer, his anchor, the mother of his children, and his closest companion for twenty-five years. When the weight of revelation comes — and it will shake him to the core — she will be the first to steady him.',
-    narrativeAr:
-        'ترى محمداً ﷺ عائداً من الشام على رأس قافلة خديجة التجارية. عمره خمسة وعشرون عاماً. الرحلة كانت ناجحة — أنجح من أي قافلة أرسلتها من قبل. خادمها ميسرة يمشي بجانبه، وتسمع ميسرة يتحدث — لا عن الأرباح، بل عن الرجل. أمانته. لطفه. الطريقة التي انجذب إليه بها الناس في كل محطة.\n\n'
-        'خديجة بنت خويلد من أكثر نساء مكة احتراماً — تاجرة ناجحة ذات حسب ونسب، أُرملت مرتين، في نحو الأربعين من عمرها. سمعت كل ما قاله ميسرة. واتخذت قرارها.\n\n'
-        'تعرض الزواج. في ثقافة ذلك الزمان، أن تعرض امرأة في مكانتها الزواج — أمر استثنائي. محمد ﷺ يقبل. تشهد بداية أعظم شراكة في تاريخ البشرية. ستكون زوجته وأول من يؤمن به وسنده وأم أبنائه وأقرب مؤنسيه لخمسة وعشرين عاماً. وحين يأتي ثقل الوحي — وسيهزّه حتى الأعماق — ستكون أول من يثبّته.',
-    source: 'Sahih Bukhari 3820 — on Khadijah RA and her merits',
-    xpReward: 35,
-    questions: [
-      JourneyQuestion(
-        id: 'q_1_2_5_a',
-        question: 'Muhammad ﷺ returns from the Syria trade. Maysara cannot stop describing what he witnessed. Khadijah listens. Where does your gaze settle?',
-        questionAr: 'يعود محمد ﷺ من تجارة الشام. ميسرة لا يتوقف عن وصف ما شاهده. خديجة تصغي. أين يستقر نظرك؟',
-        options: [
-          'On the caravan\'s goods — the wealth he has earned is unprecedented',
-          'On Muhammad\'s ﷺ face — something has shifted in how he carries himself',
-          'On Khadijah — whose expression says she has already made her decision',
-        ],
-        optionsAr: [
-          'على بضائع القافلة — الثروة التي جلبها لم يُسبق إليها',
-          'على وجه محمد ﷺ — شيء ما تغيّر في طريقة حضوره',
-          'على خديجة — التي يقول تعبير وجهها إنها اتخذت قرارها بالفعل',
-        ],
-        correctIndex: 2,
-        explanation: 'History records: Khadijah proposed marriage to Muhammad ﷺ. At twenty-five and forty, they became husband and wife — the partnership that would anchor the most important mission in history. She would be the first to believe, the first to comfort, and the last person he would forget.',
-        explanationAr: 'يسجّل التاريخ: خديجة هي من عرضت الزواج على محمد ﷺ. في الخامسة والعشرين والأربعين، صارا زوجين — الشراكة التي ستُرسي أهم رسالة في التاريخ. ستكون أول من يؤمن، وأول من يواسي، وآخر من يُنسى.',
       ),
     ],
   ),
@@ -554,11 +550,6 @@ final List<JourneyEvent> m1Events = [
       ),
     ],
   ),
-
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // CHAPTER 3 — MECCA (610–622 CE) — 11 events
-  // ══════════════════════════════════════════════════════════════════════════
 
   JourneyEvent(
     id: 'j_1_3_1',
@@ -773,9 +764,51 @@ final List<JourneyEvent> m1Events = [
   ),
 
   JourneyEvent(
-    id: 'j_1_3_6',
+    id: 'j_1_3_11',
     era: JourneyEra.mecca,
     globalOrder: 17,
+    latitude: 21.4225, longitude: 39.8262,
+    year: 619,
+    title: 'The Journey to Ta\'if — Rejection and Resilience',
+    titleAr: 'رحلة الطائف — الرفض والصمود',
+    location: 'Ta\'if',
+    locationAr: 'الطائف',
+    narrative:
+        'You walk beside the Prophet ﷺ and Zayd ibn Harithah on the road to Ta\'if — a prosperous city in the mountains, home of the tribe of Thaqif. After the Year of Grief, after Mecca turned hostile, he has come here looking for a new base of support.\n\n'
+        'He meets the three leaders of the tribe. He presents the message of Islam. They reject him with contempt. And then — they send their slaves and street boys after him. You see them line the road, throwing stones, shouting insults. The stones hit his feet until they bleed. Zayd throws himself over the Prophet ﷺ, taking blows meant for him.\n\n'
+        'They reach a garden. The Prophet ﷺ sits, exhausted, bleeding, his sandals soaked red. He raises his hands and makes a supplication that will echo for all of time: "O Allah, to You I complain of my weakness, my insufficient ability, and my insignificance before people... if You are not angry with me, I do not care..." The Angel of the Mountains appears and offers to crush Ta\'if between two mountains. The Prophet ﷺ says: "No. I hope that Allah will bring from their descendants people who worship Allah alone."',
+    narrativeAr:
+        'تمشي بجانب النبي ﷺ وزيد بن حارثة على طريق الطائف — مدينة مزدهرة في الجبال، موطن قبيلة ثقيف. بعد عام الحزن، بعد أن تحوّلت مكة معادية، جاء هنا يبحث عن قاعدة دعم جديدة.\n\n'
+        'يلتقي الزعماء الثلاثة للقبيلة. يعرض رسالة الإسلام. يرفضونه بازدراء. ثم — يرسلون عبيدهم وصبيان الشوارع خلفه. تراهم يصطفون على الطريق، يرمون الحجارة، يصرخون بالشتائم. الحجارة تصيب قدميه حتى ينزف. زيد يلقي بنفسه فوق النبي ﷺ، يتلقى ضربات كانت موجّهة إليه.\n\n'
+        'يصلان إلى بستان. النبي ﷺ يجلس، منهكاً، نازفاً، نعلاه مُبلّلتان بالأحمر. يرفع يديه ويدعو دعاءً سيتردد صداه إلى الأبد: "اللهم إليك أشكو ضعف قوتي، وقلة حيلتي، وهواني على الناس... إن لم تكن ساخطاً عليّ فلا أبالي..." يظهر ملك الجبال ويعرض أن يطبق على الطائف جبلَيْها. يقول النبي ﷺ: "لا. أرجو أن يُخرج الله من أصلابهم من يعبد الله وحده."',
+    source: 'Sahih Bukhari 3231 — Prophet\'s ﷺ supplication after Ta\'if; Sahih Muslim 1795',
+    xpReward: 45,
+    questions: [
+      JourneyQuestion(
+        id: 'q_1_3_11_a',
+        question: 'The Prophet ﷺ sits wounded in a garden outside Ta\'if, bleeding from both feet. Zayd stands over him. Where does your gaze settle?',
+        questionAr: 'النبي ﷺ يجلس جريحاً في بستان خارج الطائف، ينزف من قدميه. زيد يقف فوقه. أين يستقر نظرك؟',
+        options: [
+          'On the people of Ta\'if retreating behind their walls after throwing their stones',
+          'On Zayd ibn Harithah — standing over the Prophet ﷺ like a shield made of flesh',
+          'On the Prophet ﷺ — who is not angry. His hands are raised. He is praying.',
+        ],
+        optionsAr: [
+          'على أهل الطائف المنسحبين خلف أسوارهم بعد أن ألقوا حجارتهم',
+          'على زيد بن حارثة — يقف فوق النبي ﷺ كدرع من لحم',
+          'على النبي ﷺ — الذي ليس غاضباً. يداه مرفوعتان. إنه يدعو.',
+        ],
+        correctIndex: 2,
+        explanation: 'History records: He raised his hands and prayed: "O Allah, if You are not angry with me, I do not care." The Angel of Mountains offered to crush Ta\'if. He refused. "I hope their descendants will worship Allah alone." This is not the response of a man seeking power. This is the response of a prophet who knows exactly who sent him.',
+        explanationAr: 'يسجّل التاريخ: رفع يديه ودعا: "اللهم إن لم تكن ساخطاً عليّ فلا أبالي." عرض ملك الجبال تدمير الطائف. رفض. "أرجو أن يُخرج الله من أصلابهم من يعبد الله وحده." هذا ليس ردّ رجل يطلب السلطة. هذا ردّ نبيّ يعرف تماماً من أرسله.',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_1_3_6',
+    era: JourneyEra.mecca,
+    globalOrder: 18,
     latitude: 31.7683, longitude: 35.2137,
     year: 620,
     title: 'Al-Isra\' wal-Mi\'raj — The Night Journey',
@@ -819,7 +852,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_7',
     era: JourneyEra.mecca,
-    globalOrder: 18,
+    globalOrder: 19,
     latitude: 21.4225, longitude: 39.8262,
     year: 620,
     title: 'The Pledge of Aqabah — First',
@@ -861,7 +894,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_8',
     era: JourneyEra.mecca,
-    globalOrder: 19,
+    globalOrder: 20,
     latitude: 21.4225, longitude: 39.8262,
     year: 621,
     title: 'The Second Pledge of Aqabah',
@@ -903,7 +936,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_9',
     era: JourneyEra.mecca,
-    globalOrder: 20,
+    globalOrder: 21,
     latitude: 21.4225, longitude: 39.8262,
     year: 622,
     title: 'The Plot to Kill the Prophet ﷺ',
@@ -945,7 +978,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_10',
     era: JourneyEra.mecca,
-    globalOrder: 21,
+    globalOrder: 22,
     latitude: 21.2927, longitude: 40.2188,
     year: 622,
     title: 'Cave Thawr — Three Days in Hiding',
@@ -983,53 +1016,6 @@ final List<JourneyEvent> m1Events = [
       ),
     ],
   ),
-
-  JourneyEvent(
-    id: 'j_1_3_11',
-    era: JourneyEra.mecca,
-    globalOrder: 22,
-    latitude: 21.4225, longitude: 39.8262,
-    year: 619,
-    title: 'The Journey to Ta\'if — Rejection and Resilience',
-    titleAr: 'رحلة الطائف — الرفض والصمود',
-    location: 'Ta\'if',
-    locationAr: 'الطائف',
-    narrative:
-        'You walk beside the Prophet ﷺ and Zayd ibn Harithah on the road to Ta\'if — a prosperous city in the mountains, home of the tribe of Thaqif. After the Year of Grief, after Mecca turned hostile, he has come here looking for a new base of support.\n\n'
-        'He meets the three leaders of the tribe. He presents the message of Islam. They reject him with contempt. And then — they send their slaves and street boys after him. You see them line the road, throwing stones, shouting insults. The stones hit his feet until they bleed. Zayd throws himself over the Prophet ﷺ, taking blows meant for him.\n\n'
-        'They reach a garden. The Prophet ﷺ sits, exhausted, bleeding, his sandals soaked red. He raises his hands and makes a supplication that will echo for all of time: "O Allah, to You I complain of my weakness, my insufficient ability, and my insignificance before people... if You are not angry with me, I do not care..." The Angel of the Mountains appears and offers to crush Ta\'if between two mountains. The Prophet ﷺ says: "No. I hope that Allah will bring from their descendants people who worship Allah alone."',
-    narrativeAr:
-        'تمشي بجانب النبي ﷺ وزيد بن حارثة على طريق الطائف — مدينة مزدهرة في الجبال، موطن قبيلة ثقيف. بعد عام الحزن، بعد أن تحوّلت مكة معادية، جاء هنا يبحث عن قاعدة دعم جديدة.\n\n'
-        'يلتقي الزعماء الثلاثة للقبيلة. يعرض رسالة الإسلام. يرفضونه بازدراء. ثم — يرسلون عبيدهم وصبيان الشوارع خلفه. تراهم يصطفون على الطريق، يرمون الحجارة، يصرخون بالشتائم. الحجارة تصيب قدميه حتى ينزف. زيد يلقي بنفسه فوق النبي ﷺ، يتلقى ضربات كانت موجّهة إليه.\n\n'
-        'يصلان إلى بستان. النبي ﷺ يجلس، منهكاً، نازفاً، نعلاه مُبلّلتان بالأحمر. يرفع يديه ويدعو دعاءً سيتردد صداه إلى الأبد: "اللهم إليك أشكو ضعف قوتي، وقلة حيلتي، وهواني على الناس... إن لم تكن ساخطاً عليّ فلا أبالي..." يظهر ملك الجبال ويعرض أن يطبق على الطائف جبلَيْها. يقول النبي ﷺ: "لا. أرجو أن يُخرج الله من أصلابهم من يعبد الله وحده."',
-    source: 'Sahih Bukhari 3231 — Prophet\'s ﷺ supplication after Ta\'if; Sahih Muslim 1795',
-    xpReward: 45,
-    questions: [
-      JourneyQuestion(
-        id: 'q_1_3_11_a',
-        question: 'The Prophet ﷺ sits wounded in a garden outside Ta\'if, bleeding from both feet. Zayd stands over him. Where does your gaze settle?',
-        questionAr: 'النبي ﷺ يجلس جريحاً في بستان خارج الطائف، ينزف من قدميه. زيد يقف فوقه. أين يستقر نظرك؟',
-        options: [
-          'On the people of Ta\'if retreating behind their walls after throwing their stones',
-          'On Zayd ibn Harithah — standing over the Prophet ﷺ like a shield made of flesh',
-          'On the Prophet ﷺ — who is not angry. His hands are raised. He is praying.',
-        ],
-        optionsAr: [
-          'على أهل الطائف المنسحبين خلف أسوارهم بعد أن ألقوا حجارتهم',
-          'على زيد بن حارثة — يقف فوق النبي ﷺ كدرع من لحم',
-          'على النبي ﷺ — الذي ليس غاضباً. يداه مرفوعتان. إنه يدعو.',
-        ],
-        correctIndex: 2,
-        explanation: 'History records: He raised his hands and prayed: "O Allah, if You are not angry with me, I do not care." The Angel of Mountains offered to crush Ta\'if. He refused. "I hope their descendants will worship Allah alone." This is not the response of a man seeking power. This is the response of a prophet who knows exactly who sent him.',
-        explanationAr: 'يسجّل التاريخ: رفع يديه ودعا: "اللهم إن لم تكن ساخطاً عليّ فلا أبالي." عرض ملك الجبال تدمير الطائف. رفض. "أرجو أن يُخرج الله من أصلابهم من يعبد الله وحده." هذا ليس ردّ رجل يطلب السلطة. هذا ردّ نبيّ يعرف تماماً من أرسله.',
-      ),
-    ],
-  ),
-
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // CHAPTER 4 — MEDINA (622–632 CE) — 14 events
-  // ══════════════════════════════════════════════════════════════════════════
 
   JourneyEvent(
     id: 'j_1_4_1',

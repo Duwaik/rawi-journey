@@ -60,7 +60,7 @@ const List<BadgeDefinition> allBadges = [
     icon: '🌙',
     trigger: BadgeTrigger(
       type: BadgeTriggerType.chapterComplete,
-      eventRange: [1, 3],
+      eventRange: [1, 2],
     ),
   ),
   BadgeDefinition(
@@ -72,7 +72,7 @@ const List<BadgeDefinition> allBadges = [
     icon: '⭐',
     trigger: BadgeTrigger(
       type: BadgeTriggerType.chapterComplete,
-      eventRange: [4, 11],
+      eventRange: [3, 11],
     ),
   ),
   BadgeDefinition(

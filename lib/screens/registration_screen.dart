@@ -347,8 +347,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   // Chapter data for cinematic preview
   static const _chapterData = <_ChapterInfo>[
-    _ChapterInfo('JAHILIYYAH', 'الجاهلية', 'Pre-Islamic Arabia', 'الجزيرة قبل الإسلام', 3, true),
-    _ChapterInfo('EARLY LIFE', 'النشأة', 'The Prophetic Childhood', 'الطفولة النبوية', 8, false),
+    _ChapterInfo('JAHILIYYAH', 'الجاهلية', 'Pre-Islamic Arabia', 'الجزيرة قبل الإسلام', 2, true),
+    _ChapterInfo('EARLY LIFE', 'النشأة', 'The Prophetic Childhood', 'الطفولة النبوية', 9, false),
     _ChapterInfo('MECCA', 'مكة المكرمة', 'The Call and the Struggle', 'الدعوة والابتلاء', 11, false),
     _ChapterInfo('MEDINA', 'المدينة المنورة', 'The Community and the Victory', 'المجتمع والنصر', 14, false),
   ];
