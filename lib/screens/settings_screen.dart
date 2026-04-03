@@ -219,12 +219,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _TapRow(
                     icon: Icons.text_fields_rounded,
                     label: _isAr ? 'حجم الخط' : 'Text Size',
-                    value: PrefsService.textScale == 1.0
-                        ? (_isAr ? 'عادي' : 'Normal')
-                        : (_isAr ? 'كبير' : 'Large'),
+                    value: PrefsService.textScale <= 0.85
+                        ? (_isAr ? 'صغير' : 'Small')
+                        : PrefsService.textScale >= 1.25
+                            ? (_isAr ? 'كبير' : 'Large')
+                            : (_isAr ? 'عادي' : 'Normal'),
                     onTap: () {
                       final current = PrefsService.textScale;
-                      final next = current == 1.0 ? 1.3 : 1.0;
+                      // Cycle: Small (0.85) → Normal (1.0) → Large (1.3) → Small
+                      final next = current <= 0.85 ? 1.0 : current >= 1.25 ? 0.85 : 1.3;
                       PrefsService.setTextScale(next);
                       setState(() {});
                     },
