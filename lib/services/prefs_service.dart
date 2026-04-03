@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../data/m1_data.dart';
 import '../models/badge_definition.dart';
 
 class PrefsService {
@@ -43,7 +44,10 @@ class PrefsService {
     final today = _todayStr();
     final last  = _prefs?.getString(_keyStreakDate) ?? '';
     if (last == today) return;
-    if (last.isNotEmpty) {
+    if (last.isEmpty) {
+      // First ever completion — initialize streak
+      await _prefs?.setInt(_keyStreak, 1);
+    } else {
       final diff = DateTime.now().difference(DateTime.parse(last)).inDays;
       await _prefs?.setInt(_keyStreak, diff == 1 ? streak + 1 : 1);
     }
@@ -171,7 +175,7 @@ class PrefsService {
         case BadgeTriggerType.firstEvent:
           qualifies = true; // completing any event qualifies
         case BadgeTriggerType.eventCount:
-          final count = List.generate(36, (i) => i + 1)
+          final count = List.generate(m1EventCount, (i) => i + 1)
               .where((o) => isEventCompleted(o))
               .length;
           qualifies = count >= (badge.trigger.value ?? 999);
@@ -182,7 +186,7 @@ class PrefsService {
             (i) => range[0] + i,
           ).every((o) => isEventCompleted(o));
         case BadgeTriggerType.allEvents:
-          qualifies = List.generate(36, (i) => i + 1)
+          qualifies = List.generate(m1EventCount, (i) => i + 1)
               .every((o) => isEventCompleted(o));
       }
 

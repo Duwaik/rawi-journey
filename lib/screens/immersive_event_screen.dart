@@ -970,7 +970,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () => setState(() => _isAr = !_isAr),
+                    onTap: () {
+                      setState(() => _isAr = !_isAr);
+                      PrefsService.setLanguage(_isAr ? 'ar' : 'en');
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
@@ -1635,5 +1638,7 @@ class _FootprintPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_FootprintPainter old) => true;
+  bool shouldRepaint(_FootprintPainter old) =>
+      footprints.length != old.footprints.length ||
+      sceneOffset != old.sceneOffset;
 }

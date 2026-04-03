@@ -1,4 +1,3 @@
-import 'package:latlong2/latlong.dart';
 import 'branch_point.dart';
 
 // ── Era ───────────────────────────────────────────────────────────────────────
@@ -96,8 +95,9 @@ class JourneyEvent {
   /// Global sequential order across all M1 events (1-based)
   final int globalOrder;
 
-  /// Map pin location
-  final LatLng position;
+  /// Map pin location (reserved for future map view)
+  final double latitude;
+  final double longitude;
 
   /// Year CE
   final int year;
@@ -145,7 +145,8 @@ class JourneyEvent {
     required this.id,
     required this.era,
     required this.globalOrder,
-    required this.position,
+    required this.latitude,
+    required this.longitude,
     required this.year,
     this.yearAH,
     required this.title,

@@ -47,5 +47,9 @@ app.*.map.json
 # Bug screenshots (testing artifacts)
 assets/bugs/
 
+# Release signing (private)
+android/key.properties
+*.jks
+
 # Flutter launcher icons config
 .flutter-plugins

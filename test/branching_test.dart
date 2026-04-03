@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:rawi/models/journey_event.dart';
 import 'package:rawi/models/branch_point.dart';
 import 'package:rawi/models/scene_config.dart';
@@ -32,7 +31,7 @@ void main() {
         id: 'test_linear',
         era: JourneyEra.jahiliyyah,
         globalOrder: 99,
-        position: LatLng(0, 0),
+        latitude: 0, longitude: 0,
         year: 500,
         title: 'Test Linear',
         titleAr: 'اختبار خطي',
@@ -51,7 +50,7 @@ void main() {
         id: 'test_branching',
         era: JourneyEra.jahiliyyah,
         globalOrder: 100,
-        position: LatLng(0, 0),
+        latitude: 0, longitude: 0,
         year: 500,
         title: 'Test Branching',
         titleAr: 'اختبار تفرع',
