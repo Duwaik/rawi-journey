@@ -163,23 +163,24 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 | 1 | j_m1_001 | Arabia Before the Light | الجزيرة العربية قبل النور | 500 CE | Arabia | 20 |
 | 2 | j_m1_002 | The Year of the Elephant | عام الفيل | 570 CE | Mecca | 30 |
 
-> Black Stone (605 CE) moved to Early Life position 8 — chronological reorder.
-
-#### Era: Early Life (الحياة المبكرة) — Events 3–14
+#### Era: Early Life (الحياة المبكرة) — Events 3–15
 
 | # | ID | Title (EN) | Title (AR) | Year | Location | XP |
 |---|---|---|---|---|---|---|
-| 4 | j_m1_004 | Birth of the Prophet ﷺ | مولد النبي ﷺ | 570 CE | Mecca | 30 |
-| 5 | j_m1_005 | The Nursing Years — Halimah al-Sa'diyyah | سنوات الرضاعة مع حليمة السعدية | 570 CE | Banu Sa'd | 20 |
-| 6 | j_m1_006 | The Opening of the Chest | شرح الصدر | 574 CE | Banu Sa'd | 30 |
-| 7 | j_m1_007 | Return to Mecca — Death of Aminah | العودة إلى مكة — وفاة آمنة | 576 CE | Abwa | 20 |
-| 8 | j_m1_008 | Under the Care of Abd al-Muttalib | في كنف عبد المطلب | 576 CE | Mecca | 20 |
-| 9 | j_m1_009 | Under the Guardian: Abu Talib | في كنف أبي طالب | 578 CE | Mecca | 20 |
-| 10 | j_m1_010 | Hilf al-Fudul — The Pact of the Virtuous | حلف الفضول | 590 CE | Mecca | 25 |
-| 11 | j_m1_011 | Al-Amin — The Trustworthy | الأمين | 595 CE | Mecca | 20 |
-| 12 | j_m1_012 | Marriage to Khadijah RA | الزواج من خديجة رضي الله عنها | 595 CE | Mecca | 30 |
+| 3 | j_m1_004 | Birth of the Prophet ﷺ | مولد النبي ﷺ | 570 CE | Mecca | 30 |
+| 4 | j_m1_005 | The Nursing Years — Halimah al-Sa'diyyah | سنوات الرضاعة مع حليمة السعدية | 570 CE | Banu Sa'd | 20 |
+| 5 | j_m1_006 | The Opening of the Chest | شرح الصدر | 574 CE | Banu Sa'd | 30 |
+| 6 | j_m1_007 | Return to Mecca — Death of Aminah | العودة إلى مكة — وفاة آمنة | 576 CE | Abwa | 20 |
+| 7 | j_m1_008 | Under the Care of Abd al-Muttalib | في كنف عبد المطلب | 576 CE | Mecca | 20 |
+| 8 | j_m1_009 | Under the Guardian: Abu Talib | في كنف أبي طالب | 578 CE | Mecca | 20 |
+| 9 | j_m1_010 | Hilf al-Fudul — The Pact of the Virtuous | حلف الفضول | 590 CE | Mecca | 25 |
+| 10 | j_m1_011 | Al-Amin — The Trustworthy | الأمين | 595 CE | Mecca | 20 |
+| 11 | j_m1_012 | Marriage to Khadijah RA | الزواج من خديجة رضي الله عنها | 595 CE | Mecca | 30 |
+| 12 | j_m1_003 | The Black Stone — A Wise Arbitration | الحجر الأسود — حكمة التحكيم | 605 CE | Mecca | 20 |
 | 13 | j_m1_013 | Solitude in Cave Hira | الخلوة في غار حراء | 610 CE | Mecca | 25 |
 | 14 | j_m1_014 | The First Revelation — اقرأ | أول الوحي — اقرأ | 610 CE | Cave Hira | **50** |
+
+> Early Life now has 12 events (was 11). Black Stone inserted at chronological position between Marriage (595 CE) and Cave Hira (610 CE).
 
 #### Era: Mecca (مكة المكرمة) — Events 15–47
 
@@ -384,7 +385,7 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 | Era (JourneyEra) | Events | Global Orders |
 |---|---|---|
 | jahiliyyah | 2 | 1–2 |
-| earlyLife | 12 | 3–14 |
+| earlyLife | 12 | 3–14 | (includes Black Stone at position 12, 605 CE)
 | mecca | 33 | 15–47 |
 | medina | 108 | 48–155 |
 

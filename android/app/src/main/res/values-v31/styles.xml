@@ -3,6 +3,7 @@
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@color/navy_bg</item>
         <item name="android:windowSplashScreenBackground">@color/navy_bg</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/navy_bg</item>
     </style>
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@color/navy_bg</item>
