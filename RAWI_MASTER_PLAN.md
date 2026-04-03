@@ -85,7 +85,17 @@ A **mobile game** about the life of Prophet Muhammad ﷺ told through:
 - Isra'iliyyat (unverified narrations from biblical/Israeli sources)
 - The Bahira incident (excluded — unverified chain)
 - Any visual depiction of the Prophet ﷺ
+- Any visual depiction of the Companions (الصحابة), especially the close Companions (المقربون) including:
+  - The Khulafa al-Rashidun (Abu Bakr, Umar, Uthman, Ali رضي الله عنهم)
+  - Mothers of the Believers (Khadijah, Aisha رضي الله عنهن)
+  - The Asharah al-Mubasharah (the 10 promised Paradise)
+  - Key figures (Hamza, Bilal, Mus'ab, Zayd, Ja'far رضي الله عنهم)
+  - Any Companion mentioned by name in event content
+  - They exist through narration, objects, and atmosphere only — never as visible human figures, not even distant silhouettes
 - Speculative dialogue attributed to the Prophet ﷺ without hadith source
+- No graphic violence — battles show atmosphere (dust, banners, tension) not combat or injury
+
+**This rule applies to ALL visual content:** videos, scene backgrounds, hotspot card images, badge artwork, companion avatars, and any future visual assets.
 
 ---
 
