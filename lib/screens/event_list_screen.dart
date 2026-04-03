@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
@@ -481,8 +482,8 @@ class _EventListScreenState extends State<EventListScreen> {
           isAr: isAr,
           confirmDanger: true,
         );
-        if (confirmed == true && context.mounted) {
-          Navigator.of(context).pop();
+        if (confirmed == true) {
+          SystemNavigator.pop(); // Close the app cleanly
         }
       },
       child: Scaffold(

@@ -245,7 +245,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         children: [
           const Spacer(flex: 3),
           Text(
-            isAr ? 'اختر رفيقك' : 'Choose your companion',
+            isAr ? 'من يحمل هذه الرواية؟' : 'Who carries the story?',
             textAlign: TextAlign.center,
             textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
             style: GoogleFonts.cinzelDecorative(
@@ -260,14 +260,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             children: [
               _GenderCard(
                 imagePath: 'assets/figures/companion_male.jpg',
-                label: isAr ? 'ذكر' : 'Male',
+                label: isAr ? 'راوي' : 'Rawi',
                 selected: _selectedGender == 'male',
                 onTap: () => setState(() => _selectedGender = 'male'),
               ),
               const SizedBox(width: 24),
               _GenderCard(
                 imagePath: 'assets/figures/companion_female.jpg',
-                label: isAr ? 'أنثى' : 'Female',
+                label: isAr ? 'راوية' : 'Rawiah',
                 selected: _selectedGender == 'female',
                 onTap: () => setState(() => _selectedGender = 'female'),
               ),

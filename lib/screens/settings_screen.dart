@@ -5,6 +5,7 @@ import '../app_colors.dart';
 import '../models/badge_definition.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
+import 'event_list_screen.dart';
 import 'splash_screen.dart';
 
 /// Full-page settings accessible from the hub gear icon.
@@ -229,7 +230,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       // Cycle: Small (0.85) → Normal (1.0) → Large (1.2) → Small
                       final next = current < 0.9 ? 1.0 : current > 1.1 ? 0.85 : 1.2;
                       PrefsService.setTextScale(next);
-                      setState(() {});
+                      // Rebuild from root to apply new text scale
+                      Navigator.of(context).pushAndRemoveUntil(
+                        PageRouteBuilder(
+                          pageBuilder: (c, a, s) => const EventListScreen(),
+                          transitionsBuilder: (c, a, s, child) =>
+                              FadeTransition(opacity: a, child: child),
+                          transitionDuration: const Duration(milliseconds: 300),
+                        ),
+                        (route) => false,
+                      );
                     },
                   ),
 

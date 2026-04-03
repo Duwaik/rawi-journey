@@ -4,19 +4,24 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../services/prefs_service.dart';
 
-/// Image-based companion avatar in a gold-bordered circle.
-/// Loads in-scene companion image based on user gender.
+/// The Rawi (راوي) / Rawiah (راوية) — the narrator character.
+/// Image-based avatar in a gold-bordered circle.
+/// Supports pose parameter for context-specific images (when art is ready).
 /// Retains walking bob, breathing, and golden aura animations.
 class CompanionFigure extends StatefulWidget {
   final bool isWalking;
   final double facingDirection;
   final bool isAr;
+  /// Pose: 'walking', 'witnessing', 'reflecting', 'carrying'
+  /// Currently all map to the same in-scene image until pose art is generated.
+  final String pose;
 
   const CompanionFigure({
     super.key,
     this.isWalking = false,
     this.facingDirection = 0.0,
     this.isAr = false,
+    this.pose = 'walking',
   });
 
   @override
@@ -114,7 +119,9 @@ class _CompanionFigureState extends State<CompanionFigure>
                     ),
                   ),
                   child: Text(
-                    widget.isAr ? 'أنت' : 'You',
+                    widget.isAr
+                        ? (PrefsService.userGender == 'female' ? 'راوية' : 'راوي')
+                        : (PrefsService.userGender == 'female' ? 'Rawiah' : 'Rawi'),
                     textDirection: widget.isAr ? TextDirection.rtl : TextDirection.ltr,
                     style: GoogleFonts.nunito(
                       color: AppColors.gold,

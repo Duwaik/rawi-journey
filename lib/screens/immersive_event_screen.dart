@@ -378,7 +378,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   }
 
   void _onIdle() {
-    if (!mounted || _phase != _Phase.explore || _activeHotspot != null || _showSettings) return;
+    if (!mounted || _phase != _Phase.explore || _activeHotspot != null || _showSettings || _showBranchCard) return;
     _idleTriggerCount++;
     final total = _discovered.length + _pendingDiscovery.length;
     final List<DialogueLine> lines;
@@ -494,6 +494,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   }
 
   void _saveAndExit() {
+    // Save hotspot progress before leaving
+    if (!_alreadyCompleted && !_isCompleting) {
+      final allFound = _discovered.union(_pendingDiscovery);
+      if (allFound.isNotEmpty) {
+        PrefsService.saveHotspotProgress(widget.event.id, allFound);
+      }
+    }
     setState(() => _showSettings = false);
     Navigator.of(context).pop();
   }
@@ -656,6 +663,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         dismissed.id == widget.event.anchorHotspotId &&
         _branchChoice == null) {
       // The Gate just dismissed — show The Crossroads
+      _idleTimer?.cancel(); // Stop idle VO from overlapping branch card
       setState(() => _showBranchCard = true);
       // Rule 3: Branch card VO starts 600ms after card shows
       final branchVoPath = _choiceVoPath('branch');
