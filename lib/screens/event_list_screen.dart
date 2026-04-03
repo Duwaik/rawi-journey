@@ -12,6 +12,7 @@ import 'immersive_event_screen.dart';
 import 'journey_event_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/cinematic/fly_transition.dart';
+import '../widgets/rawi_dialog.dart';
 
 // ── Chapter metadata ────────────────────────────────────────────────────────
 
@@ -471,45 +472,14 @@ class _EventListScreenState extends State<EventListScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final confirmed = await showDialog<bool>(
+        final confirmed = await showRawiDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: AppColors.card,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16)),
-            title: Text(
-              isAr ? 'مغادرة اللعبة؟' : 'Exit game?',
-              style: GoogleFonts.nunito(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold),
-              textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-            ),
-            content: Text(
-              isAr
-                  ? 'هل أنت متأكد أنك تريد الخروج؟'
-                  : 'Are you sure you want to exit?',
-              style: GoogleFonts.nunito(color: AppColors.textBody),
-              textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(
-                  isAr ? 'البقاء' : 'Stay',
-                  style: GoogleFonts.nunito(color: AppColors.gold),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(
-                  isAr ? 'خروج' : 'Exit',
-                  style: GoogleFonts.nunito(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
+          title: isAr ? 'مغادرة اللعبة؟' : 'Exit Game?',
+          body: isAr ? 'هل أنت متأكد أنك تريد الخروج؟' : 'Are you sure you want to exit?',
+          cancelLabel: isAr ? 'البقاء' : 'Stay',
+          confirmLabel: isAr ? 'خروج' : 'Exit',
+          isAr: isAr,
+          confirmDanger: true,
         );
         if (confirmed == true && context.mounted) {
           Navigator.of(context).pop();

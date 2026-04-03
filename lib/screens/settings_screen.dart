@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../models/badge_definition.dart';
 import '../services/prefs_service.dart';
+import '../widgets/rawi_dialog.dart';
 import 'splash_screen.dart';
 
 /// Full-page settings accessible from the hub gear icon.
@@ -52,44 +53,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _resetJourney() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showRawiDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          _isAr ? 'إعادة الرحلة' : 'Reset Journey',
-          style: GoogleFonts.nunito(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-        ),
-        content: Text(
-          _isAr
-              ? 'سيتم مسح كل تقدمك. هل أنت متأكد؟'
-              : 'All your progress will be erased. Are you sure?',
-          style: GoogleFonts.nunito(color: AppColors.textBody),
-          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              _isAr ? 'إلغاء' : 'Cancel',
-              style: GoogleFonts.nunito(color: AppColors.textMuted),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              _isAr ? 'إعادة' : 'Reset',
-              style: GoogleFonts.nunito(
-                  color: Colors.redAccent, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
+      title: _isAr ? 'إعادة الرحلة' : 'Reset Journey',
+      body: _isAr ? 'سيتم مسح كل تقدمك. هل أنت متأكد؟' : 'All your progress will be erased. Are you sure?',
+      cancelLabel: _isAr ? 'إلغاء' : 'Cancel',
+      confirmLabel: _isAr ? 'إعادة' : 'Reset',
+      isAr: _isAr,
+      confirmDanger: true,
     );
 
     if (confirmed == true) {

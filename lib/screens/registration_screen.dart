@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
+import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
 
 /// 4-step registration flow shown on first launch after intro cinematic.
@@ -20,9 +21,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _nameCtrl = TextEditingController();
   int _currentPage = 0;
   String _selectedGender = 'male';
-  String _selectedLang = 'en';
+  late String _selectedLang;
 
   static const _totalPages = 4;
+
+  @override
+  void initState() {
+    super.initState();
+    // Detect device locale for initial language
+    final deviceLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    _selectedLang = deviceLang == 'ar' ? 'ar' : 'en';
+  }
 
   @override
   void dispose() {
@@ -81,22 +90,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         if (_currentPage > 0) {
           _prevPage();
         } else {
-          final confirmed = await showDialog<bool>(
+          final confirmed = await showRawiDialog(
             context: context,
-            builder: (ctx) => AlertDialog(
-              backgroundColor: AppColors.card,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: Text(isAr ? 'مغادرة؟' : 'Exit?',
-                  style: GoogleFonts.nunito(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-              content: Text(isAr ? 'هل تريد الخروج؟' : 'Are you sure you want to exit?',
-                  style: GoogleFonts.nunito(color: AppColors.textBody)),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx, false),
-                    child: Text(isAr ? 'البقاء' : 'Stay', style: GoogleFonts.nunito(color: AppColors.gold))),
-                TextButton(onPressed: () => Navigator.pop(ctx, true),
-                    child: Text(isAr ? 'خروج' : 'Exit', style: GoogleFonts.nunito(color: Colors.redAccent, fontWeight: FontWeight.bold))),
-              ],
-            ),
+            title: isAr ? 'مغادرة؟' : 'Exit?',
+            body: isAr ? 'هل تريد الخروج؟' : 'Are you sure you want to exit?',
+            cancelLabel: isAr ? 'البقاء' : 'Stay',
+            confirmLabel: isAr ? 'خروج' : 'Exit',
+            isAr: isAr,
+            confirmDanger: true,
           );
           if (confirmed == true && context.mounted) Navigator.of(context).pop();
         }
@@ -173,6 +174,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   // ── Page 1: Name ────────────────────────────────────────────────────────
 
   Widget _buildNamePage(bool isAr) {
+    final name = _nameCtrl.text.trim();
+    final valid = name.length >= 2 && name.length <= 15;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -180,7 +184,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         children: [
           const Spacer(flex: 3),
           Text(
-            isAr ? 'ما اسمك يا مسافر؟' : 'What shall we call you,\ntraveler?',
+            isAr ? 'ماذا نناديك، أيها الرّحّال؟' : 'What shall we call you,\ntraveler?',
             textAlign: TextAlign.center,
             textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
             style: GoogleFonts.cinzelDecorative(
@@ -193,6 +197,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           TextField(
             controller: _nameCtrl,
             textAlign: TextAlign.center,
+            maxLength: 15,
+            onChanged: (_) => setState(() {}), // Rebuild to update button state
             style: GoogleFonts.nunito(
               fontSize: 20,
               color: AppColors.textPrimary,
@@ -202,6 +208,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               hintStyle: GoogleFonts.nunito(
                 fontSize: 18,
                 color: AppColors.textMuted.withAlpha(100),
+              ),
+              counterText: isAr ? '٢–١٥ حرفاً' : '2–15 characters',
+              counterStyle: GoogleFonts.nunito(
+                fontSize: 11,
+                color: AppColors.textMuted.withAlpha(80),
               ),
               enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(
@@ -214,20 +225,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
           const SizedBox(height: 48),
           _ContinueButton(
-            label: isAr ? 'التالي' : 'Continue',
-            onPressed: _nextPage,
+            label: isAr ? 'متابعة' : 'Continue',
+            onPressed: valid ? _nextPage : null,
           ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed: _nextPage,
-            child: Text(
-              isAr ? 'تخطي' : 'Skip',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                color: AppColors.textMuted.withAlpha(150),
-              ),
-            ),
-          ),
+          // No Skip button — name is mandatory
           const Spacer(flex: 4),
         ],
       ),
@@ -487,20 +488,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
 class _ContinueButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const _ContinueButton({required this.label, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onPressed != null;
     return SizedBox(
       width: 200,
       height: 50,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.gold,
-          foregroundColor: AppColors.bg,
+          backgroundColor: enabled ? AppColors.gold : AppColors.gold.withAlpha(60),
+          foregroundColor: enabled ? AppColors.bg : AppColors.textMuted,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

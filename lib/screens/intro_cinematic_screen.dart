@@ -115,7 +115,9 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isAr = PrefsService.isAr;
+    // Use device locale since user hasn't selected language yet
+    final deviceLocale = View.of(context).platformDispatcher.locale.languageCode;
+    final isAr = PrefsService.language != 'en' ? PrefsService.isAr : deviceLocale == 'ar';
     final line = _lines[_currentLine];
     final text = isAr ? line.ar : line.en;
 
