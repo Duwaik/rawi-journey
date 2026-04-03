@@ -149,7 +149,8 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
 
           // ── Centered text line ────────────────────────────────────
           if (!_showCta)
-            Center(
+            IgnorePointer(
+            child: Center(
               child: Opacity(
                 opacity: _lineOpacity,
                 child: Padding(
@@ -169,6 +170,7 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                   ),
                 ),
               ),
+            ),
             ),
 
           // ── CTA — "Begin" ─────────────────────────────────────────
@@ -224,13 +226,17 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
             Positioned(
               top: MediaQuery.of(context).padding.top + 12,
               right: 16,
-              child: TextButton(
-                onPressed: _proceed,
-                child: Text(
-                  isAr ? 'تخطي' : 'Skip',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    color: AppColors.textMuted.withAlpha(180),
+              child: GestureDetector(
+                onTap: _proceed,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    isAr ? 'تخطي' : 'Skip',
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      color: AppColors.textMuted.withAlpha(180),
+                    ),
                   ),
                 ),
               ),

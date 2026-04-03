@@ -80,7 +80,8 @@ class _EventListScreenState extends State<EventListScreen> {
   void _refresh() {
     setState(() {
       _currentOrder = PrefsService.currentOrder;
-      // Auto-expand the active era on refresh
+      // Auto-collapse all, then expand only the active era
+      _expandedEras.clear();
       final active = _activeEra();
       if (active != null) _expandedEras.add(active);
     });

@@ -718,39 +718,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       });
 
       if (!_alreadyCompleted) {
-        // Step 0: Write immediately — crash-safe
+        // Write immediately — crash-safe. Badge+XP shown later on Continue tap.
         await PrefsService.completeEvent(widget.event.globalOrder, widget.event.xpReward);
         await PrefsService.clearHotspotProgress(widget.event.id);
         final badges = await PrefsService.checkAndAwardBadges();
         if (mounted && badges.isNotEmpty) {
           _newBadges = badges;
         }
-
-        // Step 1: Badge moment (if earned) — 500ms after explanation visible
-        if (_newBadges.isNotEmpty && mounted) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          for (final badge in _newBadges) {
-            if (!mounted) return;
-            final completer = Completer<void>();
-            setState(() {
-              _showBadgeOverlay = true;
-              _currentBadge = badge;
-            });
-            _badgeDismissCompleter = completer;
-            await completer.future; // Wait for user tap
-            if (!mounted) return;
-            await Future.delayed(const Duration(milliseconds: 300));
-          }
-        }
-
-        // Step 2: XP animation — after badge dismiss (or immediately if no badge)
-        if (mounted) {
-          if (_newBadges.isEmpty) {
-            await Future.delayed(const Duration(milliseconds: 300));
-          }
-          setState(() => _showXpAnimation = true);
-          // XP animation takes ~1.5s, then onComplete fires _showContinueButton
-        }
+        // Show Continue button after a brief delay for explanation to settle
+        await Future.delayed(const Duration(milliseconds: 1500));
+        if (mounted) setState(() => _showContinueButton = true);
       } else {
         // Replay — show Continue immediately
         setState(() => _showContinueButton = true);
@@ -769,14 +746,42 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _badgeDismissCompleter = null;
   }
 
-  /// "Continue Journey" button — just pops (writes already done).
-  void _completeAndPop() {
+  /// "Continue Journey" button — shows badge + XP celebration, then pops.
+  Future<void> _completeAndPop() async {
+    AudioService.stopVoiceover();
+    if (!mounted) return;
+
+    // Step 1: Badge moment (if earned) — full-screen overlay
+    if (_newBadges.isNotEmpty) {
+      for (final badge in _newBadges) {
+        if (!mounted) return;
+        final completer = Completer<void>();
+        setState(() {
+          _showBadgeOverlay = true;
+          _currentBadge = badge;
+        });
+        _badgeDismissCompleter = completer;
+        await completer.future;
+        if (!mounted) return;
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+    }
+
+    // Step 2: XP animation
+    if (mounted && !_alreadyCompleted) {
+      setState(() => _showXpAnimation = true);
+      // Wait for XP animation to complete + 1s pause
+      await Future.delayed(const Duration(milliseconds: 2500));
+    }
+
+    // Step 3: Auto-navigate to event list
     if (!mounted) return;
     Navigator.pop(context, true);
   }
 
   /// Back to events for replays.
   void _continue() {
+    AudioService.stopVoiceover();
     Navigator.pop(context);
   }
 
@@ -1103,6 +1108,20 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 onDismiss: _onBadgeDismissed,
               ),
             ),
+
+          // ── XP celebration overlay (full-screen, after badge) ─────
+          if (_showXpAnimation)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withAlpha(200),
+                child: Center(
+                  child: XpRewardAnimation(
+                    xpEarned: widget.event.xpReward,
+                    previousTotal: _previousXp,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     ),
@@ -1347,26 +1366,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                       isAr: _isAr,
                     ),
 
-                  // XP animation + Continue button (after answering)
+                  // Continue button (after answering — badge+XP show on tap)
                   if (answered) ...[
                     const SizedBox(height: 20),
 
-                    // Animated XP reveal — only after badge is dismissed
-                    if (_showXpAnimation && !_alreadyCompleted)
-                      XpRewardAnimation(
-                        xpEarned: widget.event.xpReward,
-                        previousTotal: _previousXp,
-                        onComplete: () {
-                          // Show Continue button 1s after XP animation
-                          Future.delayed(const Duration(seconds: 1), () {
-                            if (mounted) setState(() => _showContinueButton = true);
-                          });
-                        },
-                      ),
-
-                    const SizedBox(height: 16),
-
-                    // Continue button — fades in after XP animation (or immediately for replay)
+                    // Continue button — appears after explanation settles
                     if (_showContinueButton || _alreadyCompleted)
                       TweenAnimationBuilder<double>(
                         tween: Tween(begin: 0.0, end: 1.0),
