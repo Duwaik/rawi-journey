@@ -80,3 +80,6 @@ Root cause likely: `_completeAndReturn()` either isn't being called, or the pop 
 | POST-16 | **Badge system** | 7 badges, BadgeDefinition model, checkAndAwardBadges, badge overlay, profile grid. |
 | POST-17 | **Hotspot visibility** | Dark backing on all states, gold outline ring, stronger glow. |
 | POST-18 | **Ambient audio disabled** | Looping desert ambient reported annoying. Will redesign. |
+| POST-19 | **Badge overlay redesign** | Full-screen 85% overlay, sequential completion flow (badges awarded one at a time). |
+| POST-20 | **Audit fixes** | Signing config added, latlong2 removed, dead code cleaned, performance improvements, persistence fixes. |
+| POST-21 | **Chronological reorder** | Black Stone (605 CE) moved from Jahiliyyah pos 3 → Early Life pos 8. Ta'if (619 CE) moved to pos 17 (after Year of Grief). |

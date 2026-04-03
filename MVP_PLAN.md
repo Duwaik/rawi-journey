@@ -2,9 +2,12 @@
 # 3 Playable Events + Complete Gaming UX
 
 > Created: 2026-04-01
-> Updated: 2026-04-02 (branching system + UI redesign + critical flow fix)
+> Updated: 2026-04-03 (audit fixes + chronological reorder + badge redesign)
 > Goal: A demo-ready app that feels like a real game from first tap to last hotspot
-> **Status: MVP BUILT + POLISHING** — 3 branching events, full gaming UX, 150+ audio files, timeline event list, XP animations + badge system (Sprints 28-32)
+> **Status: MVP BUILT + POLISHING** — 32+ sprints completed. 3 branching events, full gaming UX, 136 audio files (84 VO + 52 companion MP3, ambient disabled), timeline event list, XP animations + badge system (7 badges), audit fixes applied, chronological reorder done.
+>
+> **Done:** Branching system, badge system (7 badges + XP animation + overlay + profile grid), audit fixes (signing config, dead code removal, perf, persistence), chronological reorder (Black Stone + Ta'if).
+> **Remaining:** Firebase Crashlytics (needs google-services.json), font bundling (deferred), asset compression (needs ffmpeg).
 >
 > **Event Terminology:** The Gate → The Crossroads → The Paths → The Gathering → The Verdict (branching). The Reflection (linear).
 > **Architecture:** See `ARCHITECTURE.md` for full details.

@@ -4,7 +4,7 @@
 > بسم الله الرحمن الرحيم
 > "Witness history. Carry the story."
 
-**Last updated:** 2026-04-02
+**Last updated:** 2026-04-03
 **Project path:** `D:\Rawi_Journey`
 **App package:** `com.rawi.journey` ✅
 **GitHub:** `github.com/Duwaik/rawi-journey` (private)
@@ -146,15 +146,16 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 ### MILESTONE 1 — The Prophetic Dawn (570–622 CE)
 **47 events | Global Orders 1–47**
 
-#### Era: Jahiliyyah (الجاهلية) — Events 1–3
+#### Era: Jahiliyyah (الجاهلية) — Events 1–2
 
 | # | ID | Title (EN) | Title (AR) | Year | Location | XP |
 |---|---|---|---|---|---|---|
 | 1 | j_m1_001 | Arabia Before the Light | الجزيرة العربية قبل النور | 500 CE | Arabia | 20 |
 | 2 | j_m1_002 | The Year of the Elephant | عام الفيل | 570 CE | Mecca | 30 |
-| 3 | j_m1_003 | The Black Stone — A Wise Arbitration | الحجر الأسود — حكمة التحكيم | 605 CE | Mecca | 20 |
 
-#### Era: Early Life (الحياة المبكرة) — Events 4–14
+> Black Stone (605 CE) moved to Early Life position 8 — chronological reorder.
+
+#### Era: Early Life (الحياة المبكرة) — Events 3–14
 
 | # | ID | Title (EN) | Title (AR) | Year | Location | XP |
 |---|---|---|---|---|---|---|
@@ -372,29 +373,30 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 
 | Era (JourneyEra) | Events | Global Orders |
 |---|---|---|
-| jahiliyyah | 3 | 1–3 |
-| earlyLife | 11 | 4–14 |
+| jahiliyyah | 2 | 1–2 |
+| earlyLife | 12 | 3–14 |
 | mecca | 33 | 15–47 |
 | medina | 108 | 48–155 |
 
-> Note: The Medinan era is by far the largest. Future versions may split it into sub-eras (Early Medina, Consolidation, Final Chapter) for UI display purposes, but the JourneyEra enum currently groups all under `medina`. Consider adding `medinaEarly`, `medinaConsolidation`, `medinaFinal` sub-eras in a future data model update.
+> Note: Black Stone (605 CE) moved from Jahiliyyah to Early Life (position 8) — chronological reorder. Ta'if (619 CE) correctly placed after Year of Grief (position 17). The Medinan era is by far the largest. Future versions may split it into sub-eras (Early Medina, Consolidation, Final Chapter) for UI display purposes, but the JourneyEra enum currently groups all under `medina`. Consider adding `medinaEarly`, `medinaConsolidation`, `medinaFinal` sub-eras in a future data model update.
 
 ---
 
 ## 11. Content Production Plan
 
-### Current State (2026-04-02)
+### Current State (2026-04-03)
 - **Dart code:** 41 files, ~11,000 lines
-- **M1 data:** 36 events in `m1_data.dart`, Events 1-3 with branching
+- **M1 data:** 36 events in `m1_data.dart`, Events 1-3 with branching, chronological reorder applied
 - **Scene configs:** 3 complete (Events 1-3) with alt paths for branching
 - **Branching system:** Gate → Crossroads → Paths → Gathering → Verdict
+- **Badge system:** 7 badges, BadgeDefinition model, XP count-up animation, badge overlay (full-screen 85%), sequential completion flow, profile grid
 - **Images:** 16 scene/bubble JPGs, 4 companion figures, 1 app icon
-- **Audio:** 150 files (14 WAV SFX + 84 VO MP3 + 52 companion MP3). Ambient loop DISABLED (annoying per tester) — will redesign.
+- **Audio:** 84 VO MP3 + 52 companion MP3 + 14 WAV SFX. Ambient loop DISABLED (annoying per tester) — will redesign.
 - **VO voices:** Syrian Arabic (`ar-SY-LaithNeural`/`AmanyNeural`) + British English (`en-GB-RyanNeural`/`SoniaNeural`)
-- **Screens built:** Splash, intro cinematic, registration (4-step), event list (timeline), cinematic transition, immersive event (branching + linear), flat event, settings (page + overlay), era complete, tutorial
+- **Screens built:** Splash, intro cinematic, registration (4-step), event list (timeline), cinematic transition, immersive event (branching + linear), flat event, settings (page + overlay), era complete, tutorial, XP reward animation
 - **Event list:** Timeline journey view with chapter headers, gold thread, progress dots
-- **Testing:** 3 rounds, 31+ bugs fixed, 5 branching safety tests
-- **Frameworks ready:** Go Deeper (content pending), Collections (metadata pending), Badges (Sprints 28-31)
+- **Testing:** 3 rounds, 31+ bugs fixed, 5 branching safety tests, audit fixes applied
+- **Frameworks ready:** Go Deeper (content pending), Collections (metadata pending), Badges (complete — 7 badges)
 
 ### MVP (v0.6) — See `MVP_PLAN.md`
 3 fully playable branching events + complete gaming UX + VO + RTL

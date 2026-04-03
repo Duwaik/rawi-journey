@@ -720,3 +720,39 @@ All events: Anchor(~0.60y) → Branches(~0.42y triangle) → Convergence(~0.28y)
 - `flutter analyze` — zero errors/warnings
 - `flutter test` — **5/5 passed**
 - `BUILD SUCCESSFUL`
+
+---
+
+## Sprint 33 — Badge Overlay Redesign + Sequential Completion
+**Date:** 2026-04-03
+**Status:** COMPLETE
+
+### Built
+| File | Type | Details |
+|------|------|---------|
+| `badge_overlay.dart` | MODIFIED | Full-screen 85% overlay, sequential badge completion flow |
+| `immersive_event_screen.dart` | MODIFIED | Wired badge overlay into completion sequence |
+
+---
+
+## Sprint 34 — Audit Fixes (2, 5-10)
+**Date:** 2026-04-03
+**Status:** COMPLETE
+
+### Built
+| File | Type | Details |
+|------|------|---------|
+| `android/app/build.gradle.kts` | MODIFIED | Signing config for release builds |
+| `pubspec.yaml` | MODIFIED | Removed latlong2 dependency |
+| Multiple files | MODIFIED | Dead code removal, performance improvements, persistence fixes |
+
+---
+
+## Sprint 35 — Chronological Reorder
+**Date:** 2026-04-03
+**Status:** COMPLETE
+
+### Built
+| File | Type | Details |
+|------|------|---------|
+| `m1_data.dart` | MODIFIED | Black Stone (605 CE) moved from position 3 to position 8, Ta'if (619 CE) moved to position 17 (after Year of Grief) |

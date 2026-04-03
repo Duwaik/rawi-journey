@@ -1,6 +1,6 @@
 # Rawi — Architecture Document
 
-> Last updated: 2026-04-02
+> Last updated: 2026-04-03
 > Package: `com.rawi.journey`
 > Flutter 3.41.4 | Dart 3.11.1+
 
@@ -16,6 +16,7 @@
 | Playable immersive events | 3 (branching) |
 | Flat narrative events | 33 (linear, Events 4-36) |
 | Total events in data | 36 |
+| Era distribution | Jahiliyyah 2, Early Life 9, Mecca 11, Medina 14 |
 | Git commits | 6 |
 
 ---
@@ -92,8 +93,7 @@ d:\Rawi_Journey\
 │   │   ├── journey_quiz_screen.dart           # Standalone quiz (future use)
 │   │   ├── settings_screen.dart               # Full settings page (from event list)
 │   │   ├── era_complete_screen.dart           # Era celebration (used by flat events)
-│   │   └── aerial_hub_screen.dart             # OLD parallax hub (dead code, replaced by
-│   │                                            event_list_screen)
+│   │   └── xp_reward_animation.dart            # XP count-up + star pop + particle burst
 │   │
 │   └── widgets\
 │       ├── settings_overlay.dart              # In-game pause overlay
@@ -120,7 +120,7 @@ d:\Rawi_Journey\
 │           └── discovery_progress.dart        # "Explore · X/4" progress dots
 │
 ├── assets\
-│   ├── audio\                                 # 14 WAV (1 ambient + 13 SFX)
+│   ├── audio\                                 # 14 WAV (ambient DISABLED + 13 SFX)
 │   ├── audio\vo\                              # 84 MP3 (48 hotspot + 24 choice + 12 branch)
 │   ├── audio\companion\                       # 52 MP3 (13 lines x 4 variants)
 │   ├── scenes\                                # 16 JPG (3 scene + 12 bubble + 1 welcome)
@@ -282,6 +282,11 @@ Events 4-36 have `branchPoint == null`. The `_isBranching` guard in
 `immersive_event_screen.dart` ensures ALL branching logic is skipped
 for linear events. Verified by 5 unit tests in `branching_test.dart`.
 
+**Chronological reorder (Sprint 35):** Black Stone (605 CE) moved from
+Jahiliyyah position 3 to Early Life position 8. Ta'if (619 CE) moved
+to position 17 (after Year of Grief). Event order in m1_data now
+follows strict chronological sequence.
+
 ---
 
 ## Sprint History
@@ -301,3 +306,6 @@ for linear events. Verified by 5 unit tests in `branching_test.dart`.
 | 30 | Badge overlay + completion flow wiring |
 | 31 | Badges on settings/profile screen |
 | 32 | Hotspot visibility enhancement |
+| 33 | Badge overlay redesign (full-screen 85%, sequential completion flow) |
+| 34 | Audit fixes (signing config, latlong2 removed, dead code, perf, persistence) |
+| 35 | Chronological reorder (Black Stone → pos 8, Ta'if → pos 17) |
