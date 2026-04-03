@@ -51,6 +51,37 @@ extension JourneyEraExt on JourneyEra {
       case JourneyEra.ottoman:    return '🗺️';
     }
   }
+
+  /// Chapter closing line — shown on chapter completion screen.
+  String closingLine(String lang) {
+    if (lang == 'ar') {
+      switch (this) {
+        case JourneyEra.jahiliyyah: return 'شهدتَ عصر ما قبل النور. العالم ينتظر.';
+        case JourneyEra.earlyLife:  return 'من يتيم إلى الأمين. الوحي قريب.';
+        case JourneyEra.mecca:      return 'ثلاثة عشر عاماً من الصبر. بدأت الهجرة.';
+        case JourneyEra.medina:     return 'اكتملت الرسالة. أنتَ الراوي الآن.';
+        default: return '';
+      }
+    }
+    switch (this) {
+      case JourneyEra.jahiliyyah: return 'You have witnessed the age before the light. The world is waiting.';
+      case JourneyEra.earlyLife:  return 'From orphan to the Trustworthy. The revelation is near.';
+      case JourneyEra.mecca:      return 'Thirteen years of patience. The Hijrah has begun.';
+      case JourneyEra.medina:     return 'The message is complete. You are the Rawi now.';
+      default: return '';
+    }
+  }
+
+  /// Last event globalOrder in this era (for current 36 events).
+  int get lastEventOrder {
+    switch (this) {
+      case JourneyEra.jahiliyyah: return 2;
+      case JourneyEra.earlyLife:  return 11;
+      case JourneyEra.mecca:      return 22;
+      case JourneyEra.medina:     return 36;
+      default: return 0;
+    }
+  }
 }
 
 // ── Quiz Question ─────────────────────────────────────────────────────────────

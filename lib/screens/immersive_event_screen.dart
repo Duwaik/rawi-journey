@@ -746,12 +746,30 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _badgeDismissCompleter = null;
   }
 
-  /// "Continue Journey" button — shows badge + XP celebration, then pops.
+  bool _showChapterComplete = false;
+  Completer<void>? _chapterDismissCompleter;
+
+  /// Check if this event is the last in its chapter.
+  bool get _isChapterEnd =>
+      widget.event.globalOrder == widget.event.era.lastEventOrder;
+
+  /// "Continue Journey" — layered reward flow then auto-pop.
+  /// Sequence: chapter screen → badge → XP → navigate to event list.
   Future<void> _completeAndPop() async {
     AudioService.stopVoiceover();
     if (!mounted) return;
 
-    // Step 1: Badge moment (if earned) — full-screen overlay
+    // Step 1: Chapter completion (if last event in era)
+    if (_isChapterEnd && !_alreadyCompleted) {
+      final completer = Completer<void>();
+      _chapterDismissCompleter = completer;
+      setState(() => _showChapterComplete = true);
+      await completer.future;
+      if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+
+    // Step 2: Badge moment (if earned)
     if (_newBadges.isNotEmpty) {
       for (final badge in _newBadges) {
         if (!mounted) return;
@@ -767,14 +785,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       }
     }
 
-    // Step 2: XP animation
+    // Step 3: XP animation (every event)
     if (mounted && !_alreadyCompleted) {
       setState(() => _showXpAnimation = true);
-      // Wait for XP animation to complete + 1s pause
       await Future.delayed(const Duration(milliseconds: 2500));
     }
 
-    // Step 3: Auto-navigate to event list
+    // Step 4: Auto-navigate to event list
     if (!mounted) return;
     Navigator.pop(context, true);
   }
@@ -1106,6 +1123,75 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               child: BadgeOverlay(
                 badge: _currentBadge!,
                 onDismiss: _onBadgeDismissed,
+              ),
+            ),
+
+          // ── Chapter completion overlay (narrative closing) ─────────
+          if (_showChapterComplete)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() => _showChapterComplete = false);
+                  _chapterDismissCompleter?.complete();
+                  _chapterDismissCompleter = null;
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  color: Colors.black.withAlpha(220),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.event.era.emoji,
+                            style: const TextStyle(fontSize: 48),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            _isAr
+                                ? widget.event.era.label('ar')
+                                : widget.event.era.label('en'),
+                            style: GoogleFonts.cinzelDecorative(
+                              color: AppColors.gold,
+                              fontSize: 22,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            width: 40, height: 1,
+                            color: AppColors.gold.withAlpha(80),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            widget.event.era.closingLine(
+                                _isAr ? 'ar' : 'en'),
+                            textAlign: TextAlign.center,
+                            textDirection: _isAr
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
+                            style: GoogleFonts.lora(
+                              color: const Color(0xFFE8D8B8),
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                              height: 1.7,
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+                          Text(
+                            _isAr ? 'انقر للمتابعة' : 'Tap to continue',
+                            style: GoogleFonts.nunito(
+                              color: AppColors.textMuted.withAlpha(140),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
 

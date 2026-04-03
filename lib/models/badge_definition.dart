@@ -33,7 +33,6 @@ class BadgeTrigger {
 }
 
 enum BadgeTriggerType {
-  firstEvent,
   eventCount,
   chapterComplete,
   allEvents,
@@ -41,54 +40,65 @@ enum BadgeTriggerType {
 
 // ── All badge definitions ────────────────────────────────────────────────────
 
+// ── Rebalanced badges (per RAWI_REWARD_SYSTEM.md) ────────────────────────────
+// Paced so no drought longer than 7-8 events between badge moments.
+// "First Step" removed — completing 1 event isn't an achievement.
+// Jahiliyyah has no dedicated badge (only 2 events) — merged into Witness.
+
 const List<BadgeDefinition> allBadges = [
   BadgeDefinition(
-    id: 'first_step',
-    name: 'First Step',
-    nameAr: 'الخطوة الأولى',
-    description: 'You completed your first event',
-    descriptionAr: 'أكملت أول حدث في رحلتك',
+    id: 'seeker',
+    name: 'Seeker',
+    nameAr: 'الباحث',
+    description: 'You completed 5 events',
+    descriptionAr: 'أكملت ٥ أحداث',
     icon: '🌅',
-    trigger: BadgeTrigger(type: BadgeTriggerType.firstEvent),
+    trigger: BadgeTrigger(type: BadgeTriggerType.eventCount, value: 5),
   ),
   BadgeDefinition(
-    id: 'witness_of_dawn',
+    id: 'witness',
     name: 'Witness of the Dawn',
     nameAr: 'شاهد الفجر',
-    description: 'You witnessed Pre-Islamic Arabia',
-    descriptionAr: 'شهدت الجزيرة العربية قبل النور',
+    description: 'You witnessed the dawn of the Prophetic era',
+    descriptionAr: 'شهدت فجر العصر النبوي',
     icon: '🌙',
     trigger: BadgeTrigger(
       type: BadgeTriggerType.chapterComplete,
-      eventRange: [1, 2],
+      eventRange: [1, 11], // Jahiliyyah + Early Life
     ),
   ),
   BadgeDefinition(
-    id: 'companion_of_beginning',
-    name: 'Companion of the Beginning',
-    nameAr: 'رفيق البداية',
-    description: 'You walked through the Prophetic childhood',
-    descriptionAr: 'عشت مع النشأة النبوية',
-    icon: '⭐',
-    trigger: BadgeTrigger(
-      type: BadgeTriggerType.chapterComplete,
-      eventRange: [3, 11],
-    ),
+    id: 'keeper',
+    name: 'Keeper of the Path',
+    nameAr: 'حارس الدرب',
+    description: 'You completed 15 events',
+    descriptionAr: 'أكملت ١٥ حدثاً',
+    icon: '🔥',
+    trigger: BadgeTrigger(type: BadgeTriggerType.eventCount, value: 15),
   ),
   BadgeDefinition(
-    id: 'steadfast_in_mecca',
+    id: 'steadfast',
     name: 'Steadfast in Mecca',
-    nameAr: 'الثابت في مكة',
+    nameAr: 'صامد في مكة',
     description: 'You endured the Meccan struggle',
     descriptionAr: 'صبرت على ابتلاء مكة',
     icon: '🕋',
     trigger: BadgeTrigger(
       type: BadgeTriggerType.chapterComplete,
-      eventRange: [12, 22],
+      eventRange: [1, 22], // All through Mecca
     ),
   ),
   BadgeDefinition(
-    id: 'guardian_of_legacy',
+    id: 'scholar',
+    name: 'Scholar',
+    nameAr: 'العالِم',
+    description: 'You completed 30 events',
+    descriptionAr: 'أكملت ٣٠ حدثاً',
+    icon: '📜',
+    trigger: BadgeTrigger(type: BadgeTriggerType.eventCount, value: 30),
+  ),
+  BadgeDefinition(
+    id: 'guardian',
     name: 'Guardian of the Legacy',
     nameAr: 'حارس الإرث',
     description: 'You witnessed the rise of the community',
@@ -96,31 +106,16 @@ const List<BadgeDefinition> allBadges = [
     icon: '🏛️',
     trigger: BadgeTrigger(
       type: BadgeTriggerType.chapterComplete,
-      eventRange: [23, 36],
+      eventRange: [1, 36], // All events
     ),
   ),
   BadgeDefinition(
-    id: 'seeker_of_truth',
-    name: 'Seeker of Truth',
-    nameAr: 'طالب الحق',
-    description: 'You completed 10 events',
-    descriptionAr: 'أكملت 10 أحداث',
-    icon: '📜',
-    trigger: BadgeTrigger(
-      type: BadgeTriggerType.eventCount,
-      value: 10,
-    ),
-  ),
-  BadgeDefinition(
-    id: 'the_rawi',
+    id: 'rawi',
     name: 'The Rawi',
     nameAr: 'الراوي',
     description: 'You witnessed the entire Prophetic journey',
     descriptionAr: 'شهدت رحلة النبوة كاملة',
     icon: '👑',
-    trigger: BadgeTrigger(
-      type: BadgeTriggerType.allEvents,
-      value: 36,
-    ),
+    trigger: BadgeTrigger(type: BadgeTriggerType.allEvents),
   ),
 ];

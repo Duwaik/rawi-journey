@@ -188,8 +188,6 @@ class PrefsService {
       bool qualifies = false;
 
       switch (badge.trigger.type) {
-        case BadgeTriggerType.firstEvent:
-          qualifies = true; // completing any event qualifies
         case BadgeTriggerType.eventCount:
           final count = List.generate(m1EventCount, (i) => i + 1)
               .where((o) => isEventCompleted(o))
