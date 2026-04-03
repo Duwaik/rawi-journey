@@ -10,7 +10,7 @@
 
 | Metric | Count |
 |--------|-------|
-| Dart files | 41 |
+| Dart files | 43 |
 | Dart lines | ~11,000 |
 | Asset files | 193 (84 VO + 52 companion + 14 SFX + 16 scenes + 4 figures + 1 icon + others) |
 | Playable immersive events | 3 (branching) |
@@ -53,7 +53,9 @@ d:\Rawi_Journey\
 │   │   ├── scene_config.dart                  # SceneConfig, SceneHotspot, ParticleType
 │   │   │                                        + pathWaypointsAlt, deeperContent fields
 │   │   ├── branch_point.dart                  # BranchPoint, BranchOption (The Crossroads)
-│   │   └── badge_definition.dart              # BadgeDefinition, BadgeTrigger (Sprint 28)
+│   │   └── badge_definition.dart              # BadgeDefinition, BadgeTrigger — rebalanced 7 badges
+│   │                                            (Seeker@5, Witness@11, Keeper@15, Steadfast@22,
+│   │                                             Scholar@30, Guardian@36, Rawi@36)
 │   │
 │   ├── data\
 │   │   ├── m1_data.dart                       # 36 events (Milestone 1) with branching
@@ -103,8 +105,8 @@ d:\Rawi_Journey\
 │           ├── discovery_panel.dart           # Hotspot fragment card + image + Go Deeper + 
 │           │                                    VO replay button
 │           ├── go_deeper_section.dart         # Collapsible scholarly content section
-│           ├── companion_figure.dart          # Circular avatar (gender-based in-scene image)
-│           ├── companion_speech_bubble.dart   # Gold pill above companion
+│           ├── companion_figure.dart          # Rawi/Rawiah avatar (gender-based, pose infra)
+│           ├── companion_speech_bubble.dart   # Gold pill above Rawi/Rawiah
 │           ├── scene_hotspot_marker.dart      # Diamond marker: active/locked/discovered +
 │           │                                    dark backing for locked
 │           ├── parallax_scene.dart            # Parallax layer viewer
@@ -117,7 +119,10 @@ d:\Rawi_Journey\
 │           ├── crescent_moon.dart             # Moon with glow
 │           ├── grain_overlay.dart             # Film grain noise
 │           ├── fly_transition.dart            # Zoom+fade transition
-│           └── discovery_progress.dart        # "Explore · X/4" progress dots
+│           ├── discovery_progress.dart        # "Explore · X/4" progress dots
+│           └── scroll_hint_wrapper.dart      # Scroll hint indicators (discovery, Verdict, Reflection)
+│
+│   └── rawi_dialog.dart                       # Reusable gold/navy dialog (replaces AlertDialog)
 │
 ├── assets\
 │   ├── audio\                                 # 14 WAV (ambient DISABLED + 13 SFX)
@@ -309,3 +314,10 @@ follows strict chronological sequence.
 | 33 | Badge overlay redesign (full-screen 85%, sequential completion flow) |
 | 34 | Audit fixes (signing config, latlong2 removed, dead code, perf, persistence) |
 | 35 | Chronological reorder (Black Stone → pos 8, Ta'if → pos 17) |
+| 36 | Critical flow fixes (VO stop, badge/XP after Continue, era collapse, Skip) |
+| 37 | Path + visual fixes (curved paths, route visibility, mute, splash navy) |
+| 38 | RawiDialog + bilingual intro + mandatory name |
+| 39 | Name personalization + accessibility (text scale Small/Normal/Large) |
+| 40 | Reward system rebalance (7 badges, chapter screens, layered flow) |
+| 41 | Bug fixes A12-A17 + Rawi/Rawiah character identity |
+| — | Post-audit: Master Plan fix, Android 12+ splash, doc cleanup |

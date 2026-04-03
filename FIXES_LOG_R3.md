@@ -89,3 +89,9 @@ Root cause likely: `_completeAndReturn()` either isn't being called, or the pop 
 | POST-25 | **Name personalization** | {name} in companion bubbles, "Well done, {name}" on allDone. |
 | POST-26 | **Settings polish** | Name + "Rawi since" date + Accessibility text scale toggle. |
 | POST-27 | **Accessibility** | Text scale Normal/Large (1.0x/1.3x) via MediaQuery override. |
+| POST-28 | **Reward system rebalance** | 7 badges rebalanced (Seeker@5, Witness@11, Keeper@15, Steadfast@22, Scholar@30, Guardian@36, Rawi@36), chapter completion screens, layered flow (chapter → badge → XP → auto-pop). |
+| POST-29 | **Bubble image scaling** | Bubble images scale with text size preference. |
+| POST-30 | **Scroll hint indicators** | `scroll_hint_wrapper.dart` — scroll hints on discovery panel, Verdict, Reflection. |
+| POST-31 | **Bug fixes A12-A17** | Exit fix, save progress fix, idle overlap fix, font reflect fix, splash v31 (Android 12+), Rawi/Rawiah labels. |
+| POST-32 | **Master Plan table fix** | Black Stone row corrected in RAWI_MASTER_PLAN.md. |
+| POST-33 | **Doc cleanup** | Removed duplicate issue files from repo. |

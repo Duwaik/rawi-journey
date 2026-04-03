@@ -782,3 +782,29 @@ All events: Anchor(~0.60y) → Branches(~0.42y triangle) → Convergence(~0.28y)
 | `settings_screen.dart` | Name always shown, "Rawi since" date, text scale toggle |
 | `prefs_service.dart` | firstLaunchDate, textScale getters/setters |
 | `main.dart` | MediaQuery.textScaler override for accessibility |
+
+---
+
+## Sprint 40 — Reward System Rebalance
+**Date:** 2026-04-03
+**Status:** COMPLETE
+
+| File | Type | Details |
+|------|------|---------|
+| `badge_definition.dart` | MODIFIED | Rebalanced 7 badges: Seeker@5, Witness@11, Keeper@15, Steadfast@22, Scholar@30, Guardian@36, Rawi@36 |
+| `immersive_event_screen.dart` | MODIFIED | Chapter completion screens, layered reward flow (chapter → badge → XP → auto-pop) |
+| `prefs_service.dart` | MODIFIED | Badge check integration with chapter completion |
+
+---
+
+## Sprint 41 — Bug Fixes A12-A17 + Rawi/Rawiah Character Identity
+**Date:** 2026-04-03
+**Status:** COMPLETE
+
+| File | Type | Details |
+|------|------|---------|
+| `immersive_event_screen.dart` | MODIFIED | Exit fix, save progress fix, idle overlap fix |
+| `companion_figure.dart` | MODIFIED | Rawi/Rawiah labels (not "companion"), pose infrastructure |
+| `registration_screen.dart` | MODIFIED | Updated registration text for character identity |
+| `splash_screen.dart` | MODIFIED | Android 12+ splash fix (v31) |
+| `settings_screen.dart` | MODIFIED | Font reflection fix |

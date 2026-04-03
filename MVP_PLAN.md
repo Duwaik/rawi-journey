@@ -2,11 +2,11 @@
 # 3 Playable Events + Complete Gaming UX
 
 > Created: 2026-04-01
-> Updated: 2026-04-03 (audit fixes + chronological reorder + badge redesign)
+> Updated: 2026-04-03 (41 sprints + post-audit complete)
 > Goal: A demo-ready app that feels like a real game from first tap to last hotspot
-> **Status: MVP BUILT + POLISHING** — 32+ sprints completed. 3 branching events, full gaming UX, 136 audio files (84 VO + 52 companion MP3, ambient disabled), timeline event list, XP animations + badge system (7 badges), audit fixes applied, chronological reorder done.
+> **Status: MVP COMPLETE — POST-AUDIT CLEAN** — 41 sprints + post-audit. 25/25 items verified. 3 branching events, full gaming UX, 136 audio files, rebalanced badge system (7 badges), Rawi/Rawiah character identity, scroll hints, Android 12+ splash.
 >
-> **Done:** Branching system, badge system (7 badges + XP animation + overlay + profile grid), audit fixes (signing config, dead code removal, perf, persistence), chronological reorder (Black Stone + Ta'if).
+> **Done:** All 41 sprints + post-audit fixes (POST-28 through POST-33). Reward rebalance, bug fixes A12-A17, character identity, Master Plan fix, doc cleanup.
 > **Remaining:** Firebase Crashlytics (needs google-services.json), font bundling (deferred), asset compression (needs ffmpeg).
 >
 > **Event Terminology:** The Gate → The Crossroads → The Paths → The Gathering → The Verdict (branching). The Reflection (linear).

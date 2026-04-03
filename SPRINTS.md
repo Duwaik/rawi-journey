@@ -1,7 +1,7 @@
 # Rawi — Sprint Index
 
-> 39 sprints across 3 days (April 1–3, 2026)
-> Next: Sprint 40 (Reward System Rebalance)
+> 41 sprints + post-audit across 3 days (April 1–3, 2026)
+> All sprints complete. Post-audit clean (25/25 items verified).
 
 ---
 
@@ -54,8 +54,8 @@
 
 ---
 
-## Day 3 — April 3, 2026 (Sprints 34–39)
-**Focus:** Audit fixes, chronological accuracy, bilingual, accessibility
+## Day 3 — April 3, 2026 (Sprints 34–41 + Post-Audit)
+**Focus:** Audit fixes, chronological accuracy, bilingual, accessibility, reward rebalance, character identity
 
 | # | Sprint | Key Deliverable |
 |---|--------|----------------|
@@ -65,6 +65,9 @@
 | 37 | Path + Visual Fixes | Curved paths (no dead zones), route line visibility boost, mute button consistency, splash navy theme |
 | 38 | RawiDialog + Bilingual | Reusable gold/navy dialog, intro cinematic device locale, mandatory name 2-15 chars |
 | 39 | Personalization + A11y | Name in companion bubbles, "Rawi since" date, text scale Small/Normal/Large |
+| 40 | Reward System Rebalance | Rebalanced 7 badges, chapter completion screens, layered flow (chapter → badge → XP → auto-pop) |
+| 41 | Bug Fixes A12-A17 + Character Identity | Exit/save/idle overlap/font/splash fixes, Rawi/Rawiah labels, pose infra, registration text |
+| — | Post-Audit | Master Plan table fix, Android 12+ splash, doc cleanup (removed duplicate issue files) |
 
 ---
 
@@ -72,8 +75,7 @@
 
 | # | Sprint | Scope |
 |---|--------|-------|
-| 40 | Reward System Rebalance | Rebalanced 7 badges, 4 chapter completion screens, layered flow (chapter → badge → XP) |
-| 41+ | Per RAWI_ISSUES_AND_ENHANCEMENTS_3.md | Settings overhaul, badge artwork, expanded content |
+| 42+ | Per RAWI_ISSUES_AND_ENHANCEMENTS_3.md | Settings overhaul, badge artwork, expanded content |
 
 ---
 
@@ -81,9 +83,9 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sprints | 39 |
+| Total sprints | 41 + post-audit |
 | Total days | 3 |
-| Bugs fixed | 40+ across 3 testing rounds |
+| Bugs fixed | 50+ across 3 testing rounds + audit |
 | Dart files | 41 |
 | Dart lines | ~11,500 |
 | Audio files | 150+ (84 VO + 52 companion + 14 SFX) |
