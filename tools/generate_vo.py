@@ -34,8 +34,8 @@ FRAGMENTS = {
         'ar': 'ثلاثمئة وستون تمثالاً حجرياً يحدّقون فيك بعيون فارغة. الهواء ثقيل بدخان البخور المتصاعد من المعابد المتراصة حول البيت العتيق. كل قبيلة وضعت إلهها هنا — وكأن القرب من الكعبة يمنحهم الحقيقة.',
     },
     'event1_poet': {
-        'en': "A poet recites verses of breathtaking beauty about honor and courage — while a few streets away, a man buries his newborn daughter in the sand without a word. The world moves in contradictions.",
-        'ar': 'شاعر ينشد أبياتاً خلابة عن الشرف والشجاعة — بينما على بعد أزقة قليلة، رجل يدفن ابنته الوليدة في الرمال دون كلمة. العالم يتحرك في تناقضات.',
+        'en': "A poet recites verses of breathtaking beauty about honor and courage — while a few streets away, a man buries his newborn daughter in the sand without a word. The world moves in contradictions. You have walked through this courtyard. You have seen the wealth and the poverty, the devotion and the emptiness. Now the poet falls silent, and you are left with the question that hangs in the desert air —",
+        'ar': 'شاعر ينشد أبياتاً خلابة عن الشرف والشجاعة — بينما على بعد أزقة قليلة، رجل يدفن ابنته الوليدة في الرمال دون كلمة. العالم يتحرك في تناقضات. مشيت في هذا الفناء. رأيت الثروة والفقر، العبادة والفراغ. الآن يصمت الشاعر، وتبقى أنت مع السؤال المعلّق في هواء الصحراء —',
     },
     'event1_merchants': {
         'en': "Merchants haggle over silk and spices on trade routes stretching from Yemen to Syria — while the poor beg at the Ka'bah walls, invisible to those who pass. Wealth flows, but justice does not.",
@@ -55,8 +55,8 @@ FRAGMENTS = {
         'ar': 'الأفيال تتوقف عند حدود الحرم وترفض التحرك. الحيوانات الضخمة تركع، مهما ضربها فرسانها. شيء خفي يمنعها.',
     },
     'event2_birds': {
-        'en': "The sky darkens — not with clouds, but with birds. Thousands of them, resembling hawks, each carrying three stones of baked clay. The impossible unfolds before your eyes. This is divine protection.",
-        'ar': 'السماء تُظلم — لا بالغيوم، بل بالطيور. آلاف منها، تشبه الصقور، كل طائر يحمل ثلاثة أحجار من سجيل. المستحيل يتكشّف أمام عينيك. هذه حماية إلهية.',
+        'en': "The sky darkens — not with clouds, but with birds. Thousands of them, resembling hawks, each carrying three stones of baked clay. The impossible unfolds before your eyes. This is divine protection. Whether you stood near the elephants or watched from the mountains — this moment finds you the same way. The sky has answered what the earth could not. And you are left with one question —",
+        'ar': 'السماء تُظلم — لا بالغيوم، بل بالطيور. آلاف منها، تشبه الصقور، كل طائر يحمل ثلاثة أحجار من سجيل. المستحيل يتكشّف أمام عينيك. هذه حماية إلهية. سواء وقفت قرب الأفيال أو شاهدت من الجبال — هذه اللحظة تصلك بالطريقة ذاتها. السماء أجابت ما لم تستطع الأرض. وتبقى أنت مع سؤال واحد —',
     },
     # Event 3 — FULL text matching scene_configs.dart
     'event3_flood': {
@@ -72,8 +72,8 @@ FRAGMENTS = {
         'ar': 'عند الفجر، يُفتح باب الحرم. أول من يدخل هو محمد صلى الله عليه وسلم — في الخامسة والثلاثين، تعرفه كل القبائل لكنه لا ينتمي لأي فريق. همسة تسري في الجمع: الأمين. لا أحد يعترض. لقد ائتمنوه — قبل النبوة بسنين.',
     },
     'event3_cloak': {
-        'en': "He asks for a cloak. He spreads it on the ground and places the Black Stone upon it. Then he invites the leader of each tribe to take hold of a corner. Together, they lift. Together, they carry it to its place. He sets the Stone with his own hands. No tribe was denied. No blood was shed. Wisdom — before revelation.",
-        'ar': 'يطلب رداءً. يبسطه على الأرض ويضع الحجر الأسود فوقه. ثم يدعو زعيم كل قبيلة ليمسك بطرف. معاً يرفعون. معاً يحملونه إلى مكانه. يضع الحجر بيديه الشريفتين. لم تُحرم قبيلة. لم يُسفك دم. حكمة — قبل الوحي.',
+        'en': "He asks for a cloak. He spreads it on the ground and places the Black Stone upon it. Then he invites the leader of each tribe to take hold of a corner. Together, they lift. Together, they carry it to its place. He sets the Stone with his own hands. No tribe was denied. No blood was shed. Wisdom — before revelation. Whether you watched the swords nearly drawn or the gate where Al-Amin entered — you have arrived at the same truth. A man the world already trusted has just shown why. And the question remains —",
+        'ar': 'يطلب رداءً. يبسطه على الأرض ويضع الحجر الأسود فوقه. ثم يدعو زعيم كل قبيلة ليمسك بطرف. معاً يرفعون. معاً يحملونه إلى مكانه. يضع الحجر بيديه الشريفتين. لم تُحرم قبيلة. لم يُسفك دم. حكمة — قبل الوحي. سواء شاهدت السيوف تكاد تُسلّ أو الباب الذي دخل منه الأمين — وصلت إلى الحقيقة ذاتها. رجل ائتمنه العالم سلفاً أظهر للتو لماذا. والسؤال يبقى —',
     },
 }
 
