@@ -273,6 +273,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       AudioService.stopAmbient();
       AudioService.stopSfx();
       AudioService.stopVoiceover();
+      // Cancel auto-walk BEFORE stopping game loop
+      if (_autoWalking) _stopAutoWalk();
       // Stop game loop and joystick state
       _gameLoop.stop();
       _gameLoop.reset();
@@ -333,7 +335,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       if (_footprints.length > 80) _footprints.removeAt(0);
     }
 
-    setState(() => _isWalking = true);
+    if (!_isWalking) setState(() => _isWalking = true);
 
     // Footstep sound
     if (!_footstepPlaying) {
@@ -568,6 +570,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _onAutoWalkFrame() {
     if (!_autoWalking) return;
+    // Same freeze guard as _onFrame — stop during ANY overlay
+    if (_activeHotspot != null || _showBranchCard || _showSettings ||
+        _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
+        _showTutorial ||
+        _phase == _Phase.convergenceQuestion || _phase == _Phase.choose ||
+        _phase == _Phase.complete) {
+      _stopAutoWalk();
+      return;
+    }
     const dt = 0.016;
     final dir = _autoWalkTarget > _pathProgress ? 1.0 : -1.0;
     final step = _moveSpeed * 0.7 * dt / _totalPathLen * dir;
@@ -582,7 +593,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _facingDir = moveDx > 0 ? 1.0 : -1.0;
     }
 
-    setState(() => _isWalking = true);
+    if (!_isWalking) setState(() => _isWalking = true);
 
     // Check if arrived
     if ((_pathProgress - _autoWalkTarget).abs() < 0.015) {

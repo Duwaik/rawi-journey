@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:just_audio/just_audio.dart';
 
 import 'prefs_service.dart';
@@ -8,6 +10,7 @@ class AudioService {
   static AudioPlayer? _ambient;
   static AudioPlayer? _sfx;
   static AudioPlayer? _vo;
+  static StreamSubscription? _voSub;
 
   /// Start playing an ambient audio asset at the given volume.
   /// Used for: onboarding music (looping) and hotspot atmospheric beds.
@@ -78,12 +81,13 @@ class AudioService {
       await _vo!.setLoopMode(LoopMode.off);
       await _vo!.setVolume(volume);
       _vo!.play();
-      // Restore ambient when VO finishes
-      _vo!.playerStateStream.listen((state) {
+      // Store subscription — cancelled in stopVoiceover()
+      _voSub = _vo!.playerStateStream.listen((state) {
         if (state.processingState == ProcessingState.completed) {
           _ambient?.setVolume(0.18);
           _vo?.dispose();
           _vo = null;
+          _voSub = null;
         }
       });
     } catch (_) {
@@ -104,6 +108,8 @@ class AudioService {
       await player.setVolume(startVol * (i / steps));
       await Future.delayed(const Duration(milliseconds: 50));
     }
+    await _voSub?.cancel();
+    _voSub = null;
     await player.stop();
     await player.dispose();
     _vo = null;
@@ -112,6 +118,8 @@ class AudioService {
 
   /// Stop voiceover immediately.
   static Future<void> stopVoiceover() async {
+    await _voSub?.cancel();
+    _voSub = null;
     await _vo?.stop();
     await _vo?.dispose();
     _vo = null;
