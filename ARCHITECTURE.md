@@ -1,6 +1,6 @@
 # Rawi — Architecture Document
 
-> Last updated: 2026-04-03
+> Last updated: 2026-04-04
 > Package: `com.rawi.journey`
 > Flutter 3.41.4 | Dart 3.11.1+
 
@@ -11,13 +11,13 @@
 | Metric | Count |
 |--------|-------|
 | Dart files | 43 |
-| Dart lines | ~11,000 |
-| Asset files | 193 (84 VO + 52 companion + 14 SFX + 16 scenes + 4 figures + 1 icon + others) |
+| Dart lines | ~12,000 |
+| Asset files | 194 (84 VO + 52 companion + 14 SFX + 16 scenes + 4 figures + 1 icon + ambient dir + others) |
 | Playable immersive events | 3 (branching) |
 | Flat narrative events | 33 (linear, Events 4-36) |
 | Total events in data | 36 |
 | Era distribution | Jahiliyyah 2, Early Life 9, Mecca 11, Medina 14 |
-| Git commits | 6 |
+| Git commits | 7+ |
 
 ---
 
@@ -51,7 +51,7 @@ d:\Rawi_Journey\
 │   │   │                                        + branching fields (anchorHotspotId, 
 │   │   │                                          branchPoint, convergenceHotspotId)
 │   │   ├── scene_config.dart                  # SceneConfig, SceneHotspot, ParticleType
-│   │   │                                        + pathWaypointsAlt, deeperContent fields
+│   │   │                                        + pathWaypointsAlt, deeperContent, ambientPath
 │   │   ├── branch_point.dart                  # BranchPoint, BranchOption (The Crossroads)
 │   │   └── badge_definition.dart              # BadgeDefinition, BadgeTrigger — rebalanced 7 badges
 │   │                                            (Seeker@5, Witness@11, Keeper@15, Steadfast@22,
@@ -67,7 +67,7 @@ d:\Rawi_Journey\
 │   │
 │   ├── services\
 │   │   ├── audio_service.dart                 # 3-layer audio: ambient (L1), VO (L2), SFX (L3)
-│   │   │                                        + ducking, fadeOut, pref checks
+│   │   │                                        + ducking, fadeOut, fadeAmbientTo, pref checks
 │   │   └── prefs_service.dart                 # SharedPreferences: language, gender, name,
 │   │                                            XP, streak, completion, hotspot progress,
 │   │                                            audio toggles, onboarding, tutorial flags
@@ -81,7 +81,7 @@ d:\Rawi_Journey\
 │   │   │                                        gold timeline thread, progress dots, Play CTA
 │   │   ├── cinematic_transition_screen.dart   # Fade-to-black + title card + particles +
 │   │   │                                        sky gradient + ambient fade-in
-│   │   ├── immersive_event_screen.dart        # THE CORE — 1551 lines:
+│   │   ├── immersive_event_screen.dart        # THE CORE — 1877 lines:
 │   │   │   ├── Joystick-driven exploration
 │   │   │   ├── Branching: Gate → Crossroads → Paths → Gathering → Verdict
 │   │   │   ├── Linear: sequential hotspots → Reflection
@@ -125,9 +125,10 @@ d:\Rawi_Journey\
 │   └── rawi_dialog.dart                       # Reusable gold/navy dialog (replaces AlertDialog)
 │
 ├── assets\
-│   ├── audio\                                 # 14 WAV (ambient DISABLED + 13 SFX)
+│   ├── audio\                                 # 14 WAV (13 SFX + 1 footsteps)
 │   ├── audio\vo\                              # 84 MP3 (48 hotspot + 24 choice + 12 branch)
 │   ├── audio\companion\                       # 52 MP3 (13 lines x 4 variants)
+│   ├── audio\ambient\                         # Per-hotspot atmospheric beds + onboarding music (Khaled provides)
 │   ├── scenes\                                # 16 JPG (3 scene + 12 bubble + 1 welcome)
 │   ├── figures\                               # 4 JPG (male/female x onboarding/inscene)
 │   └── icon\                                  # 1 JPG (app icon)
@@ -234,10 +235,14 @@ In-Game (Immersive)
 ## Audio Architecture
 
 ```
-Layer 1 — Ambient (DISABLED — will reimagine)
-  playAmbient() returns immediately. Looping desert ambient was
-  reported annoying. All call sites preserved for future re-enable.
-  Plan: short atmospheric stings on scene load, not continuous loop.
+Layer 1 — Ambient (RE-ENABLED — per-hotspot + onboarding)
+  Repurposed from scene-loop to contextual use:
+  - Hotspot ambient: plays while discovery panel is open (0.18 vol),
+    fades out on dismiss (800ms). Each SceneHotspot has optional ambientPath.
+  - Onboarding music: plays during intro cinematic + registration,
+    fades out on "Start the Journey" (2.5s). First launch only.
+  - Ducks to 0.06 during VO, restores to 0.18 when VO completes.
+  - No idle ambient — silence between discoveries is intentional.
 
 Layer 2 — Voice Over (one-shot)
   Volume: 0.6-0.7
@@ -321,3 +326,4 @@ follows strict chronological sequence.
 | 40 | Reward system rebalance (7 badges, chapter screens, layered flow) |
 | 41 | Bug fixes A12-A17 + Rawi/Rawiah character identity |
 | — | Post-audit: Master Plan fix, Android 12+ splash, doc cleanup |
+| 42 | R4 issues (12 fixes) + ambient sound infrastructure + movement overhaul |

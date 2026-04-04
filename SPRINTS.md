@@ -1,7 +1,7 @@
 # Rawi — Sprint Index
 
-> 41 sprints + post-audit across 3 days (April 1–3, 2026)
-> All sprints complete. Post-audit clean (25/25 items verified).
+> 42 sprints + post-audit across 4 days (April 1–4, 2026)
+> All sprints complete. R4 testing round fixed (12 items).
 
 ---
 
@@ -71,11 +71,20 @@
 
 ---
 
+## Day 4 — April 4, 2026 (Sprint 42)
+**Focus:** R4 testing fixes, ambient sound infrastructure, movement system overhaul
+
+| # | Sprint | Key Deliverable |
+|---|--------|----------------|
+| 42 | R4 Issues + Ambient Sound Design | Font pre-cache, bilingual intro, auto-walk, movement freeze, route painter rewrite, settings overlay redesign, per-hotspot ambient system, onboarding music, XP/chapter overlay z-order |
+
+---
+
 ## Planned
 
 | # | Sprint | Scope |
 |---|--------|-------|
-| 42+ | Per RAWI_ISSUES_AND_ENHANCEMENTS_3.md | Settings overhaul, badge artwork, expanded content |
+| 43+ | Per RAWI_ISSUES_AND_ENHANCEMENTS_3.md | Badge artwork, video support, expanded content |
 
 ---
 
@@ -83,11 +92,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sprints | 41 + post-audit |
-| Total days | 3 |
-| Bugs fixed | 50+ across 3 testing rounds + audit |
-| Dart files | 41 |
-| Dart lines | ~11,500 |
-| Audio files | 150+ (84 VO + 52 companion + 14 SFX) |
+| Total sprints | 42 + post-audit |
+| Total days | 4 |
+| Bugs fixed | 60+ across 4 testing rounds + audit |
+| Dart files | 43 |
+| Dart lines | ~12,000 |
+| Audio files | 150+ (84 VO + 52 companion + 14 SFX) + ambient dir ready |
 | Git commits | 15+ |
-| Tests | 5 branching safety tests (all passing) |
+| Tests | 6 (5 branching + 1 smoke, all passing) |

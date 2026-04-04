@@ -90,6 +90,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   double _joyDx = 0.0;
   double _joyDy = 0.0;
 
+  // Auto-walk state (tap-to-walk)
+  bool _autoWalking = false;
+  double _autoWalkTarget = 0.0;
+
   // Parallax offset
   double _parallaxOffset = 0.0;
 
@@ -151,11 +155,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       duration: const Duration(seconds: 100),
     );
     _gameLoop.addListener(_onFrame);
-
-    if (_scene.ambientAudioPath != null) {
-      AudioService.playAmbient(
-          _scene.ambientAudioPath!, volume: _scene.ambientVolume);
-    }
 
     if (_alreadyCompleted) {
       _phase = _Phase.complete;
@@ -250,6 +249,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   @override
   void dispose() {
     _idleTimer?.cancel();
+    if (_autoWalking) {
+      _gameLoop.removeListener(_onAutoWalkFrame);
+      _autoWalking = false;
+    }
     _verdictScrollCtrl.dispose();
     _reflectionScrollCtrl.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -257,7 +260,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _gameLoop.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
-    if (_scene.ambientAudioPath != null) AudioService.fadeOut();
+    AudioService.fadeOut();
     AudioService.stopSfx();
     super.dispose();
   }
@@ -278,10 +281,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _idleTimer?.cancel();
       if (mounted) setState(() => _isWalking = false);
     } else if (state == AppLifecycleState.resumed) {
-      if (_scene.ambientAudioPath != null && PrefsService.musicEnabled) {
-        AudioService.playAmbient(
-            _scene.ambientAudioPath!, volume: _scene.ambientVolume);
-      }
       // Restart idle timer
       if (_phase == _Phase.explore) _resetIdleTimer();
     }
@@ -292,8 +291,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _footstepPlaying = false;
 
   void _onFrame() {
-    // Only process when exploring and joystick is active
-    if (_phase != _Phase.explore || _activeHotspot != null) return;
+    // Absolute freeze during ANY overlay — no movement whatsoever
+    if (_activeHotspot != null || _showBranchCard || _showSettings ||
+        _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
+        _showTutorial ||
+        _phase == _Phase.convergenceQuestion || _phase == _Phase.choose ||
+        _phase == _Phase.complete) return;
+    if (_phase != _Phase.explore) return;
+    if (_autoWalking) return; // Don't mix manual + auto movement
 
     final joyMag = sqrt(_joyDx * _joyDx + _joyDy * _joyDy);
     if (joyMag < 0.15) return; // joystick at rest — no update needed
@@ -484,12 +489,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _showSettings = false;
       _isAr = PrefsService.isAr;
     });
-    if (PrefsService.musicEnabled && _scene.ambientAudioPath != null) {
-      AudioService.playAmbient(
-        _scene.ambientAudioPath!,
-        volume: _scene.ambientVolume,
-      );
-    }
     _resetIdleTimer();
   }
 
@@ -519,6 +518,85 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         return;
       }
     }
+  }
+
+  // ── Auto-walk (tap-to-walk) ─────────────────────────────────────────────
+
+  /// Find the path progress value closest to a hotspot position.
+  double _pathProgressForHotspot(SceneHotspot hotspot) {
+    final wp = _activeWaypoints;
+    if (wp.length < 2) return _pathProgress;
+    double bestProgress = 0.0;
+    double bestDist = double.infinity;
+    double accumulated = 0.0;
+    for (int i = 0; i < wp.length - 1; i++) {
+      // Check several points along each segment
+      const samples = 10;
+      for (int s = 0; s <= samples; s++) {
+        final t = s / samples;
+        final px = wp[i].dx + (wp[i + 1].dx - wp[i].dx) * t;
+        final py = wp[i].dy + (wp[i + 1].dy - wp[i].dy) * t;
+        final dx = px - hotspot.x;
+        final dy = py - hotspot.y;
+        final dist = dx * dx + dy * dy;
+        final progress = (accumulated + _segLengths[i] * t) / _totalPathLen;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestProgress = progress;
+        }
+      }
+      accumulated += _segLengths[i];
+    }
+    return bestProgress.clamp(0.0, 1.0);
+  }
+
+  void _autoWalkTo(SceneHotspot hotspot) {
+    if (_autoWalking) return;
+    final targetProgress = _pathProgressForHotspot(hotspot);
+    if ((targetProgress - _pathProgress).abs() < 0.01) {
+      // Already at hotspot — activate directly
+      _activateHotspot(hotspot);
+      return;
+    }
+    _autoWalkTarget = targetProgress;
+    _autoWalking = true;
+    _joyDx = 0;
+    _joyDy = 0;
+    if (!_gameLoop.isAnimating) _gameLoop.repeat();
+    _gameLoop.addListener(_onAutoWalkFrame);
+  }
+
+  void _onAutoWalkFrame() {
+    if (!_autoWalking) return;
+    const dt = 0.016;
+    final dir = _autoWalkTarget > _pathProgress ? 1.0 : -1.0;
+    final step = _moveSpeed * 0.7 * dt / _totalPathLen * dir;
+    final newProgress = (_pathProgress + step).clamp(0.0, 1.0);
+
+    final oldX = _companionX;
+    _pathProgress = newProgress;
+    _updateCompanionFromPath();
+
+    final moveDx = _companionX - oldX;
+    if (moveDx.abs() > 0.001) {
+      _facingDir = moveDx > 0 ? 1.0 : -1.0;
+    }
+
+    setState(() => _isWalking = true);
+
+    // Check if arrived
+    if ((_pathProgress - _autoWalkTarget).abs() < 0.015) {
+      _stopAutoWalk();
+      _checkHotspotProximity();
+    }
+  }
+
+  void _stopAutoWalk() {
+    _autoWalking = false;
+    _gameLoop.removeListener(_onAutoWalkFrame);
+    _gameLoop.stop();
+    _gameLoop.reset();
+    if (mounted) setState(() => _isWalking = false);
   }
 
   /// Derive choice phase VO path (question or explanation).
@@ -581,6 +659,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) {
         setState(() => _activeHotspot = hotspot);
+        // Start hotspot ambient bed (if available)
+        if (hotspot.ambientPath != null) {
+          AudioService.playAmbient(hotspot.ambientPath!, volume: 0.18);
+        }
         _playVoForHotspot(hotspot);
       }
     });
@@ -588,6 +670,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _onHotspotTap(SceneHotspot hotspot) {
     if (_activeHotspot != null) return;
+    if (_autoWalking) return; // Don't interrupt auto-walk
+
     final isNew = !_discovered.contains(hotspot.id) &&
         !_pendingDiscovery.contains(hotspot.id);
 
@@ -611,17 +695,45 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       // 1st-2nd revisit: re-open panel silently
     }
 
+    // New hotspot: auto-walk the figure to it instead of instant discovery
+    if (isNew) {
+      // Check if this is the next active hotspot (same logic as rendering)
+      String? nextHotspotId;
+      if (_isBranching && _branchUnlockOrder.isNotEmpty) {
+        nextHotspotId = _branchUnlockOrder.firstWhere(
+          (id) => !_discovered.contains(id) && !_pendingDiscovery.contains(id),
+          orElse: () => '',
+        );
+        if (nextHotspotId.isEmpty) nextHotspotId = null;
+      } else if (!_isBranching) {
+        final nextIdx = _scene.hotspots.indexWhere(
+            (h) => !_discovered.contains(h.id) && !_pendingDiscovery.contains(h.id));
+        if (nextIdx >= 0) nextHotspotId = _scene.hotspots[nextIdx].id;
+      } else {
+        nextHotspotId = widget.event.anchorHotspotId;
+        if (_discovered.contains(nextHotspotId) || _pendingDiscovery.contains(nextHotspotId!)) {
+          nextHotspotId = null;
+        }
+      }
+      if (hotspot.id == nextHotspotId) {
+        _autoWalkTo(hotspot);
+        return;
+      }
+      return; // Locked hotspot — ignore tap
+    }
+
+    // Revisit (1st-2nd): re-open panel from anywhere
     if (hotspot.sfxPath != null) {
       AudioService.playSfx(hotspot.sfxPath!, volume: 0.4);
       _footstepPlaying = false;
     }
-    setState(() {
-      if (isNew) _pendingDiscovery.add(hotspot.id);
-      _isWalking = false;
-    });
+    setState(() => _isWalking = false);
     Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) {
         setState(() => _activeHotspot = hotspot);
+        if (hotspot.ambientPath != null) {
+          AudioService.playAmbient(hotspot.ambientPath!, volume: 0.18);
+        }
         _playVoForHotspot(hotspot);
       }
     });
@@ -649,6 +761,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _dismissPanel() {
     AudioService.stopVoiceover(); // Rule: immediate stop on panel dismiss
+    // Fade out hotspot ambient bed
+    AudioService.fadeOut(duration: const Duration(milliseconds: 800));
     final dismissed = _activeHotspot;
     setState(() {
       if (dismissed != null && _pendingDiscovery.contains(dismissed.id)) {
@@ -664,6 +778,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         _branchChoice == null) {
       // The Gate just dismissed — show The Crossroads
       _idleTimer?.cancel(); // Stop idle VO from overlapping branch card
+      // Stop ALL movement state before showing branch card
+      _gameLoop.stop();
+      _gameLoop.reset();
+      _joyDx = 0;
+      _joyDy = 0;
+      _isWalking = false;
       setState(() => _showBranchCard = true);
       // Rule 3: Branch card VO starts 600ms after card shows
       final branchVoPath = _choiceVoPath('branch');
@@ -993,9 +1113,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _eraColor.withAlpha(22),
+                      color: AppColors.bg.withAlpha(200),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _eraColor.withAlpha(65)),
+                      border: Border.all(color: _eraColor.withAlpha(120)),
                     ),
                     child: Text(
                       '${widget.event.era.emoji}  ${widget.event.era.label(PrefsService.language)}',
@@ -1090,11 +1210,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               centerMode: true),
 
           // ── The Reflection (linear events 4+) ─────────────────────
-          if ((_phase == _Phase.choose || _phase == _Phase.complete) && !_isBranching)
+          if ((_phase == _Phase.choose || _phase == _Phase.complete) && !_isBranching
+              && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
             _buildChoiceOverlay(bottomPad),
 
           // ── The Verdict (branching events — at The Gathering) ─────
-          if ((_phase == _Phase.convergenceQuestion || _phase == _Phase.complete) && _isBranching)
+          if ((_phase == _Phase.convergenceQuestion || _phase == _Phase.complete) && _isBranching
+              && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
             _buildConvergenceQuestion(bottomPad),
 
           // ── The Crossroads (choice card after The Gate) ────────────
@@ -1150,7 +1272,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 },
                 behavior: HitTestBehavior.opaque,
                 child: Container(
-                  color: Colors.black.withAlpha(220),
+                  color: Colors.black.withAlpha(245),
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40),

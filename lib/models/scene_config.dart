@@ -34,6 +34,9 @@ class SceneHotspot {
   final String? deeperContent;
   final String? deeperContentAr;
 
+  /// Optional ambient atmospheric bed (plays while discovery panel is open).
+  final String? ambientPath;
+
   const SceneHotspot({
     required this.id,
     required this.x,
@@ -47,6 +50,7 @@ class SceneHotspot {
     this.imagePath,
     this.deeperContent,
     this.deeperContentAr,
+    this.ambientPath,
   });
 }
 

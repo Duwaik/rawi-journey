@@ -404,22 +404,28 @@ class _EventListScreenState extends State<EventListScreen> {
                             ),
                           )
                         else if (isNext)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppColors.gold,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              isAr ? 'ابدأ' : 'Play',
-                              style: GoogleFonts.nunito(
-                                color: AppColors.bg,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                          Builder(builder: (_) {
+                            final savedProgress = PrefsService.loadHotspotProgress(event.id);
+                            final hasProgress = savedProgress.isNotEmpty;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppColors.gold,
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                            ),
-                          )
+                              child: Text(
+                                hasProgress
+                                    ? (isAr ? 'أكمل' : 'Continue')
+                                    : (isAr ? 'ابدأ' : 'Play'),
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.bg,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            );
+                          })
                         else if (locked)
                           Icon(Icons.lock_rounded,
                               size: 16, color: const Color(0xFF3A5A5A)),
@@ -450,8 +456,8 @@ class _EventListScreenState extends State<EventListScreen> {
             shape: BoxShape.circle,
             color: filled ? AppColors.gold : Colors.transparent,
             border: Border.all(
-              color: filled ? AppColors.gold : const Color(0xFF3A5A5A),
-              width: 1,
+              color: filled ? AppColors.gold : AppColors.gold.withAlpha(80),
+              width: 1.5,
             ),
           ),
         );

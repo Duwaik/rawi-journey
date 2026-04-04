@@ -807,4 +807,47 @@ All events: Anchor(~0.60y) → Branches(~0.42y triangle) → Convergence(~0.28y)
 | `companion_figure.dart` | MODIFIED | Rawi/Rawiah labels (not "companion"), pose infrastructure |
 | `registration_screen.dart` | MODIFIED | Updated registration text for character identity |
 | `splash_screen.dart` | MODIFIED | Android 12+ splash fix (v31) |
+
+---
+
+## Sprint 42 — R4 Issues + Ambient Sound Design
+**Date:** 2026-04-04
+**Status:** COMPLETE
+
+### R4 Issues Fixed
+
+| # | Issue | Fix |
+|---|-------|-----|
+| R4-01 | Splash font flicker | `GoogleFonts.pendingFonts()` pre-caches Cinzel/Lora/Nunito before splash renders |
+| R4-02 | Intro cinematic single-language | Bilingual display (EN Cinzel + AR Lora italic), Skip button removed, onboarding BG music wired |
+| R4-03b | Figure auto-movement during branch card | Absolute `_showBranchCard` guard in `_onFrame()`, joystick zeroed + game loop stopped before card shows |
+| R4-03b+ | Movement during any overlay | Comprehensive freeze: checks ALL overlay states (activeHotspot, branchCard, settings, badge, chapter, XP, tutorial, non-explore phases) |
+| R4-03c | Route line partially invisible | Rewrote `PathRoutePainter` — segments ahead of figure always bright silver with glow, behind faded, current segment split at figure position |
+| R4-03d | Hotspot tap bypasses movement | Tap-to-walk: tapping next active hotspot auto-walks figure along path. `_autoWalkTo()` + `_pathProgressForHotspot()`. Locked hotspots ignore tap. |
+| R4-03e | Era label low contrast | Navy bg `AppColors.bg.withAlpha(200)`, era color border `withAlpha(120)` |
+| R4-03f | Progress dots hard to see | Empty dots now `AppColors.gold.withAlpha(80)` border at 1.5px |
+| R4-04 | XP overlay inline (not full-screen) | Verdict/Reflection cards hidden when `_showXpAnimation`, `_showChapterComplete`, or `_showBadgeOverlay` true |
+| R4-06 | Settings overlay outdated | Full redesign: centered card, gold/navy, compact toggles, "Paused" header, Resume (gold) + Save & Exit (outlined) |
+| R4-10 | "Play" for in-progress events | Checks `loadHotspotProgress()`, shows "Continue"/"أكمل" when progress exists |
+| R4-11 | Chapter overlay overlapping Verdict | Same guard as R4-04 + chapter bg opacity increased to 245 (near-opaque) |
+
+### Ambient Sound Design (Infrastructure)
+
+| File | Type | Details |
+|------|------|---------|
+| `scene_config.dart` | MODIFIED | Added `ambientPath` optional field to `SceneHotspot` |
+| `audio_service.dart` | REWRITTEN | Re-enabled `playAmbient()` (removed `return;`), added `loop` param, `fadeAmbientTo()` helper, VO duck adjusted to 0.06/0.18 |
+| `immersive_event_screen.dart` | MODIFIED | Hotspot ambient plays on panel open (0.18 vol), fades out on dismiss (800ms). Scene-level ambient loop removed. Comprehensive movement freeze. Auto-walk system. |
+| `intro_cinematic_screen.dart` | REWRITTEN | Bilingual display, Skip removed, onboarding music starts on load |
+| `registration_screen.dart` | MODIFIED | Onboarding music fades out (2.5s) on "Start the Journey" |
+| `settings_overlay.dart` | REWRITTEN | Gold/navy centered card design, compact toggle rows |
+| `path_route_painter.dart` | REWRITTEN | Figure-relative rendering: ahead=bright, behind=faded, current=split |
+| `event_list_screen.dart` | MODIFIED | Progress dots gold border, Play→Continue for in-progress |
+| `main.dart` | MODIFIED | `GoogleFonts.pendingFonts()` pre-cache |
+| `pubspec.yaml` | MODIFIED | Added `assets/audio/ambient/` |
+
+### Quality
+- `flutter analyze` — 0 errors, 0 warnings (2 info-level)
+- `flutter test` — 6/6 passing
+- APK builds successfully
 | `settings_screen.dart` | MODIFIED | Font reflection fix |

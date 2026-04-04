@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
@@ -65,6 +66,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     await PrefsService.setUserGender(_selectedGender);
     await PrefsService.setLanguage(_selectedLang);
     await PrefsService.setOnboardingComplete();
+
+    // Fade out onboarding music over 2.5s
+    AudioService.fadeOut(duration: const Duration(milliseconds: 2500));
 
     if (!mounted) return;
     Navigator.of(context).pushReplacement(

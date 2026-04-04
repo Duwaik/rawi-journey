@@ -9,20 +9,40 @@ class AudioService {
   static AudioPlayer? _sfx;
   static AudioPlayer? _vo;
 
-  /// Start looping an ambient audio asset at the given volume.
-  /// Ambient audio disabled — will be reimplemented with better approach.
-  static Future<void> playAmbient(String assetPath, {double volume = 0.3}) async {
-    return; // Disabled: ambient loop was annoying per user feedback
+  /// Start playing an ambient audio asset at the given volume.
+  /// Used for: onboarding music (looping) and hotspot atmospheric beds.
+  static Future<void> playAmbient(String assetPath, {
+    double volume = 0.3,
+    bool loop = true,
+  }) async {
+    if (!PrefsService.musicEnabled) return;
     await stopAmbient();
     _ambient = AudioPlayer();
     try {
       await _ambient!.setAsset(assetPath);
-      await _ambient!.setLoopMode(LoopMode.one);
+      await _ambient!.setLoopMode(loop ? LoopMode.one : LoopMode.off);
       await _ambient!.setVolume(volume);
       _ambient!.play();
     } catch (_) {
       _ambient?.dispose();
       _ambient = null;
+    }
+  }
+
+  /// Smoothly fade ambient volume to [targetVol] over [duration].
+  static Future<void> fadeAmbientTo(double targetVol, {
+    Duration duration = const Duration(milliseconds: 1500),
+  }) async {
+    final player = _ambient;
+    if (player == null) return;
+    final startVol = player.volume;
+    const steps = 15;
+    final stepDuration = duration ~/ steps;
+    for (int i = 1; i <= steps; i++) {
+      if (_ambient != player) return;
+      final vol = startVol + (targetVol - startVol) * (i / steps);
+      await player.setVolume(vol.clamp(0.0, 1.0));
+      await Future.delayed(stepDuration);
     }
   }
 
@@ -53,7 +73,7 @@ class AudioService {
     _vo = AudioPlayer();
     try {
       // Duck ambient
-      _ambient?.setVolume(0.08);
+      _ambient?.setVolume(0.06);
       await _vo!.setAsset(assetPath);
       await _vo!.setLoopMode(LoopMode.off);
       await _vo!.setVolume(volume);
@@ -61,13 +81,13 @@ class AudioService {
       // Restore ambient when VO finishes
       _vo!.playerStateStream.listen((state) {
         if (state.processingState == ProcessingState.completed) {
-          _ambient?.setVolume(0.25);
+          _ambient?.setVolume(0.18);
           _vo?.dispose();
           _vo = null;
         }
       });
     } catch (_) {
-      _ambient?.setVolume(0.25);
+      _ambient?.setVolume(0.18);
       _vo?.dispose();
       _vo = null;
     }
@@ -87,7 +107,7 @@ class AudioService {
     await player.stop();
     await player.dispose();
     _vo = null;
-    _ambient?.setVolume(0.25);
+    _ambient?.setVolume(0.18);
   }
 
   /// Stop voiceover immediately.
@@ -95,7 +115,7 @@ class AudioService {
     await _vo?.stop();
     await _vo?.dispose();
     _vo = null;
-    _ambient?.setVolume(0.25);
+    _ambient?.setVolume(0.18);
   }
 
   /// Smoothly fade out ambient over [duration] then stop.
@@ -115,6 +135,8 @@ class AudioService {
       await Future.delayed(stepDuration);
     }
     await player.stop();
+    await player.dispose();
+    _ambient = null;
   }
 
   /// Immediately stop ambient audio.

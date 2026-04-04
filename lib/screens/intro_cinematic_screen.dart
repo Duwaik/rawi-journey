@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import 'registration_screen.dart';
 
 /// First-launch cinematic intro — sets the tone before registration.
 /// Sequential text fades over the welcome scene image.
-/// Skip button top-right. "Begin" CTA at end → RegistrationScreen.
+/// Shows BOTH English and Arabic simultaneously (user hasn't chosen language yet).
+/// "Begin" CTA at end → RegistrationScreen.
 class IntroCinematicScreen extends StatefulWidget {
   const IntroCinematicScreen({super.key});
 
@@ -37,11 +39,9 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
   late final AnimationController _ctrl;
 
   /// Each line gets: 600ms fade-in, 1800ms hold, 400ms fade-out = 2800ms.
-  /// Total: 5 lines x 2800ms = 14000ms + 600ms buffer for CTA.
   static const _lineDuration = 2800;
   static const _fadeIn = 600;
   static const _hold = 1800;
-  // fade-out occupies the remainder (_lineDuration - _fadeIn - _hold = 400ms)
 
   int _currentLine = 0;
   double _lineOpacity = 0.0;
@@ -52,6 +52,15 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
   void initState() {
     super.initState();
     _ctrl = AnimationController(vsync: this);
+    // Start onboarding music
+    if (PrefsService.musicEnabled) {
+      AudioService.playAmbient(
+        'assets/audio/ambient/onboarding_music.ogg',
+        volume: 0.0,
+      );
+      AudioService.fadeAmbientTo(0.13,
+          duration: const Duration(milliseconds: 1500));
+    }
     _runSequence();
   }
 
@@ -95,6 +104,7 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
   }
 
   void _proceed() {
+    // Don't stop onboarding music — it carries into registration
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -115,11 +125,8 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Use device locale since user hasn't selected language yet
-    final deviceLocale = View.of(context).platformDispatcher.locale.languageCode;
-    final isAr = PrefsService.language != 'en' ? PrefsService.isAr : deviceLocale == 'ar';
     final line = _lines[_currentLine];
-    final text = isAr ? line.ar : line.en;
+    final isFirstLine = _currentLine == 0;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -149,30 +156,48 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
             ),
           ),
 
-          // ── Centered text line ────────────────────────────────────
+          // ── Bilingual text lines ─────────────────────────────────
           if (!_showCta)
             IgnorePointer(
-            child: Center(
-              child: Opacity(
-                opacity: _lineOpacity,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Text(
-                    text,
-                    textAlign: TextAlign.center,
-                    textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-                    style: GoogleFonts.cinzelDecorative(
-                      fontSize: _currentLine == 0 ? 36 : 22,
-                      fontWeight: _currentLine == 0
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: AppColors.gold,
-                      height: 1.6,
+              child: Center(
+                child: Opacity(
+                  opacity: _lineOpacity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // English (primary)
+                        Text(
+                          line.en,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.cinzelDecorative(
+                            fontSize: isFirstLine ? 36 : 22,
+                            fontWeight: isFirstLine
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: AppColors.gold,
+                            height: 1.6,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        // Arabic (secondary)
+                        Text(
+                          line.ar,
+                          textAlign: TextAlign.center,
+                          textDirection: TextDirection.rtl,
+                          style: GoogleFonts.lora(
+                            fontSize: isFirstLine ? 28 : 18,
+                            fontStyle: FontStyle.italic,
+                            color: AppColors.gold.withAlpha(180),
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ),
             ),
 
           // ── CTA — "Begin" ─────────────────────────────────────────
@@ -187,13 +212,23 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      isAr ? 'كن شاهداً. احمل الرواية.' : 'Witness history. Carry the story.',
+                      'Witness history. Carry the story.',
                       textAlign: TextAlign.center,
-                      textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
                       style: GoogleFonts.lora(
                         fontSize: 18,
                         fontStyle: FontStyle.italic,
                         color: AppColors.gold.withAlpha(200),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'كن شاهداً. احمل الرواية.',
+                      textAlign: TextAlign.center,
+                      textDirection: TextDirection.rtl,
+                      style: GoogleFonts.lora(
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.gold.withAlpha(160),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -210,7 +245,7 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                           ),
                         ),
                         child: Text(
-                          isAr ? 'ابدأ' : 'Begin',
+                          'Begin  ابدأ',
                           style: GoogleFonts.nunito(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -223,26 +258,7 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
               ),
             ),
 
-          // ── Skip button ───────────────────────────────────────────
-          if (!_showCta)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 12,
-              right: 16,
-              child: GestureDetector(
-                onTap: _proceed,
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(
-                    isAr ? 'تخطي' : 'Skip',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      color: AppColors.textMuted.withAlpha(180),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          // Skip button REMOVED — intro only shows once, mandatory
         ],
       ),
     );

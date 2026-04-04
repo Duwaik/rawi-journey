@@ -95,3 +95,22 @@ Root cause likely: `_completeAndReturn()` either isn't being called, or the pop 
 | POST-31 | **Bug fixes A12-A17** | Exit fix, save progress fix, idle overlap fix, font reflect fix, splash v31 (Android 12+), Rawi/Rawiah labels. |
 | POST-32 | **Master Plan table fix** | Black Stone row corrected in RAWI_MASTER_PLAN.md. |
 | POST-33 | **Doc cleanup** | Removed duplicate issue files from repo. |
+
+---
+
+## Round 4 Fixes (Sprint 42 — April 4, 2026)
+
+| # | Fix | Details |
+|---|-----|---------|
+| R4-01 | **Splash font flicker** | `GoogleFonts.pendingFonts()` pre-caches fonts before splash. |
+| R4-02 | **Intro bilingual + no Skip + BG music** | Both EN+AR on every line, Skip removed, onboarding music plays intro→registration, fades on "Start the Journey". |
+| R4-03b | **Figure auto-movement (non-negotiable)** | Absolute guard in `_onFrame()` for ALL overlay states. Joystick zeroed + loop stopped before branch card. |
+| R4-03c | **Route line partially invisible** | Rewrote `PathRoutePainter`: ahead=bright silver with glow, behind=faded, current segment split at figure position. |
+| R4-03d | **Hotspot tap → auto-walk** | Tapping next active hotspot auto-walks figure along path. `_autoWalkTo()` with `_pathProgressForHotspot()`. Locked hotspots ignore tap. |
+| R4-03e | **Era label contrast** | Navy bg `withAlpha(200)`, era color border `withAlpha(120)`. |
+| R4-03f | **Progress dots visibility** | Empty dots now gold border `withAlpha(80)` at 1.5px width. |
+| R4-04 | **XP overlay not full-screen** | Verdict/Reflection hidden when chapter/badge/XP overlays active. |
+| R4-06 | **Settings overlay redesign** | Centered card, gold/navy, compact toggles, "Paused" header. |
+| R4-10 | **Play → Continue** | Shows "Continue"/"أكمل" for events with saved hotspot progress. |
+| R4-11 | **Chapter overlay overlapping** | Same guard as R4-04 + chapter bg opacity 245 (near-opaque). |
+| AMB | **Ambient sound infrastructure** | `ambientPath` on SceneHotspot, `playAmbient()` re-enabled, `fadeAmbientTo()`, per-hotspot ambient play/stop, onboarding music wiring. |

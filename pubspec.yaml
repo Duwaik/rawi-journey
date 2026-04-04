@@ -25,6 +25,7 @@ flutter:
     - assets/audio/
     - assets/audio/vo/
     - assets/audio/companion/
+    - assets/audio/ambient/
     - assets/scenes/
     - assets/figures/
     - assets/icon/

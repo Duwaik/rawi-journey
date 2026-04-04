@@ -10,6 +10,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await PrefsService.init();
 
+  // Pre-cache critical fonts to prevent flash of fallback on splash
+  await GoogleFonts.pendingFonts([
+    GoogleFonts.cinzelDecorative(),
+    GoogleFonts.lora(),
+    GoogleFonts.nunito(),
+  ]);
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

@@ -31,13 +31,13 @@ class PathRoutePainter extends CustomPainter {
     if (waypoints.length < 2) return;
 
     final segCount = waypoints.length - 1;
-    final completedFraction = totalHotspots > 0
-        ? (discoveredCount / totalHotspots).clamp(0.0, 1.0)
-        : 0.0;
+
+    // The figure's current position on the path (0.0–1.0)
+    final figureFraction = pathProgress;
 
     for (int i = 0; i < segCount; i++) {
-      final segFraction = i / segCount;
-      final nextSegFraction = (i + 1) / segCount;
+      final segStart = i / segCount;
+      final segEnd = (i + 1) / segCount;
 
       final p1 = Offset(
         waypoints[i].dx * screenW + sceneOffset,
@@ -48,30 +48,50 @@ class PathRoutePainter extends CustomPainter {
         waypoints[i + 1].dy * screenH,
       );
 
-      final bool isCompleted = segFraction < completedFraction;
-      final bool isActive = segFraction >= completedFraction &&
-          nextSegFraction <= completedFraction + (1.0 / totalHotspots) + 0.05;
+      // Behind the figure: faded dotted
+      final bool isBehind = segEnd <= figureFraction;
+      // Ahead of the figure: solid bright silver with glow
+      final bool isAhead = segStart >= figureFraction;
 
-      if (isCompleted) {
+      if (isBehind) {
         _drawDottedLine(canvas, p1, p2,
-            color: _silver.withAlpha(70), dotRadius: 1.5, gap: 8);
-      } else if (isActive) {
-        // Active: bright silver, glowing line
+            color: _silver.withAlpha(50), dotRadius: 1.5, gap: 8);
+      } else if (isAhead) {
+        // Ahead: bright silver, glowing line — always visible
         final glowPaint = Paint()
-          ..color = _silver.withAlpha(60)
+          ..color = _silver.withAlpha(50)
           ..strokeWidth = 8
           ..strokeCap = StrokeCap.round
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
         canvas.drawLine(p1, p2, glowPaint);
 
         final linePaint = Paint()
-          ..color = _silver.withAlpha(180)
+          ..color = _silver.withAlpha(160)
           ..strokeWidth = 2.5
           ..strokeCap = StrokeCap.round;
         canvas.drawLine(p1, p2, linePaint);
       } else {
-        _drawDottedLine(canvas, p1, p2,
-            color: _silver.withAlpha(45), dotRadius: 1.2, gap: 10);
+        // Current segment (figure is on it): draw from figure to end
+        final t = (figureFraction - segStart) / (segEnd - segStart);
+        final midP = Offset(
+          p1.dx + (p2.dx - p1.dx) * t,
+          p1.dy + (p2.dy - p1.dy) * t,
+        );
+        // Behind portion: faded
+        _drawDottedLine(canvas, p1, midP,
+            color: _silver.withAlpha(50), dotRadius: 1.5, gap: 8);
+        // Ahead portion: bright
+        final glowPaint = Paint()
+          ..color = _silver.withAlpha(50)
+          ..strokeWidth = 8
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+        canvas.drawLine(midP, p2, glowPaint);
+        final linePaint = Paint()
+          ..color = _silver.withAlpha(160)
+          ..strokeWidth = 2.5
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(midP, p2, linePaint);
       }
     }
   }
