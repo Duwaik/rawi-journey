@@ -335,7 +335,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       if (_footprints.length > 80) _footprints.removeAt(0);
     }
 
-    if (!_isWalking) setState(() => _isWalking = true);
+    setState(() => _isWalking = true);
 
     // Footstep sound
     if (!_footstepPlaying) {
@@ -593,7 +593,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _facingDir = moveDx > 0 ? 1.0 : -1.0;
     }
 
-    if (!_isWalking) setState(() => _isWalking = true);
+    setState(() => _isWalking = true);
 
     // Check if arrived
     if ((_pathProgress - _autoWalkTarget).abs() < 0.015) {
