@@ -213,7 +213,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 fontSize: 18,
                 color: AppColors.textMuted.withAlpha(100),
               ),
-              counterText: isAr ? '٢–١٥ حرفاً' : '2–15 characters',
+              counterText: isAr ? '2–15 حرفاً' : '2–15 characters',
               counterStyle: GoogleFonts.nunito(
                 fontSize: 11,
                 color: AppColors.textMuted.withAlpha(80),

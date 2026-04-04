@@ -314,9 +314,8 @@ class _EventListScreenState extends State<EventListScreen> {
                   child: Opacity(
                     opacity: locked ? 0.5 : 1.0,
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 4),
                         // Number or check
                         if (completed)
                           Container(
@@ -396,7 +395,7 @@ class _EventListScreenState extends State<EventListScreen> {
                         const SizedBox(width: 12),
 
                         // Right side: status
-                        if (completed)
+                        if (completed && hotspotCount > 0)
                           Text(
                             '$hotspotCount/$hotspotCount',
                             style: GoogleFonts.nunito(
@@ -405,6 +404,9 @@ class _EventListScreenState extends State<EventListScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                           )
+                        else if (completed && hotspotCount == 0)
+                          Icon(Icons.check_rounded,
+                              size: 16, color: AppColors.gold.withAlpha(140))
                         else if (isNext)
                           Builder(builder: (_) {
                             final savedProgress = PrefsService.loadHotspotProgress(event.id);

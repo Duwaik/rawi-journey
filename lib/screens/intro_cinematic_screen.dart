@@ -20,15 +20,15 @@ class IntroCinematicScreen extends StatefulWidget {
 class _IntroCinematicScreenState extends State<IntroCinematicScreen>
     with SingleTickerProviderStateMixin {
   static const _lines = <_IntroLine>[
-    _IntroLine('570 CE', '٥٧٠ ميلادي'),
+    _IntroLine('570 CE', '570 ميلادي'),
     _IntroLine('The Arabian Peninsula...', 'الجزيرة العربية...'),
     _IntroLine(
       'A world waiting for a message.',
-      'عالم ينتظر رسالة.',
+      'العالم ينتظر رسالة.',
     ),
     _IntroLine(
-      'You are the Rawi — the narrator.',
-      'أنت الراوي.',
+      'You are the Rawi\n"The Narrator"',
+      'أنت الراوي\n"الراوي"',
     ),
     _IntroLine(
       'Witness history. Carry the story.',
@@ -181,13 +181,14 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                           ),
                         ),
                         const SizedBox(height: 14),
-                        // Arabic (secondary — no italic for Arabic script)
+                        // Arabic (secondary — explicit normal, never italic)
                         Text(
                           line.ar,
                           textAlign: TextAlign.center,
                           textDirection: TextDirection.rtl,
                           style: GoogleFonts.lora(
                             fontSize: isFirstLine ? 28 : 18,
+                            fontStyle: FontStyle.normal,
                             color: AppColors.gold.withAlpha(180),
                             height: 1.6,
                           ),
@@ -226,6 +227,7 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                       textDirection: TextDirection.rtl,
                       style: GoogleFonts.lora(
                         fontSize: 16,
+                        fontStyle: FontStyle.normal,
                         color: AppColors.gold.withAlpha(160),
                       ),
                     ),
@@ -247,6 +249,7 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                           style: GoogleFonts.lora(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.normal,
                           ),
                         ),
                       ),

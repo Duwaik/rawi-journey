@@ -33,41 +33,40 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
   void initState() {
     super.initState();
 
-    // Total duration: ~1.5s
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1800),
     );
 
-    // Star pop: 0-30% (0.5 → 1.2 → 1.0)
+    // Star pop: 0-30% (0.3 → 1.3 → 1.0)
     _starScale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.5, end: 1.25), weight: 60),
-      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 0.3, end: 1.3), weight: 55),
+      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 45),
     ]).animate(CurvedAnimation(
       parent: _ctrl,
       curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
     ));
 
-    // Count-up: 15-75%
+    // Count-up: 15-70%
     _countUp = IntTween(begin: 0, end: widget.xpEarned).animate(
       CurvedAnimation(
         parent: _ctrl,
-        curve: const Interval(0.15, 0.75, curve: Curves.easeOut),
+        curve: const Interval(0.15, 0.70, curve: Curves.easeOut),
       ),
     );
 
-    // Particle burst: 10-50%
+    // Particle burst: 10-55%
     _burstFade = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _ctrl,
-        curve: const Interval(0.1, 0.5, curve: Curves.easeOut),
+        curve: const Interval(0.1, 0.55, curve: Curves.easeOut),
       ),
     );
 
-    // Total XP line: 75-100%
+    // Total XP line: 70-100%
     _totalFade = CurvedAnimation(
       parent: _ctrl,
-      curve: const Interval(0.75, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.70, 1.0, curve: Curves.easeOut),
     );
 
     _ctrl.forward();
@@ -96,27 +95,33 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
           children: [
             // Star + count-up + particle burst
             SizedBox(
-              height: 50,
+              height: 120,
+              width: 280,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Gold particle burst (8 dots expanding outward)
+                  // Gold particle burst (12 dots expanding outward)
                   if (_burstFade.value > 0)
-                    ...List.generate(8, (i) {
-                      final angle = i * (pi / 4);
-                      final radius = (1.0 - _burstFade.value) * 30;
+                    ...List.generate(12, (i) {
+                      final angle = i * (pi / 6);
+                      final radius = (1.0 - _burstFade.value) * 70;
                       return Positioned(
-                        left: MediaQuery.of(context).size.width / 2 -
-                            40 + cos(angle) * radius,
-                        top: 25 + sin(angle) * radius,
+                        left: 140 + cos(angle) * radius - 4,
+                        top: 60 + sin(angle) * radius - 4,
                         child: Opacity(
                           opacity: _burstFade.value * 0.8,
                           child: Container(
-                            width: 4,
-                            height: 4,
+                            width: 8,
+                            height: 8,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: AppColors.gold,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.gold.withAlpha(100),
+                                  blurRadius: 6,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -124,21 +129,21 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
                     }),
 
                   // Star + XP number
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Transform.scale(
                         scale: _starScale.value,
                         child: const Icon(Icons.star_rounded,
-                            color: AppColors.gold, size: 28),
+                            color: AppColors.gold, size: 64),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(height: 12),
                       Text(
                         '+${_countUp.value} XP',
-                        style: GoogleFonts.nunito(
+                        style: GoogleFonts.cinzelDecorative(
                           color: AppColors.gold,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
@@ -151,13 +156,13 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
             Opacity(
               opacity: _totalFade.value,
               child: Padding(
-                padding: const EdgeInsets.only(top: 6),
+                padding: const EdgeInsets.only(top: 16),
                 child: Text(
                   '★ ${widget.previousTotal} → $newTotal',
                   style: GoogleFonts.nunito(
-                    color: AppColors.gold.withAlpha(140),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.gold.withAlpha(180),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

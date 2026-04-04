@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_colors.dart';
 
-/// Wraps a scrollable child and shows a gold "▼" arrow at the bottom
+/// Wraps a scrollable child and shows a gold bouncing "▼" arrow at the bottom
 /// when content overflows. Arrow fades out when user scrolls to the end.
 class ScrollHintWrapper extends StatefulWidget {
   final Widget child;
@@ -17,14 +17,23 @@ class ScrollHintWrapper extends StatefulWidget {
   State<ScrollHintWrapper> createState() => _ScrollHintWrapperState();
 }
 
-class _ScrollHintWrapperState extends State<ScrollHintWrapper> {
+class _ScrollHintWrapperState extends State<ScrollHintWrapper>
+    with SingleTickerProviderStateMixin {
   bool _showHint = false;
+  late final AnimationController _bounceCtrl;
+  late final Animation<double> _bounceAnim;
 
   @override
   void initState() {
     super.initState();
+    _bounceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _bounceAnim = Tween<double>(begin: 0, end: 6).animate(
+      CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut),
+    );
     widget.controller.addListener(_onScroll);
-    // Check after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkOverflow());
   }
 
@@ -37,7 +46,7 @@ class _ScrollHintWrapperState extends State<ScrollHintWrapper> {
   void _checkOverflow() {
     if (!mounted || !widget.controller.hasClients) return;
     final max = widget.controller.position.maxScrollExtent;
-    setState(() => _showHint = max > 10); // has scrollable content
+    setState(() => _showHint = max > 10);
   }
 
   void _onScroll() {
@@ -54,6 +63,7 @@ class _ScrollHintWrapperState extends State<ScrollHintWrapper> {
   @override
   void dispose() {
     widget.controller.removeListener(_onScroll);
+    _bounceCtrl.dispose();
     super.dispose();
   }
 
@@ -62,28 +72,39 @@ class _ScrollHintWrapperState extends State<ScrollHintWrapper> {
     return Stack(
       children: [
         widget.child,
-        // Gold scroll-down arrow
         if (_showHint)
           Positioned(
-            bottom: 4,
+            bottom: 6,
             left: 0,
             right: 0,
             child: IgnorePointer(
               child: Center(
-                child: AnimatedOpacity(
-                  opacity: _showHint ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
+                child: AnimatedBuilder(
+                  animation: _bounceAnim,
+                  builder: (_, child) => Transform.translate(
+                    offset: Offset(0, _bounceAnim.value),
+                    child: child,
+                  ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
+                        horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.bg.withAlpha(200),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.bg.withAlpha(220),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.gold.withAlpha(60),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.gold.withAlpha(30),
+                          blurRadius: 8,
+                        ),
+                      ],
                     ),
                     child: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 20,
-                      color: AppColors.gold.withAlpha(180),
+                      Icons.keyboard_double_arrow_down_rounded,
+                      size: 28,
+                      color: AppColors.gold.withAlpha(220),
                     ),
                   ),
                 ),

@@ -31,10 +31,16 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
   double _blackOpacity = 0.0;
   double _cardOpacity = 0.0;
   bool _disposed = false;
+  late final AnimationController _particleCtrl;
 
   @override
   void initState() {
     super.initState();
+    // Continuous animation for particle drift
+    _particleCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat();
     _runSequence();
   }
 
@@ -83,6 +89,7 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
   @override
   void dispose() {
     _disposed = true;
+    _particleCtrl.dispose();
     super.dispose();
   }
 
@@ -123,15 +130,18 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
             ),
           ),
 
-          // Floating gold dust particles
+          // Floating gold dust particles (continuously animated)
           if (_cardOpacity > 0)
             Opacity(
               opacity: _cardOpacity * 0.6,
-              child: CustomPaint(
-                size: MediaQuery.of(context).size,
-                painter: _TransitionParticlePainter(
-                  seed: event.globalOrder,
-                  progress: _cardOpacity,
+              child: AnimatedBuilder(
+                animation: _particleCtrl,
+                builder: (_, __) => CustomPaint(
+                  size: MediaQuery.of(context).size,
+                  painter: _TransitionParticlePainter(
+                    seed: event.globalOrder,
+                    progress: _particleCtrl.value,
+                  ),
                 ),
               ),
             ),
