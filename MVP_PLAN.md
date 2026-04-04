@@ -8,6 +8,7 @@
 >
 > **Done:** All 42 sprints + post-audit + R4 fixes. Ambient sound system ready (awaiting audio assets from Khaled).
 > **Remaining:** Firebase Crashlytics (needs google-services.json), font bundling (deferred), asset compression (needs ffmpeg), ambient audio files (8 hotspot + 1 onboarding).
+> **Post-Launch:** Young Rawi Mode (age-adaptive content — see `RAWI_YOUNG_RAWI_MODE.md`), video support, badge artwork, character pose art.
 >
 > **Event Terminology:** The Gate → The Crossroads → The Paths → The Gathering → The Verdict (branching). The Reflection (linear).
 > **Architecture:** See `ARCHITECTURE.md` for full details.

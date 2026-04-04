@@ -418,6 +418,32 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 3. M3 data — 38 events in `m3_data.dart`
 4. M4 data — 35 events in `m4_data.dart`
 5. Era-pack download system (audio not bundled in APK)
+6. **Young Rawi Mode** — age-adaptive content (see below)
+7. Video support — cinematic videos per event (Runway-generated)
+8. Badge artwork — 7 painterly badge images (Bing Image Creator)
+9. Character pose art — Walking/Witnessing/Reflecting/Carrying for Rawi/Rawiah
+
+### Young Rawi Mode (Post-Launch — Month 1–3)
+
+Age-adaptive content system. One app, three reading levels. Same game
+experience (scenes, hotspots, branching, routes, art, audio). Only
+written content adapts based on user age.
+
+| Group | Age | Content | Go Deeper |
+|-------|-----|---------|-----------|
+| Young Rawi | 8–12 | `fragmentSimple` — 3-4 short sentences, simple vocabulary | Hidden |
+| Rawi | 13–17 | `fragment` — current literary narrative | Collapsed |
+| Elder Rawi | 18+ | `fragment` — current content | Auto-expanded |
+
+**Data model:** Add optional `fragmentSimple`/`fragmentSimpleAr` to `SceneHotspot`,
+`questionSimple`/`questionSimpleAr`/`explanationSimple`/`explanationSimpleAr` to
+`JourneyQuestion`. Fallback: `fragmentSimple ?? fragment` — events without
+simplified content show full text. No crashes, incremental rollout.
+
+**Registration:** Add age number input after name (auto-maps to group).
+**VO:** Initially use adult VO for all. Dedicated simple VO later (`_simple` suffix).
+**Code effort:** 2-3 days. **Content effort:** 2-4 weeks (144 simplified fragments).
+**Full spec:** `RAWI_YOUNG_RAWI_MODE.md`
 
 ---
 
@@ -481,11 +507,14 @@ d:\Rawi_Journey\assets\
 | 4 | TTS voices | Jordanian + gender-aware (Edge TTS) | 2026-04-01 |
 | 5 | App icon | Concept C — bilingual wordmark | 2026-04-01 |
 | 6 | Companion figure | Image-based in circle (not CustomPainter) | 2026-04-01 |
+| 7 | Young Rawi Mode | One app, age-adaptive content (not separate app) | 2026-04-05 |
+| 8 | Ambient sound | Per-hotspot atmospheric beds (not looping scene bg) | 2026-04-04 |
 
 ### Still Pending
 1. **App store name:** "Rawi" only, or "Rawi: The Seerah"?
 2. **Era sub-division for UI:** Split Medina into sub-eras?
 3. **Scholarly review:** Who reviews content before publishing?
+4. **Young Rawi content:** Who writes simplified fragments? (Claude drafts + Khaled reviews)
 
 ---
 

@@ -286,6 +286,26 @@ VO Rules:
 
 ---
 
+## Planned Extension Points
+
+### Young Rawi Mode (Post-Launch)
+Age-adaptive content — same game, different reading level. Three groups:
+Young Rawi (8-12), Rawi (13-17), Elder Rawi (18+).
+
+**Model changes when implementing:**
+- `SceneHotspot`: add `fragmentSimple`, `fragmentSimpleAr` (optional)
+- `JourneyQuestion`: add `questionSimple`, `questionSimpleAr`, `explanationSimple`, `explanationSimpleAr` (optional)
+- `PrefsService`: add `userAgeGroup` ('young'/'teen'/'adult'), `useSimpleContent` getter
+- Registration: add age number input after name field
+
+**Rendering:** `useSimpleContent ? (simple ?? full) : full` — fallback ensures
+events without simplified content still work. Go Deeper: hidden (young),
+collapsed (teen, current), auto-expanded (adult).
+
+**Full spec:** `RAWI_YOUNG_RAWI_MODE.md`
+
+---
+
 ## Branching System Safety
 
 Events 4-36 have `branchPoint == null`. The `_isBranching` guard in
