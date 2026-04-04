@@ -20,7 +20,7 @@ class IntroCinematicScreen extends StatefulWidget {
 class _IntroCinematicScreenState extends State<IntroCinematicScreen>
     with SingleTickerProviderStateMixin {
   static const _lines = <_IntroLine>[
-    _IntroLine('570 CE', 'الميلاد ٥٧٠'),
+    _IntroLine('570 CE', '٥٧٠ ميلادي'),
     _IntroLine('The Arabian Peninsula...', 'الجزيرة العربية...'),
     _IntroLine(
       'A world waiting for a message.',
@@ -181,14 +181,13 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                           ),
                         ),
                         const SizedBox(height: 14),
-                        // Arabic (secondary)
+                        // Arabic (secondary — no italic for Arabic script)
                         Text(
                           line.ar,
                           textAlign: TextAlign.center,
                           textDirection: TextDirection.rtl,
                           style: GoogleFonts.lora(
                             fontSize: isFirstLine ? 28 : 18,
-                            fontStyle: FontStyle.italic,
                             color: AppColors.gold.withAlpha(180),
                             height: 1.6,
                           ),
@@ -227,7 +226,6 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                       textDirection: TextDirection.rtl,
                       style: GoogleFonts.lora(
                         fontSize: 16,
-                        fontStyle: FontStyle.italic,
                         color: AppColors.gold.withAlpha(160),
                       ),
                     ),
@@ -245,8 +243,8 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                           ),
                         ),
                         child: Text(
-                          'Begin  ابدأ',
-                          style: GoogleFonts.nunito(
+                          'Begin / ابدأ',
+                          style: GoogleFonts.lora(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),

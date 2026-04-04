@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/branch_point.dart';
+import '../scroll_hint_wrapper.dart';
 
 /// The Crossroads — gold-bordered card overlay after The Gate.
 /// Two tappable options — each leads to a different Path visit order.
@@ -28,6 +29,7 @@ class _BranchDecisionCardState extends State<BranchDecisionCard>
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulseAnim;
   late final Animation<double> _slideAnim;
+  final ScrollController _scrollCtrl = ScrollController();
 
   @override
   void initState() {
@@ -44,6 +46,7 @@ class _BranchDecisionCardState extends State<BranchDecisionCard>
 
   @override
   void dispose() {
+    _scrollCtrl.dispose();
     _pulseCtrl.dispose();
     super.dispose();
   }
@@ -81,7 +84,10 @@ class _BranchDecisionCardState extends State<BranchDecisionCard>
                   ),
                 ],
               ),
-              child: SingleChildScrollView(
+              child: ScrollHintWrapper(
+                controller: _scrollCtrl,
+                child: SingleChildScrollView(
+                controller: _scrollCtrl,
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -115,6 +121,7 @@ class _BranchDecisionCardState extends State<BranchDecisionCard>
                     ),
                   ],
                 ),
+              ),
               ),
             ),
           ),

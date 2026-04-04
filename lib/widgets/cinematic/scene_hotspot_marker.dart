@@ -221,29 +221,28 @@ class _SceneHotspotMarkerState extends State<SceneHotspotMarker>
 
               const SizedBox(height: 3),
 
-              // Label pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(locked ? 60 : discovered ? 80 : 160),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  widget.label,
-                  style: GoogleFonts.nunito(
-                    color: locked
-                        ? AppColors.textMuted.withAlpha(80)
-                        : discovered
-                            ? AppColors.textMuted.withAlpha(140)
-                            : AppColors.gold,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
+              // Label pill — hidden for locked hotspots (reveals on unlock)
+              if (!locked)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(discovered ? 80 : 160),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  child: Text(
+                    widget.label,
+                    style: GoogleFonts.nunito(
+                      color: discovered
+                          ? AppColors.textMuted.withAlpha(140)
+                          : AppColors.gold,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
             ],
           ),
         ),

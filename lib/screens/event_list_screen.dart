@@ -393,6 +393,8 @@ class _EventListScreenState extends State<EventListScreen> {
                           ),
                         ),
 
+                        const SizedBox(width: 12),
+
                         // Right side: status
                         if (completed)
                           Text(
