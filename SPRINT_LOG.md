@@ -850,4 +850,118 @@ All events: Anchor(~0.60y) → Branches(~0.42y triangle) → Convergence(~0.28y)
 - `flutter analyze` — 0 errors, 0 warnings (2 info-level)
 - `flutter test` — 6/6 passing
 - APK builds successfully
-| `settings_screen.dart` | MODIFIED | Font reflection fix |
+
+---
+
+## Sprint 43 — R5 Sprint A+B (Font, Intro, Cards, XP, Scroll)
+**Date:** 2026-04-05
+**Status:** COMPLETE
+
+### R5 Issues Fixed (11)
+| # | Issue | Fix |
+|---|-------|-----|
+| R5-01 | App icon wrong | Removed broken self-referencing adaptive icon XML |
+| R5-02 | Arabic italic | Explicit `FontStyle.normal` on all Arabic text + Begin button |
+| R5-03 | Hindi numerals ٥٧٠ | Global sweep: 6 instances converted to Western Arabic (intro, badges, registration) |
+| R5-04 | Typo عالم→العالم | One string fix |
+| R5-05 | "THE NARRATOR" line break | Split "You are the Rawi" / "The Narrator" onto two lines with quotes |
+| R5-06 | Transition particles freeze | Added continuous `_particleCtrl.repeat()` AnimationController |
+| R5-07 | Scroll indicator subtle | 28→36px icon, bounce 6→10, gold border, stronger glow |
+| R5-10 | XP overlay too small | 64→96px star, 32→48 XP text, 280→340 width, 12 particles, 18→24 total |
+| R5-11 | Event card overflow | Center-aligned Row, removed stray SizedBox |
+| R5-14 | Badge persistence | Code verified correct |
+| R5-15 | Events 4-8 "0/0" | Checkmark instead of 0/0 for no-config events |
+
+---
+
+## Sprint 44 — R5 Sprint C+D (Registration, Settings, Reset, Badge Placeholder)
+**Date:** 2026-04-05
+**Status:** COMPLETE
+
+| File | Type | Details |
+|------|------|---------|
+| `intro_cinematic_screen.dart` | MODIFIED | R5-05b: Arabic narrator duplicate removed |
+| `xp_reward_animation.dart` | MODIFIED | R5-11b: Removed fixed 120 height, added `clipBehavior: none` |
+| `prefs_service.dart` | MODIFIED | R5-16: `resetJourney()` now sweeps hotspot progress, badges, streak, tutorials, journey pointer |
+| `registration_screen.dart` | REWRITTEN | **Part 2: 2-screen redesign.** Screen 1: Identity (name + companion together, scrollable). Screen 2: Language only. Blurred cinematic desert bg (BackdropFilter + dark overlay). Chapter preview killed entirely. |
+| `settings_screen.dart` | REWRITTEN | **Part 3: Reorder.** Profile → Journey → Preferences → About → Reset (destructive, last). Audio toggles folded into Preferences. Badges removed. "Made with ♥ in Amman" tagline. |
+| `badge_overlay.dart` | MODIFIED | R5-12: Geometric gold placeholder (diamond + rosette + small emoji hint inside navy circle) |
+
+---
+
+## Sprint 45 — R5 Code Review (Root-Cause Arabic Italic Fix + 6 Findings)
+**Date:** 2026-04-05
+**Status:** COMPLETE
+
+### Key Finding — Arabic Italic Root Cause
+Lora has **no Arabic glyphs**. When Arabic renders, Flutter falls back to a system font — but `fontStyle: FontStyle.italic` was still applied to the fallback, making Arabic italic. 14 instances switched to `isAr ? FontStyle.normal : FontStyle.italic` across discovery panel, branch card, verdict/reflection, splash, event list, journey screens. 2 English-only strings intentionally left italic.
+
+### Other Findings
+| # | Fix |
+|---|-----|
+| F2 | Transition particles gated on `_blackOpacity` (was `_cardOpacity`). Hold time 2000→3000ms |
+| F3 | XP overlay — star 64→96, text 32→48, width 280→340, total 18→24, particle radius 70→100 |
+| F6 | Scroll indicator — bounce 6→10, padding 14/6→18/10, icon 28→36, gold border 1→1.5px |
+| F7 | Adaptive icon: `mipmap-anydpi-v26/ic_launcher.xml` with navy_bg background + inset drawable foreground |
+
+---
+
+## Sprint 46 — Sound Integration (8 ElevenLabs Clips)
+**Date:** 2026-04-05
+**Status:** COMPLETE
+
+| File | Wired Into | Behavior |
+|------|-----------|----------|
+| `ambient_intro.mp3` | `intro_cinematic_screen` initState | Fade in to 0.22, carries into registration, fades out 2.5s on "Start the Journey" |
+| `ambient_transition.mp3` | `cinematic_transition_screen` initState | Fade in to 0.20, fades out on dispose |
+| `ambient_crossroads.mp3` | `_dismissPanel()` when branch card shows | Plays at 0.20, stops on option select |
+| `ambient_e1_kaabah.mp3` | `SceneHotspot.ambientPath` (Gate) | Plays while panel open |
+| `ambient_e1_merchants.mp3` | `SceneHotspot.ambientPath` (Path A) | Plays while panel open |
+| `ambient_e1_idols.mp3` | `SceneHotspot.ambientPath` (Path B) | Plays while panel open |
+| `sfx_xp.mp3` | `XpRewardAnimation.initState` | One-shot 0.7 vol |
+| `sfx_badge.mp3` | `BadgeOverlay.initState` | One-shot 0.7 vol |
+
+Also removed dead scene-level ambient call in cinematic_transition (was reading `config.ambientAudioPath` on every build).
+
+---
+
+## Sprint 47 — Audio Isolation (Strict Window Containment)
+**Date:** 2026-04-05
+**Status:** COMPLETE
+
+Every ambient now starts and stops within its exact window. No bleeds between screens, hotspots, overlays, or transitions.
+
+### Fade Schedule
+| Transition | Fade |
+|---|---|
+| Hotspot panel dismiss → next hotspot | 200ms |
+| Branch option selected | 300ms |
+| Reward flow start (`_completeAndPop`) | 300ms |
+| Scene back / save&exit / continue | 250ms |
+| Scene dispose | 250ms |
+| Cinematic transition → scene | 500ms |
+| Registration → event list | 2500ms (elegant welcome exit) |
+
+### Exit Points Sealed
+- Scene `dispose`, PopScope back press, header back (`_exitScene` new method), `_saveAndExit`, `_continue`, `_completeAndPop`, `_dismissPanel`, `_onBranchSelected`, `CinematicTransition.dispose`, `_resumeFromSettings` (restarts ambient that was playing when settings opened — crossroads OR hotspot).
+
+Race-safe: `fadeOut`'s internal `if (_ambient != player) return;` guard exits the fade loop cleanly if a new `playAmbient` replaces it mid-fade.
+
+---
+
+## Sprint 48 — R6 Testing Round (5 Fixes)
+**Date:** 2026-04-05
+**Status:** COMPLETE
+
+| # | Issue | Root Cause + Fix |
+|---|-------|------------------|
+| **R6-01** P0 | Freeze after reset→replay→complete | Nested `Navigator.push` pattern (EventList → CinematicTransition → Immersive) had context lifecycle issues on second playthrough. Also `playAmbient('ambient_desert_evening.wav')` was being called on a non-existent file after every event. **Fix:** `pushReplacement` — CinematicTransition is replaced by Immersive, no nested context. Removed dead ambient call. |
+| **R6-02** P0 | App icon still wrong | External `drawable/ic_launcher_foreground.xml` inset approach didn't render on Samsung launchers. **Fix:** Inline `<inset>` inside `<foreground>` of adaptive-icon. Created `ic_launcher_round.xml` variant. Added `android:roundIcon` to manifest. |
+| **R6-03** P1 | Duplicate intro CTA screen | "Witness history..." appeared in both `_lines` list AND CTA section. **Fix:** Removed from `_lines`, CTA now uses Cinzel 22px (matching sequence style). |
+| **R6-04** P1 | Intro ambient silent on device | `playAmbient` was fire-and-forget before `fadeAmbientTo`. The fade started while `setAsset` was still loading. **Fix:** Extracted into `_startIntroAmbient()` async method that awaits `playAmbient` THEN fades. Same fix applied to cinematic_transition. |
+| **R6-05** P1 | Registration bg shifts with keyboard | `resizeToAvoidBottomInset: true` (default) resizing the Stack. **Fix:** Set to `false` + wrapped body in `GestureDetector` with `onTap: unfocus` — tap anywhere outside the text field dismisses keyboard. |
+
+### Quality
+- `flutter analyze` — 0 errors, 2 info-level only
+- `flutter test` — 6/6 passing
+- APK builds cleanly via direct Gradle

@@ -2,13 +2,13 @@
 # 3 Playable Events + Complete Gaming UX
 
 > Created: 2026-04-01
-> Updated: 2026-04-04 (42 sprints + post-audit complete)
+> Updated: 2026-04-05 (48 sprints + post-audit complete)
 > Goal: A demo-ready app that feels like a real game from first tap to last hotspot
-> **Status: MVP COMPLETE — R4 POLISHED** — 42 sprints + post-audit. R4 testing round: 12 fixes. Per-hotspot ambient sound infrastructure, tap-to-walk, comprehensive movement freeze, bilingual intro, settings overlay redesign, font pre-cache.
+> **Status: MVP COMPLETE — R6 POLISHED** — 48 sprints + post-audit. R4/R5/R6 testing rounds fixed 45+ items. Registration redesigned (2 screens), settings reordered, Arabic italic root-caused, 8 ElevenLabs sound clips integrated, strict audio isolation, P0 replay freeze fixed.
 >
-> **Done:** All 42 sprints + post-audit + R4 fixes. Ambient sound system ready (awaiting audio assets from Khaled).
-> **Remaining:** Firebase Crashlytics (needs google-services.json), font bundling (deferred), asset compression (needs ffmpeg), ambient audio files (8 hotspot + 1 onboarding).
-> **Post-Launch:** Young Rawi Mode (age-adaptive content — see `RAWI_YOUNG_RAWI_MODE.md`), video support, badge artwork, character pose art.
+> **Done:** All 48 sprints + post-audit + R4/R5/R6 fixes. Sound system fully integrated for onboarding + Event 1.
+> **Remaining:** Firebase Crashlytics (needs google-services.json), font bundling (deferred), asset compression (needs ffmpeg), remaining 7 ambient clips (e1_poet, e1_verdict, e2_army/elephants/muttalib/birds/verdict), Jordanian VO regen, badge painterly artwork.
+> **Post-Launch:** Young Rawi Mode (age-adaptive content — see `doc/RAWI_YOUNG_RAWI_MODE.md`), video support, character pose art.
 >
 > **Event Terminology:** The Gate → The Crossroads → The Paths → The Gathering → The Verdict (branching). The Reflection (linear).
 > **Architecture:** See `ARCHITECTURE.md` for full details.

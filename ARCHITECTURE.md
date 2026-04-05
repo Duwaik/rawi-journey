@@ -1,6 +1,6 @@
 # Rawi — Architecture Document
 
-> Last updated: 2026-04-04
+> Last updated: 2026-04-05
 > Package: `com.rawi.journey`
 > Flutter 3.41.4 | Dart 3.11.1+
 
@@ -11,8 +11,8 @@
 | Metric | Count |
 |--------|-------|
 | Dart files | 43 |
-| Dart lines | ~12,000 |
-| Asset files | 194 (84 VO + 52 companion + 14 SFX + 16 scenes + 4 figures + 1 icon + ambient dir + others) |
+| Dart lines | ~12,200 |
+| Asset files | 202 (84 VO + 52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + others) |
 | Playable immersive events | 3 (branching) |
 | Flat narrative events | 33 (linear, Events 4-36) |
 | Total events in data | 36 |
@@ -169,7 +169,8 @@ App Launch
   
 Event List
   │
-  ├── Tap Play (immersive event) → Cinematic Transition → Immersive Event Screen
+  ├── Tap Play (immersive event) → Cinematic Transition → pushReplacement → Immersive Event Screen
+  │                                  (Sprint 48 fix: no nested push, prevents replay freeze)
   │     │
   │     ├── Branching (Events 1-3):
   │     │     Gate → Crossroads → Paths → Gathering → Verdict → Continue → pop(true)
@@ -235,14 +236,33 @@ In-Game (Immersive)
 ## Audio Architecture
 
 ```
-Layer 1 — Ambient (RE-ENABLED — per-hotspot + onboarding)
-  Repurposed from scene-loop to contextual use:
-  - Hotspot ambient: plays while discovery panel is open (0.18 vol),
-    fades out on dismiss (800ms). Each SceneHotspot has optional ambientPath.
-  - Onboarding music: plays during intro cinematic + registration,
-    fades out on "Start the Journey" (2.5s). First launch only.
+Layer 1 — Ambient (RE-ENABLED — contextual, strict window containment)
+  8 ElevenLabs clips integrated as of Sprint 46. Every ambient lives
+  strictly inside its window with short fades (200-500ms) preventing
+  bleeds between screens, hotspots, and overlays.
+
+  - Intro ambient (ambient_intro.mp3): plays during intro cinematic +
+    registration, fades out 2.5s on "Start the Journey". First launch only.
+  - Transition ambient (ambient_transition.mp3): plays on
+    CinematicTransitionScreen, fades out on dispose.
+  - Crossroads ambient (ambient_crossroads.mp3): plays while branch
+    decision card is shown, fades out on option selected.
+  - Hotspot ambient: each SceneHotspot has optional ambientPath.
+    Plays while discovery panel is open (0.18 vol), fades on dismiss
+    (200ms — fast enough to avoid race with next hotspot).
   - Ducks to 0.06 during VO, restores to 0.18 when VO completes.
-  - No idle ambient — silence between discoveries is intentional.
+
+  Exit points sealed: scene dispose, PopScope back press, header back
+  (_exitScene), _saveAndExit, _continue, _completeAndPop, _dismissPanel,
+  _onBranchSelected, CinematicTransition.dispose. _resumeFromSettings
+  restarts whichever ambient was playing when settings opened.
+
+  Race-safe: fadeOut's internal `if (_ambient != player) return;` guard
+  exits cleanly if a new playAmbient replaces it mid-fade.
+
+  CRITICAL: playAmbient must be awaited BEFORE fadeAmbientTo (Sprint 48
+  R6-04 fix). Otherwise the fade starts while setAsset is still loading
+  and the ambient never plays.
 
 Layer 2 — Voice Over (one-shot)
   Volume: 0.6-0.7
@@ -347,3 +367,9 @@ follows strict chronological sequence.
 | 41 | Bug fixes A12-A17 + Rawi/Rawiah character identity |
 | — | Post-audit: Master Plan fix, Android 12+ splash, doc cleanup |
 | 42 | R4 issues (12 fixes) + ambient sound infrastructure + movement overhaul |
+| 43 | R5 Sprint A+B (11 fixes: icon, Arabic italic, Hindi numerals, XP sizes, scroll indicator) |
+| 44 | R5 Sprint C+D (registration 2-screen redesign, settings reorder, reset sweep, badge placeholder) |
+| 45 | R5 Code Review (Arabic italic root cause fix, transition particles, adaptive icon) |
+| 46 | Sound integration (8 ElevenLabs clips: ambients + SFX wired) |
+| 47 | Audio isolation (strict window containment, short fades, no bleeds) |
+| 48 | R6 testing (P0 freeze fix via pushReplacement, icon refinement, duplicate CTA, ambient race) |

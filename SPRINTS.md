@@ -1,7 +1,7 @@
 # Rawi — Sprint Index
 
-> 42 sprints + post-audit across 4 days (April 1–4, 2026)
-> All sprints complete. R4 testing round fixed (12 items).
+> 48 sprints + post-audit across 5 days (April 1–5, 2026)
+> All sprints complete. R4/R5/R6 testing rounds fixed (45+ items).
 
 ---
 
@@ -80,11 +80,25 @@
 
 ---
 
+## Day 5 — April 5, 2026 (Sprints 43–48)
+**Focus:** R5/R6 testing rounds — registration redesign, settings reorder, sound integration, audio isolation, freeze fix
+
+| # | Sprint | Key Deliverable |
+|---|--------|----------------|
+| 43 | R5 Sprint A+B | 11 fixes: app icon, Arabic italic, Hindi numerals, typo, narrator line, transition particles, scroll indicator, XP overlay sizes, event card overflow, badge persistence, 0/0 display |
+| 44 | R5 Sprint C+D | Registration 2-screen redesign (Identity + Language, blurred bg, kill chapter preview). Settings reorder (Profile → Journey → Preferences → About → Reset, badges removed). Reset Journey full sweep. Badge geometric placeholder. |
+| 45 | R5 Code Review | **Arabic italic ROOT CAUSE**: Lora has no Arabic glyphs, fallback inherited italic. Conditional `isAr` on 14 instances. Transition particle gate fix. XP sizes bump. Scroll indicator bigger. Adaptive icon XML. |
+| 46 | Sound Integration | 8 ElevenLabs clips wired: intro + transition + crossroads ambients, 3 Event 1 hotspot ambients via `ambientPath`, XP + badge SFX one-shots. |
+| 47 | Audio Isolation | Strict window containment across 10+ exit points. Short fades (200-500ms) replace hard stops. No bleeds between screens/hotspots/overlays. Race-safe via player identity check. |
+| 48 | R6 Testing | **R6-01 P0 FREEZE FIX**: nested `Navigator.push` → `pushReplacement`, removed dead `ambient_desert_evening.wav` call. **R6-02 P0**: adaptive icon inline inset + roundIcon. R6-03: removed duplicate intro CTA. R6-04: intro ambient race (await play THEN fade). R6-05: registration keyboard shift. |
+
+---
+
 ## Planned
 
 | # | Sprint | Scope |
 |---|--------|-------|
-| 43+ | Per RAWI_ISSUES_AND_ENHANCEMENTS_3.md | Badge artwork, video support, expanded content |
+| 49+ | Pending Khaled input | Remaining ambient clips (e1_poet, e1_verdict, e2_* x5), Jordanian VO regen, badge painterly artwork, video support, Young Rawi Mode (post-launch) |
 
 ---
 
@@ -92,11 +106,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sprints | 42 + post-audit |
-| Total days | 4 |
-| Bugs fixed | 60+ across 4 testing rounds + audit |
+| Total sprints | 48 + post-audit |
+| Total days | 5 |
+| Bugs fixed | 105+ across 6 testing rounds + audit |
 | Dart files | 43 |
-| Dart lines | ~12,000 |
-| Audio files | 150+ (84 VO + 52 companion + 14 SFX) + ambient dir ready |
-| Git commits | 15+ |
+| Dart lines | ~12,200 |
+| Audio files | 158 (84 VO + 52 companion + 14 SFX + 8 ambient/SFX ElevenLabs) |
+| Git commits | 25+ |
 | Tests | 6 (5 branching + 1 smoke, all passing) |
