@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../models/badge_definition.dart';
+import '../../services/audio_service.dart';
 import '../../services/prefs_service.dart';
 
 /// Full-screen badge unlock overlay — covers everything at 85% dark.
@@ -49,6 +50,9 @@ class _BadgeOverlayState extends State<BadgeOverlay>
       parent: _ctrl,
       curve: const Interval(0.1, 0.7, curve: Curves.easeOut),
     ));
+
+    // Play badge ceremonial sound
+    AudioService.playSfx('assets/audio/ambient/sfx_badge.mp3', volume: 0.7);
 
     _ctrl.forward();
   }

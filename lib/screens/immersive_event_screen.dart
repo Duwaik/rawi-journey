@@ -418,6 +418,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _onBranchSelected(BranchOption selected) {
     AudioService.stopVoiceover(); // Rule 3: immediate stop on option select
+    AudioService.fadeOut(duration: const Duration(milliseconds: 600)); // Stop Crossroads ambient
     final event = widget.event;
     final bp = event.branchPoint!;
     final isA = selected.targetHotspotId == bp.optionA.targetHotspotId;
@@ -796,6 +797,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _joyDy = 0;
       _isWalking = false;
       setState(() => _showBranchCard = true);
+      // Start Crossroads ambient bed
+      AudioService.playAmbient(
+        'assets/audio/ambient/ambient_crossroads.mp3',
+        volume: 0.20,
+      );
       // Rule 3: Branch card VO starts 600ms after card shows
       final branchVoPath = _choiceVoPath('branch');
       if (branchVoPath != null) {

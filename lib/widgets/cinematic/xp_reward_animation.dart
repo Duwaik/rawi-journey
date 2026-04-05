@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
+import '../../services/audio_service.dart';
 
 /// Animated XP reveal: star pop → count-up → particle burst → total line.
 /// Calls [onComplete] when animation finishes (for Continue button fade-in).
@@ -68,6 +69,9 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
       parent: _ctrl,
       curve: const Interval(0.70, 1.0, curve: Curves.easeOut),
     );
+
+    // Play XP celebration sound
+    AudioService.playSfx('assets/audio/ambient/sfx_xp.mp3', volume: 0.7);
 
     _ctrl.forward();
     _ctrl.addStatusListener((status) {

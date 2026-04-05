@@ -52,13 +52,13 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
   void initState() {
     super.initState();
     _ctrl = AnimationController(vsync: this);
-    // Start onboarding music
+    // Start onboarding ambient (carries through intro + registration)
     if (PrefsService.musicEnabled) {
       AudioService.playAmbient(
-        'assets/audio/ambient/onboarding_music.ogg',
+        'assets/audio/ambient/ambient_intro.mp3',
         volume: 0.0,
       );
-      AudioService.fadeAmbientTo(0.13,
+      AudioService.fadeAmbientTo(0.22,
           duration: const Duration(milliseconds: 1500));
     }
     _runSequence();

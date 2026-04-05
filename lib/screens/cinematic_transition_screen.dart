@@ -41,6 +41,15 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
       vsync: this,
       duration: const Duration(seconds: 8),
     )..repeat();
+    // Start transition ambient (fade in)
+    if (PrefsService.musicEnabled) {
+      AudioService.playAmbient(
+        'assets/audio/ambient/ambient_transition.mp3',
+        volume: 0.0,
+      );
+      AudioService.fadeAmbientTo(0.20,
+          duration: const Duration(milliseconds: 600));
+    }
     _runSequence();
   }
 
@@ -90,6 +99,8 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
   void dispose() {
     _disposed = true;
     _particleCtrl.dispose();
+    // Fade out transition ambient as scene takes over
+    AudioService.fadeOut(duration: const Duration(milliseconds: 600));
     super.dispose();
   }
 
@@ -103,11 +114,6 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
     // Get sky gradient from scene config if available
     final config = sceneConfigs[event.id];
     final skyColors = config?.skyGradient ?? [const Color(0xFF04060D), const Color(0xFF0B1E2D)];
-
-    // Start ambient sound fading in
-    if (_cardOpacity > 0.3 && config?.ambientAudioPath != null && PrefsService.musicEnabled) {
-      AudioService.playAmbient(config!.ambientAudioPath!, volume: 0.06);
-    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,

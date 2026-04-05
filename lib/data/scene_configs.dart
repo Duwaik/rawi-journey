@@ -36,6 +36,7 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'الكعبة تقف — بناها إبراهيم \uFDFA وابنه إسماعيل \uFDFA بيتاً للإله الواحد. تلك الذكرى لا تزال حيّة في الحجارة، حتى وإن تزاحمت 360 صنماً حولها. شيء ما قادم. تحسّه في ريح الصحراء.',
         sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
         imagePath: 'assets/scenes/bubble_kaabah.jpg',
+        ambientPath: 'assets/audio/ambient/ambient_e1_kaabah.mp3',
       ),
       SceneHotspot(
         id: 'idols',
@@ -47,6 +48,7 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'ثلاثمئة وستون تمثالاً حجرياً يحدّقون فيك بعيون فارغة. الهواء ثقيل بدخان البخور المتصاعد من المعابد المتراصة حول البيت العتيق. كل قبيلة وضعت إلهها هنا — وكأن القرب من الكعبة يمنحهم الحقيقة.',
         sfxPath: 'assets/audio/sfx_idols_incense.wav',
         imagePath: 'assets/scenes/bubble_idols.jpg',
+        ambientPath: 'assets/audio/ambient/ambient_e1_idols.mp3',
       ),
       SceneHotspot(
         id: 'poet',
@@ -69,6 +71,7 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'تجّار يساومون على الحرير والتوابل في طرق تجارية تمتد من اليمن إلى الشام — بينما الفقراء يستجدون عند جدران الكعبة، لا يراهم أحد. المال يتدفق، لكن العدل لا.',
         sfxPath: 'assets/audio/sfx_merchants_bustle.wav',
         imagePath: 'assets/scenes/bubble_merchants.jpg',
+        ambientPath: 'assets/audio/ambient/ambient_e1_merchants.mp3',
       ),
     ],
     // Walking path: start bottom → merchants → Ka'bah → idols → poet
