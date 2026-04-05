@@ -522,7 +522,7 @@ class _EventListScreenState extends State<EventListScreen> {
                         isAr ? _moduleSubtitleAr : _moduleSubtitle,
                         style: GoogleFonts.lora(
                           color: AppColors.textBody, fontSize: 11,
-                          fontStyle: FontStyle.italic),
+                          fontStyle: isAr ? FontStyle.normal : FontStyle.italic),
                       ),
                     ],
                   ),

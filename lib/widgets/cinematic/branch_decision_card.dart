@@ -99,7 +99,7 @@ class _BranchDecisionCardState extends State<BranchDecisionCard>
                       style: GoogleFonts.lora(
                         color: AppColors.textPrimary,
                         fontSize: 14,
-                        fontStyle: FontStyle.italic,
+                        fontStyle: isAr ? FontStyle.normal : FontStyle.italic,
                         height: 1.7,
                       ),
                     ),

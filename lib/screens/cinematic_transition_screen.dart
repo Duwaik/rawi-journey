@@ -53,8 +53,8 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
     await _animateTo(() => _cardOpacity, (v) => _cardOpacity = v, 1.0, 400);
     if (_disposed) return;
 
-    // Phase 3: Hold title card (2000ms)
-    await Future.delayed(const Duration(milliseconds: 2000));
+    // Phase 3: Hold title card (3000ms)
+    await Future.delayed(const Duration(milliseconds: 3000));
     if (_disposed) return;
 
     // Phase 4: Title card fades out (400ms)
@@ -130,13 +130,13 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
             ),
           ),
 
-          // Floating gold dust particles (continuously animated)
-          if (_cardOpacity > 0)
+          // Floating gold dust particles (visible the entire screen lifetime)
+          if (_blackOpacity > 0)
             Opacity(
-              opacity: _cardOpacity * 0.6,
+              opacity: _blackOpacity * 0.6,
               child: AnimatedBuilder(
                 animation: _particleCtrl,
-                builder: (_, __) => CustomPaint(
+                builder: (_, _) => CustomPaint(
                   size: MediaQuery.of(context).size,
                   painter: _TransitionParticlePainter(
                     seed: event.globalOrder,

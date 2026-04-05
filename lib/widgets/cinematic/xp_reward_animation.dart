@@ -95,7 +95,7 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
           children: [
             // Star + count-up + particle burst
             SizedBox(
-              width: 280,
+              width: 340,
               child: Stack(
                 alignment: Alignment.center,
                 clipBehavior: Clip.none,
@@ -104,10 +104,10 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
                   if (_burstFade.value > 0)
                     ...List.generate(12, (i) {
                       final angle = i * (pi / 6);
-                      final radius = (1.0 - _burstFade.value) * 70;
+                      final radius = (1.0 - _burstFade.value) * 100;
                       return Positioned(
-                        left: 140 + cos(angle) * radius - 4,
-                        top: 70 + sin(angle) * radius - 4,
+                        left: 170 + cos(angle) * radius - 4,
+                        top: 80 + sin(angle) * radius - 4,
                         child: Opacity(
                           opacity: _burstFade.value * 0.8,
                           child: Container(
@@ -135,14 +135,14 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
                       Transform.scale(
                         scale: _starScale.value,
                         child: const Icon(Icons.star_rounded,
-                            color: AppColors.gold, size: 64),
+                            color: AppColors.gold, size: 96),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       Text(
                         '+${_countUp.value} XP',
                         style: GoogleFonts.cinzelDecorative(
                           color: AppColors.gold,
-                          fontSize: 32,
+                          fontSize: 48,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -156,12 +156,12 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
             Opacity(
               opacity: _totalFade.value,
               child: Padding(
-                padding: const EdgeInsets.only(top: 16),
+                padding: const EdgeInsets.only(top: 24),
                 child: Text(
                   '★ ${widget.previousTotal} → $newTotal',
                   style: GoogleFonts.nunito(
                     color: AppColors.gold.withAlpha(180),
-                    fontSize: 18,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

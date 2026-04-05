@@ -30,7 +30,7 @@ class _ScrollHintWrapperState extends State<ScrollHintWrapper>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _bounceAnim = Tween<double>(begin: 0, end: 6).animate(
+    _bounceAnim = Tween<double>(begin: 0, end: 10).animate(
       CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut),
     );
     widget.controller.addListener(_onScroll);
@@ -87,24 +87,26 @@ class _ScrollHintWrapperState extends State<ScrollHintWrapper>
                   ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
+                        horizontal: 18, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.bg.withAlpha(220),
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.bg.withAlpha(230),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: AppColors.gold.withAlpha(60),
+                        color: AppColors.gold.withAlpha(120),
+                        width: 1.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.gold.withAlpha(30),
-                          blurRadius: 8,
+                          color: AppColors.gold.withAlpha(60),
+                          blurRadius: 14,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.keyboard_double_arrow_down_rounded,
-                      size: 28,
-                      color: AppColors.gold.withAlpha(220),
+                      size: 36,
+                      color: AppColors.gold,
                     ),
                   ),
                 ),

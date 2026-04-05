@@ -176,7 +176,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                       style: GoogleFonts.lora(
                         color: const Color(0xFFD6CCBE),
                         fontSize: 15,
-                        fontStyle: FontStyle.italic,
+                        fontStyle: widget.isAr ? FontStyle.normal : FontStyle.italic,
                         height: 1.8,
                       ),
                       textDirection:
@@ -374,7 +374,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                             style: GoogleFonts.lora(
                               color: const Color(0xFFD6CCBE),
                               fontSize: 14,
-                              fontStyle: FontStyle.italic,
+                              fontStyle: widget.isAr ? FontStyle.normal : FontStyle.italic,
                               height: 1.7,
                             ),
                             textDirection: widget.isAr
@@ -390,7 +390,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                       style: GoogleFonts.lora(
                         color: const Color(0xFFD6CCBE),
                         fontSize: 15,
-                        fontStyle: FontStyle.italic,
+                        fontStyle: widget.isAr ? FontStyle.normal : FontStyle.italic,
                         height: 1.8,
                       ),
                       textDirection:

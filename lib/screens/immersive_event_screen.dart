@@ -1321,7 +1321,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                             style: GoogleFonts.lora(
                               color: const Color(0xFFE8D8B8),
                               fontSize: 16,
-                              fontStyle: FontStyle.italic,
+                              fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
                               height: 1.7,
                             ),
                           ),
@@ -1414,7 +1414,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     style: GoogleFonts.lora(
                       color: _eraColor.withAlpha(200),
                       fontSize: 14,
-                      fontStyle: FontStyle.italic,
+                      fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
                       fontWeight: FontWeight.w600,
                     ),
                         ),
@@ -1584,7 +1584,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                               style: GoogleFonts.lora(
                                 color: AppColors.textBody,
                                 fontSize: 13,
-                                fontStyle: FontStyle.italic,
+                                fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
                                 height: 1.7,
                               ),
                             ),
@@ -1739,7 +1739,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           children: [
             Text(_isAr ? 'ماذا كنت ستفعل؟' : 'What would you do?',
                 style: GoogleFonts.lora(color: _eraColor.withAlpha(200),
-                    fontSize: 14, fontStyle: FontStyle.italic,
+                    fontSize: 14,
+                    fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
                     fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Text(question,
@@ -1825,7 +1826,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                         const SizedBox(height: 10),
                         Text(explanation,
                             style: GoogleFonts.lora(color: AppColors.textBody,
-                                fontSize: 13, fontStyle: FontStyle.italic, height: 1.7),
+                                fontSize: 13,
+                                fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+                                height: 1.7),
                             textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr),
                       ],
                     ),

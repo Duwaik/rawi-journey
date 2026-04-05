@@ -219,7 +219,9 @@ class _JourneyEventScreenState extends State<JourneyEventScreen>
                         Text(narrative,
                             style: GoogleFonts.lora(
                               color: const Color(0xFFD6CCBE),
-                              fontSize: 16, fontStyle: FontStyle.italic, height: 1.92),
+                              fontSize: 16,
+                              fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+                              height: 1.92),
                             textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr),
                         const SizedBox(height: 26),
                         Row(
@@ -285,7 +287,7 @@ class _JourneyEventScreenState extends State<JourneyEventScreen>
               Text(_isAr ? 'تأتي لحظة...' : 'A moment arrives.',
                   style: GoogleFonts.lora(
                     color: AppColors.textMuted, fontSize: 13,
-                    fontStyle: FontStyle.italic)),
+                    fontStyle: _isAr ? FontStyle.normal : FontStyle.italic)),
               const SizedBox(height: 14),
               Text(question,
                   style: GoogleFonts.cinzelDecorative(
@@ -377,7 +379,8 @@ class _JourneyEventScreenState extends State<JourneyEventScreen>
                           Text(explanation,
                               style: GoogleFonts.lora(
                                 color: AppColors.textBody, fontSize: 14,
-                                fontStyle: FontStyle.italic, height: 1.75),
+                                fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+                                height: 1.75),
                               textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr),
                         ],
                       ),

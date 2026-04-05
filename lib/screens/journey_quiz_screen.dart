@@ -372,9 +372,8 @@ class _JourneyQuizScreenState extends State<JourneyQuizScreen>
                                       style: GoogleFonts.lora(
                                         color: AppColors.textBody,
                                         fontSize: 14,
-                                        fontStyle: FontStyle.italic,
-                                        height: 1.75,
-                                      ),
+                                        fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+                                        height: 1.75),
                                       textDirection: _isAr
                                           ? TextDirection.rtl
                                           : TextDirection.ltr,

@@ -101,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
                 'راوي',
                 style: GoogleFonts.lora(
                   fontSize: 28,
-                  fontStyle: FontStyle.italic,
+                  fontStyle: FontStyle.normal,
                   color: AppColors.gold.withAlpha(200),
                 ),
               ),
@@ -116,7 +116,7 @@ class _SplashScreenState extends State<SplashScreen>
                 'بسم الله الرحمن الرحيم',
                 style: GoogleFonts.lora(
                   fontSize: 16,
-                  fontStyle: FontStyle.italic,
+                  fontStyle: FontStyle.normal,
                   color: AppColors.textMuted.withAlpha(160),
                 ),
                 textDirection: TextDirection.rtl,
