@@ -105,13 +105,10 @@ class _BadgeOverlayState extends State<BadgeOverlay>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Badge icon — pop animation
+                        // Badge icon — geometric gold placeholder (painterly art coming)
                         Transform.scale(
                           scale: _iconPop.value,
-                          child: Text(badge.icon,
-                              style: const TextStyle(
-                                  fontSize: 64,
-                                  decoration: TextDecoration.none)),
+                          child: _BadgePlaceholder(icon: badge.icon),
                         ),
                         const SizedBox(height: 16),
 
@@ -176,6 +173,78 @@ class _BadgeOverlayState extends State<BadgeOverlay>
           ),
         );
       },
+    );
+  }
+}
+
+/// Geometric gold badge placeholder — diamond + rosette + emoji hint.
+/// Temporary until painterly AI artwork is ready.
+class _BadgePlaceholder extends StatelessWidget {
+  final String icon;
+  const _BadgePlaceholder({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 110,
+      height: 110,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 110,
+            height: 110,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.gold.withAlpha(80),
+                  blurRadius: 24,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+          ),
+          Transform.rotate(
+            angle: 0.7854,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.gold.withAlpha(200),
+                    AppColors.gold.withAlpha(120),
+                  ],
+                ),
+                border: Border.all(color: AppColors.gold, width: 2),
+              ),
+            ),
+          ),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF0A1520),
+              border: Border.all(
+                color: AppColors.gold.withAlpha(180),
+                width: 1.5,
+              ),
+            ),
+          ),
+          Text(
+            icon,
+            style: const TextStyle(
+              fontSize: 32,
+              decoration: TextDecoration.none,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

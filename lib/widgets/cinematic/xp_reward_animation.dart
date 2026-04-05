@@ -95,19 +95,19 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
           children: [
             // Star + count-up + particle burst
             SizedBox(
-              height: 120,
               width: 280,
               child: Stack(
                 alignment: Alignment.center,
+                clipBehavior: Clip.none,
                 children: [
-                  // Gold particle burst (12 dots expanding outward)
+                  // Gold particle burst (12 dots expanding outward from center)
                   if (_burstFade.value > 0)
                     ...List.generate(12, (i) {
                       final angle = i * (pi / 6);
                       final radius = (1.0 - _burstFade.value) * 70;
                       return Positioned(
                         left: 140 + cos(angle) * radius - 4,
-                        top: 60 + sin(angle) * radius - 4,
+                        top: 70 + sin(angle) * radius - 4,
                         child: Opacity(
                           opacity: _burstFade.value * 0.8,
                           child: Container(

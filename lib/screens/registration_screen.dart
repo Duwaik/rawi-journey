@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -7,9 +8,10 @@ import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
 
-/// 4-step registration flow shown on first launch after intro cinematic.
-/// Steps: Name → Gender → Language → Milestone Preview.
-/// Horizontal PageView with dot indicators.
+/// 2-step registration flow shown on first launch after intro cinematic.
+/// Screen 1: Identity (name + companion)
+/// Screen 2: Language
+/// Background: blurred cinematic desert scene throughout.
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
 
@@ -20,16 +22,16 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _pageCtrl = PageController();
   final _nameCtrl = TextEditingController();
+  final _nameFocus = FocusNode();
   int _currentPage = 0;
   String _selectedGender = 'male';
   late String _selectedLang;
 
-  static const _totalPages = 4;
+  static const _totalPages = 2;
 
   @override
   void initState() {
     super.initState();
-    // Detect device locale for initial language
     final deviceLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     _selectedLang = deviceLang == 'ar' ? 'ar' : 'en';
   }
@@ -38,11 +40,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void dispose() {
     _pageCtrl.dispose();
     _nameCtrl.dispose();
+    _nameFocus.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    FocusScope.of(context).unfocus(); // Dismiss keyboard
+    FocusScope.of(context).unfocus();
     if (_currentPage < _totalPages - 1) {
       _pageCtrl.nextPage(
         duration: const Duration(milliseconds: 400),
@@ -52,6 +55,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   void _prevPage() {
+    FocusScope.of(context).unfocus();
     if (_currentPage > 0) {
       _pageCtrl.previousPage(
         duration: const Duration(milliseconds: 400),
@@ -67,7 +71,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     await PrefsService.setLanguage(_selectedLang);
     await PrefsService.setOnboardingComplete();
 
-    // Fade out onboarding music over 2.5s
     AudioService.fadeOut(duration: const Duration(milliseconds: 2500));
 
     if (!mounted) return;
@@ -90,7 +93,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        // Back goes to previous page, or shows exit dialog on first page
         if (_currentPage > 0) {
           _prevPage();
         } else {
@@ -107,102 +109,118 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         }
       },
       child: Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SafeArea(
-        child: Column(
+        backgroundColor: AppColors.bg,
+        resizeToAvoidBottomInset: true,
+        body: Stack(
+          fit: StackFit.expand,
           children: [
-            // ── Top bar: back arrow + dots ──────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              child: Row(
-                children: [
-                  // Back arrow (hidden on first page)
-                  if (_currentPage > 0)
-                    IconButton(
-                      onPressed: _prevPage,
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 20, color: AppColors.textMuted),
-                    )
-                  else
-                    const SizedBox(width: 48),
-
-                  const Spacer(),
-
-                  // Page dots
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(_totalPages, (i) {
-                      final active = i == _currentPage;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: active ? 24 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: active
-                              ? AppColors.gold
-                              : AppColors.textMuted.withAlpha(60),
-                        ),
-                      );
-                    }),
-                  ),
-
-                  const Spacer(),
-                  const SizedBox(width: 48),
-                ],
+            // ── Blurred cinematic background ──────────────────────────
+            Image.asset(
+              'assets/scenes/scene_welcome.jpg',
+              fit: BoxFit.cover,
+            ),
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: Container(
+                color: Colors.black.withAlpha(180),
               ),
             ),
 
-            // ── Pages ──────────────────────────────────────────────
-            Expanded(
-              child: PageView(
-                controller: _pageCtrl,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (i) => setState(() => _currentPage = i),
+            // ── Content ───────────────────────────────────────────────
+            SafeArea(
+              child: Column(
                 children: [
-                  _buildNamePage(isAr),
-                  _buildGenderPage(isAr),
-                  _buildLanguagePage(),
-                  _buildMilestonePage(isAr),
+                  // Top bar: back arrow + dots
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                    child: Row(
+                      children: [
+                        if (_currentPage > 0)
+                          IconButton(
+                            onPressed: _prevPage,
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                                size: 20, color: AppColors.textMuted),
+                          )
+                        else
+                          const SizedBox(width: 48),
+                        const Spacer(),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(_totalPages, (i) {
+                            final active = i == _currentPage;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: active ? 24 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                color: active
+                                    ? AppColors.gold
+                                    : AppColors.textMuted.withAlpha(60),
+                              ),
+                            );
+                          }),
+                        ),
+                        const Spacer(),
+                        const SizedBox(width: 48),
+                      ],
+                    ),
+                  ),
+
+                  // Pages
+                  Expanded(
+                    child: PageView(
+                      controller: _pageCtrl,
+                      physics: const NeverScrollableScrollPhysics(),
+                      onPageChanged: (i) => setState(() => _currentPage = i),
+                      children: [
+                        _buildIdentityPage(isAr),
+                        _buildLanguagePage(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
           ],
         ),
       ),
-    ),
     );
   }
 
-  // ── Page 1: Name ────────────────────────────────────────────────────────
+  // ── Page 1: Identity (name + companion) ───────────────────────────────────
 
-  Widget _buildNamePage(bool isAr) {
+  Widget _buildIdentityPage(bool isAr) {
     final name = _nameCtrl.text.trim();
     final valid = name.length >= 2 && name.length <= 15;
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Spacer(flex: 3),
+          const SizedBox(height: 30),
           Text(
-            isAr ? 'ماذا نناديك، أيها الرّحّال؟' : 'What shall we call you,\ntraveler?',
+            isAr ? 'من يحمل هذه الرواية؟' : 'Who carries the story?',
             textAlign: TextAlign.center,
             textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
             style: GoogleFonts.cinzelDecorative(
-              fontSize: 22,
+              fontSize: 20,
               color: AppColors.gold,
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 28),
+
+          // Name input
           TextField(
             controller: _nameCtrl,
+            focusNode: _nameFocus,
             textAlign: TextAlign.center,
             maxLength: 15,
-            onChanged: (_) => setState(() {}), // Rebuild to update button state
+            textInputAction: TextInputAction.done,
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => FocusScope.of(context).unfocus(),
             style: GoogleFonts.nunito(
               fontSize: 20,
               color: AppColors.textPrimary,
@@ -227,38 +245,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 48),
-          _ContinueButton(
-            label: isAr ? 'متابعة' : 'Continue',
-            onPressed: valid ? _nextPage : null,
-          ),
-          // No Skip button — name is mandatory
-          const Spacer(flex: 4),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 32),
 
-  // ── Page 2: Gender ──────────────────────────────────────────────────────
-
-  Widget _buildGenderPage(bool isAr) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Spacer(flex: 3),
+          // Companion selection
           Text(
-            isAr ? 'من يحمل هذه الرواية؟' : 'Who carries the story?',
-            textAlign: TextAlign.center,
-            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-            style: GoogleFonts.cinzelDecorative(
-              fontSize: 22,
-              color: AppColors.gold,
-              height: 1.5,
+            isAr ? 'اختر رفيقك' : 'Choose your companion',
+            style: GoogleFonts.nunito(
+              fontSize: 13,
+              color: AppColors.textMuted.withAlpha(160),
+              letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -266,29 +264,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 imagePath: 'assets/figures/companion_male.jpg',
                 label: isAr ? 'راوي' : 'Rawi',
                 selected: _selectedGender == 'male',
-                onTap: () => setState(() => _selectedGender = 'male'),
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  setState(() => _selectedGender = 'male');
+                },
               ),
               const SizedBox(width: 24),
               _GenderCard(
                 imagePath: 'assets/figures/companion_female.jpg',
                 label: isAr ? 'راوية' : 'Rawiah',
                 selected: _selectedGender == 'female',
-                onTap: () => setState(() => _selectedGender = 'female'),
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  setState(() => _selectedGender = 'female');
+                },
               ),
             ],
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
+
           _ContinueButton(
-            label: isAr ? 'التالي' : 'Continue',
-            onPressed: _nextPage,
+            label: isAr ? 'متابعة' : 'Continue',
+            onPressed: valid ? _nextPage : null,
           ),
-          const Spacer(flex: 4),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  // ── Page 3: Language ────────────────────────────────────────────────────
+  // ── Page 2: Language ──────────────────────────────────────────────────────
 
   Widget _buildLanguagePage() {
     return Padding(
@@ -297,7 +302,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(flex: 3),
-          // Show both languages since user hasn't picked yet
           Text(
             'Choose your language',
             textAlign: TextAlign.center,
@@ -314,7 +318,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             textDirection: TextDirection.rtl,
             style: GoogleFonts.lora(
               fontSize: 18,
-              fontStyle: FontStyle.italic,
+              fontStyle: FontStyle.normal,
               color: AppColors.gold.withAlpha(160),
             ),
           ),
@@ -338,157 +342,37 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ],
           ),
           const SizedBox(height: 48),
-          _ContinueButton(
-            label: _selectedLang == 'ar' ? 'التالي' : 'Continue',
-            onPressed: _nextPage,
+          SizedBox(
+            width: 260,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: _finish,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.bg,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                _selectedLang == 'ar' ? 'ابدأ الرحلة  ←' : 'Start the Journey  →',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
           ),
           const Spacer(flex: 4),
         ],
       ),
     );
   }
-
-  // ── Page 4: Milestone Preview ───────────────────────────────────────────
-
-  // Chapter data for cinematic preview
-  static const _chapterData = <_ChapterInfo>[
-    _ChapterInfo('JAHILIYYAH', 'الجاهلية', 'Pre-Islamic Arabia', 'الجزيرة قبل الإسلام', 2, true),
-    _ChapterInfo('EARLY LIFE', 'النشأة', 'The Prophetic Childhood', 'الطفولة النبوية', 9, false),
-    _ChapterInfo('MECCA', 'مكة المكرمة', 'The Call and the Struggle', 'الدعوة والابتلاء', 11, false),
-    _ChapterInfo('MEDINA', 'المدينة المنورة', 'The Community and the Victory', 'المجتمع والنصر', 14, false),
-  ];
-
-  Widget _buildMilestonePage(bool isAr) {
-    return Container(
-      color: Colors.black,
-      child: Column(
-        children: [
-          const Spacer(flex: 2),
-
-          // Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              isAr
-                  ? 'رحلتك عبر أربعة فصول'
-                  : 'Your journey spans four chapters',
-              textAlign: TextAlign.center,
-              textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-              style: GoogleFonts.cinzelDecorative(
-                fontSize: 20,
-                color: AppColors.gold,
-                height: 1.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isAr ? '36 حدثاً عبر السيرة النبوية' : '36 events across the Prophetic era',
-            style: GoogleFonts.nunito(
-              color: AppColors.textMuted.withAlpha(120),
-              fontSize: 12,
-            ),
-          ),
-
-          const SizedBox(height: 28),
-
-          // Chapters — cinematic text blocks
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              children: [
-                for (final ch in _chapterData) ...[
-                  // Gold separator
-                  Container(
-                    width: double.infinity,
-                    height: 1,
-                    color: AppColors.gold.withAlpha(ch.active ? 80 : 30),
-                  ),
-                  const SizedBox(height: 14),
-                  // Chapter block
-                  Opacity(
-                    opacity: ch.active ? 1.0 : 0.45,
-                    child: Column(
-                      children: [
-                        Text(
-                          isAr ? ch.nameAr : ch.name,
-                          style: GoogleFonts.nunito(
-                            color: AppColors.gold,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          isAr ? ch.subtitleAr : ch.subtitle,
-                          style: GoogleFonts.lora(
-                            color: const Color(0xFFD6CCBE),
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          isAr ? '${ch.eventCount} أحداث' : '${ch.eventCount} events',
-                          style: GoogleFonts.nunito(
-                            color: AppColors.textMuted.withAlpha(100),
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                ],
-                // Final separator
-                Container(
-                  width: double.infinity,
-                  height: 1,
-                  color: AppColors.gold.withAlpha(30),
-                ),
-              ],
-            ),
-          ),
-
-          const Spacer(flex: 1),
-
-          // CTA
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: _finish,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gold,
-                  foregroundColor: AppColors.bg,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  isAr ? 'ابدأ الرحلة  ←' : 'Start the Journey  →',
-                  style: GoogleFonts.nunito(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const Spacer(flex: 2),
-        ],
-      ),
-    );
-  }
 }
 
-// ── Reusable Widgets ──────────────────────────────────────────────────────
+// ── Reusable Widgets ────────────────────────────────────────────────────────
 
 class _ContinueButton extends StatelessWidget {
   final String label;
@@ -544,7 +428,6 @@ class _GenderCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Circular image with gold border
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
@@ -571,19 +454,18 @@ class _GenderCard extends StatelessWidget {
               child: ClipOval(
                 child: Image.asset(
                   imagePath,
-                  width: 110,
-                  height: 110,
+                  width: 100,
+                  height: 100,
                   fit: BoxFit.cover,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          // Label below circle
+          const SizedBox(height: 10),
           Text(
             label,
             style: GoogleFonts.nunito(
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: selected ? FontWeight.bold : FontWeight.normal,
               color: selected ? AppColors.gold : AppColors.textMuted,
             ),
@@ -618,7 +500,7 @@ class _LanguageCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.gold.withAlpha(18)
-              : AppColors.card,
+              : AppColors.card.withAlpha(180),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected
@@ -653,11 +535,4 @@ class _LanguageCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ChapterInfo {
-  final String name, nameAr, subtitle, subtitleAr;
-  final int eventCount;
-  final bool active;
-  const _ChapterInfo(this.name, this.nameAr, this.subtitle, this.subtitleAr, this.eventCount, this.active);
 }

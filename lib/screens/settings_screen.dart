@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
-import '../models/badge_definition.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
@@ -120,60 +119,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 children: [
-                  // ── Audio section ─────────────────────────────────
-                  _SectionHeader(
-                      label: _isAr ? 'الصوت' : 'Audio', isAr: _isAr),
-                  const SizedBox(height: 8),
-                  _ToggleRow(
-                    icon: Icons.music_note_rounded,
-                    label: _isAr ? 'الموسيقى' : 'Music',
-                    value: _music,
-                    onChanged: _toggleMusic,
-                  ),
-                  const SizedBox(height: 8),
-                  _ToggleRow(
-                    icon: Icons.mic_rounded,
-                    label: _isAr ? 'الراوي' : 'Voice Over',
-                    value: _vo,
-                    onChanged: _toggleVo,
-                  ),
-                  const SizedBox(height: 8),
-                  _ToggleRow(
-                    icon: Icons.volume_up_rounded,
-                    label: _isAr ? 'المؤثرات' : 'Sound Effects',
-                    value: _sfx,
-                    onChanged: _toggleSfx,
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── Profile section ───────────────────────────────
+                  // ── Profile ──────────────────────────────────────
                   _SectionHeader(
                       label: _isAr ? 'الملف الشخصي' : 'Profile', isAr: _isAr),
                   const SizedBox(height: 8),
-                  _TapRow(
-                    icon: Icons.language_rounded,
-                    label: _isAr ? 'اللغة' : 'Language',
-                    value: _lang == 'en' ? 'English' : 'العربية',
-                    onTap: _cycleLang,
-                  ),
-                  const SizedBox(height: 8),
-                  _TapRow(
-                    icon: Icons.person_outline_rounded,
-                    label: _isAr ? 'الرفيق' : 'Companion',
-                    value: _gender == 'male'
-                        ? (_isAr ? 'ذكر' : 'Male')
-                        : (_isAr ? 'أنثى' : 'Female'),
-                    onTap: _cycleGender,
-                  ),
-
-                  const SizedBox(height: 8),
                   _InfoRow(
-                    icon: Icons.badge_outlined,
+                    icon: Icons.person_outline_rounded,
                     label: _isAr ? 'الاسم' : 'Name',
                     value: PrefsService.userName.isNotEmpty
                         ? PrefsService.userName
                         : (_isAr ? 'رحّال' : 'Traveler'),
+                  ),
+                  const SizedBox(height: 8),
+                  _TapRow(
+                    icon: Icons.auto_stories_rounded,
+                    label: _isAr ? 'الرفيق' : 'Companion',
+                    value: _gender == 'male'
+                        ? (_isAr ? 'راوي' : 'Rawi')
+                        : (_isAr ? 'راوية' : 'Rawiah'),
+                    onTap: _cycleGender,
                   ),
                   const SizedBox(height: 8),
                   _InfoRow(
@@ -184,7 +148,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   const SizedBox(height: 28),
 
-                  // ── Journey section ───────────────────────────────
+                  // ── Journey ──────────────────────────────────────
                   _SectionHeader(
                       label: _isAr ? 'الرحلة' : 'Journey', isAr: _isAr),
                   const SizedBox(height: 8),
@@ -199,23 +163,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     label: _isAr ? 'أيام متتالية' : 'Streak',
                     value: '${PrefsService.streak}',
                   ),
-                  const SizedBox(height: 16),
-                  _buildResetButton(),
 
                   const SizedBox(height: 28),
 
-                  // ── Badges section ────────────────────────────────
+                  // ── Preferences ──────────────────────────────────
                   _SectionHeader(
-                      label: _isAr ? 'الأوسمة' : 'Badges', isAr: _isAr),
+                      label: _isAr ? 'التفضيلات' : 'Preferences', isAr: _isAr),
                   const SizedBox(height: 8),
-                  _buildBadgesGrid(),
-
-                  const SizedBox(height: 28),
-
-                  // ── Accessibility section ─────────────────────────
-                  _SectionHeader(
-                      label: _isAr ? 'إمكانية الوصول' : 'Accessibility',
-                      isAr: _isAr),
+                  _TapRow(
+                    icon: Icons.language_rounded,
+                    label: _isAr ? 'اللغة' : 'Language',
+                    value: _lang == 'en' ? 'English' : 'العربية',
+                    onTap: _cycleLang,
+                  ),
                   const SizedBox(height: 8),
                   _TapRow(
                     icon: Icons.text_fields_rounded,
@@ -227,10 +187,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             : (_isAr ? 'عادي' : 'Normal'),
                     onTap: () {
                       final current = PrefsService.textScale;
-                      // Cycle: Small (0.85) → Normal (1.0) → Large (1.2) → Small
                       final next = current < 0.9 ? 1.0 : current > 1.1 ? 0.85 : 1.2;
                       PrefsService.setTextScale(next);
-                      // Rebuild from root to apply new text scale
                       Navigator.of(context).pushAndRemoveUntil(
                         PageRouteBuilder(
                           pageBuilder: (c, a, s) => const EventListScreen(),
@@ -242,10 +200,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 8),
+                  _ToggleRow(
+                    icon: Icons.music_note_rounded,
+                    label: _isAr ? 'الموسيقى' : 'Music',
+                    value: _music,
+                    onChanged: _toggleMusic,
+                  ),
+                  const SizedBox(height: 8),
+                  _ToggleRow(
+                    icon: Icons.mic_rounded,
+                    label: _isAr ? 'الراوي الصوتي' : 'Voice Over',
+                    value: _vo,
+                    onChanged: _toggleVo,
+                  ),
+                  const SizedBox(height: 8),
+                  _ToggleRow(
+                    icon: Icons.volume_up_rounded,
+                    label: _isAr ? 'المؤثرات' : 'Sound Effects',
+                    value: _sfx,
+                    onChanged: _toggleSfx,
+                  ),
 
                   const SizedBox(height: 28),
 
-                  // ── About ─────────────────────────────────────────
+                  // ── About ────────────────────────────────────────
                   _SectionHeader(
                       label: _isAr ? 'حول' : 'About', isAr: _isAr),
                   const SizedBox(height: 8),
@@ -278,11 +257,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 8),
                         Text(
                           _isAr
-                              ? 'كن شاهداً. احمل الرواية.'
-                              : 'Witness history. Carry the story.',
+                              ? 'صُنع بحبّ في عمّان'
+                              : 'Made with ♥ in Amman',
                           style: GoogleFonts.lora(
                             fontSize: 13,
-                            fontStyle: FontStyle.italic,
                             color: AppColors.gold.withAlpha(160),
                           ),
                           textDirection:
@@ -292,77 +270,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 32),
+
+                  // ── Reset Journey (destructive — always last) ───
+                  _buildResetButton(),
+
                   const SizedBox(height: 40),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBadgesGrid() {
-    final earned = PrefsService.earnedBadges;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.textMuted.withAlpha(30)),
-      ),
-      child: Column(
-        children: [
-          // 3-column grid
-          Wrap(
-            spacing: 8,
-            runSpacing: 12,
-            children: allBadges.map((badge) {
-              final isEarned = earned.contains(badge.id);
-              return SizedBox(
-                width: 90,
-                child: Column(
-                  children: [
-                    // Icon
-                    Opacity(
-                      opacity: isEarned ? 1.0 : 0.25,
-                      child: Text(
-                        isEarned ? badge.icon : '🔒',
-                        style: const TextStyle(fontSize: 28),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Name
-                    Text(
-                      isEarned
-                          ? (_isAr ? badge.nameAr : badge.name)
-                          : '???',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.nunito(
-                        color: isEarned
-                            ? AppColors.gold
-                            : AppColors.textMuted.withAlpha(80),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-          // Earned count
-          const SizedBox(height: 10),
-          Text(
-            '${earned.length}/${allBadges.length}',
-            style: GoogleFonts.nunito(
-              color: AppColors.textMuted.withAlpha(100),
-              fontSize: 11,
-            ),
-          ),
-        ],
       ),
     );
   }

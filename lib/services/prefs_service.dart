@@ -73,16 +73,29 @@ class PrefsService {
     await updateStreak();
   }
 
+  /// Reset ALL progress — clears every progress-related key.
+  /// Preserves: user profile (name, gender, language, text scale, audio toggles).
   static Future<void> resetJourney() async {
-    await _prefs?.setInt(_keyJourneyCurrent, 1);
-    // Clear all completed flags
-    final keys = _prefs?.getKeys() ?? {};
+    final prefs = _prefs;
+    if (prefs == null) return;
+
+    // Clear all progress-related keys (including dynamic ones)
+    final keys = prefs.getKeys().toList();
     for (final key in keys) {
-      if (key.startsWith(_keyJourneyCompleted)) {
-        await _prefs?.remove(key);
+      if (key.startsWith(_keyJourneyCompleted) ||
+          key.startsWith(_keyHotspotProgress)) {
+        await prefs.remove(key);
       }
     }
-    await _prefs?.setInt(_keyXp, 0);
+
+    // Clear all scalar progress keys
+    await prefs.setInt(_keyJourneyCurrent, 1);
+    await prefs.setInt(_keyXp, 0);
+    await prefs.setInt(_keyStreak, 1);
+    await prefs.remove(_keyStreakDate);
+    await prefs.setStringList(_keyEarnedBadges, []);
+    await prefs.setBool(_keyTutorialSeen, false);
+    await prefs.setBool(_keyChoiceTutSeen, false);
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────

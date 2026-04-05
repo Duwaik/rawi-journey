@@ -28,7 +28,7 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
     ),
     _IntroLine(
       'You are the Rawi\n"The Narrator"',
-      'أنت الراوي\n"الراوي"',
+      'أنت الراوي',
     ),
     _IntroLine(
       'Witness history. Carry the story.',
