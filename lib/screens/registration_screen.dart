@@ -110,8 +110,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColors.bg,
-        resizeToAvoidBottomInset: true,
-        body: Stack(
+        resizeToAvoidBottomInset: false,
+        body: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: Stack(
           fit: StackFit.expand,
           children: [
             // ── Blurred cinematic background ──────────────────────────
@@ -184,6 +187,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

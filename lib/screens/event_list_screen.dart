@@ -107,16 +107,17 @@ class _EventListScreenState extends State<EventListScreen> {
         PageRouteBuilder(
           opaque: false,
           transitionDuration: Duration.zero,
-          pageBuilder: (context, animation, secondaryAnimation) =>
+          pageBuilder: (ctx, animation, secondaryAnimation) =>
               CinematicTransitionScreen(
             event: event,
-            onComplete: () async {
-              final result = await Navigator.push(
-                context,
-                flyDownRoute(ImmersiveEventScreen(event: event)),
-              );
-              if (context.mounted) {
-                Navigator.pop(context, result);
+            onComplete: () {
+              // Replace transition with immersive event — no nested push.
+              // When immersive pops, we return directly to event list.
+              if (ctx.mounted) {
+                Navigator.pushReplacement(
+                  ctx,
+                  flyDownRoute(ImmersiveEventScreen(event: event)),
+                );
               }
             },
           ),
@@ -139,12 +140,6 @@ class _EventListScreenState extends State<EventListScreen> {
     }
 
     _refresh();
-    if (PrefsService.musicEnabled) {
-      AudioService.playAmbient(
-        'assets/audio/ambient_desert_evening.wav',
-        volume: 0.10,
-      );
-    }
   }
 
   // ── Build list items (events + chapter headers) ─────────────────────────

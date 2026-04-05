@@ -19,6 +19,9 @@ class IntroCinematicScreen extends StatefulWidget {
 
 class _IntroCinematicScreenState extends State<IntroCinematicScreen>
     with SingleTickerProviderStateMixin {
+  // Note: "Witness history. Carry the story." intentionally NOT in this list.
+  // It's shown ONLY in the CTA section below (with the Begin button) to avoid
+  // showing the same text twice in a row.
   static const _lines = <_IntroLine>[
     _IntroLine('570 CE', '570 ميلادي'),
     _IntroLine('The Arabian Peninsula...', 'الجزيرة العربية...'),
@@ -29,10 +32,6 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
     _IntroLine(
       'You are the Rawi\n"The Narrator"',
       'أنت الراوي',
-    ),
-    _IntroLine(
-      'Witness history. Carry the story.',
-      'كن شاهداً. احمل الرواية.',
     ),
   ];
 
@@ -53,15 +52,19 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
     super.initState();
     _ctrl = AnimationController(vsync: this);
     // Start onboarding ambient (carries through intro + registration)
-    if (PrefsService.musicEnabled) {
-      AudioService.playAmbient(
-        'assets/audio/ambient/ambient_intro.mp3',
-        volume: 0.0,
-      );
-      AudioService.fadeAmbientTo(0.22,
-          duration: const Duration(milliseconds: 1500));
-    }
+    _startIntroAmbient();
     _runSequence();
+  }
+
+  Future<void> _startIntroAmbient() async {
+    if (!PrefsService.musicEnabled) return;
+    await AudioService.playAmbient(
+      'assets/audio/ambient/ambient_intro.mp3',
+      volume: 0.0,
+    );
+    if (_disposed) return;
+    await AudioService.fadeAmbientTo(0.22,
+        duration: const Duration(milliseconds: 1500));
   }
 
   Future<void> _runSequence() async {
@@ -214,24 +217,25 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                     Text(
                       'Witness history. Carry the story.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.lora(
-                        fontSize: 18,
-                        fontStyle: FontStyle.italic,
-                        color: AppColors.gold.withAlpha(200),
+                      style: GoogleFonts.cinzelDecorative(
+                        fontSize: 22,
+                        color: AppColors.gold,
+                        height: 1.6,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 14),
                     Text(
                       'كن شاهداً. احمل الرواية.',
                       textAlign: TextAlign.center,
                       textDirection: TextDirection.rtl,
                       style: GoogleFonts.lora(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontStyle: FontStyle.normal,
-                        color: AppColors.gold.withAlpha(160),
+                        color: AppColors.gold.withAlpha(180),
+                        height: 1.6,
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 48),
                     SizedBox(
                       width: 200,
                       height: 52,

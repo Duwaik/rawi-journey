@@ -42,15 +42,19 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
       duration: const Duration(seconds: 8),
     )..repeat();
     // Start transition ambient (fade in)
-    if (PrefsService.musicEnabled) {
-      AudioService.playAmbient(
-        'assets/audio/ambient/ambient_transition.mp3',
-        volume: 0.0,
-      );
-      AudioService.fadeAmbientTo(0.20,
-          duration: const Duration(milliseconds: 600));
-    }
+    _startTransitionAmbient();
     _runSequence();
+  }
+
+  Future<void> _startTransitionAmbient() async {
+    if (!PrefsService.musicEnabled) return;
+    await AudioService.playAmbient(
+      'assets/audio/ambient/ambient_transition.mp3',
+      volume: 0.0,
+    );
+    if (_disposed) return;
+    await AudioService.fadeAmbientTo(0.20,
+        duration: const Duration(milliseconds: 600));
   }
 
   Future<void> _runSequence() async {
