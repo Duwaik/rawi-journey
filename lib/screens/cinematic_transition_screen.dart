@@ -99,8 +99,8 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
   void dispose() {
     _disposed = true;
     _particleCtrl.dispose();
-    // Fade out transition ambient as scene takes over
-    AudioService.fadeOut(duration: const Duration(milliseconds: 600));
+    // Stop transition ambient immediately as scene takes over
+    AudioService.stopAmbient();
     super.dispose();
   }
 

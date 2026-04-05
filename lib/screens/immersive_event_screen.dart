@@ -260,8 +260,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _gameLoop.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
-    AudioService.fadeOut();
+    // Immediate stop — no fade leak into next screen
+    AudioService.stopAmbient();
     AudioService.stopSfx();
+    AudioService.stopVoiceover();
     super.dispose();
   }
 
@@ -418,7 +420,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _onBranchSelected(BranchOption selected) {
     AudioService.stopVoiceover(); // Rule 3: immediate stop on option select
-    AudioService.fadeOut(duration: const Duration(milliseconds: 600)); // Stop Crossroads ambient
+    AudioService.stopAmbient(); // Stop Crossroads ambient immediately
     final event = widget.event;
     final bp = event.branchPoint!;
     final isA = selected.targetHotspotId == bp.optionA.targetHotspotId;
@@ -492,7 +494,39 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _showSettings = false;
       _isAr = PrefsService.isAr;
     });
+    // Restart the ambient that was playing when user opened settings
+    if (_showBranchCard) {
+      AudioService.playAmbient(
+        'assets/audio/ambient/ambient_crossroads.mp3',
+        volume: 0.20,
+      );
+    } else if (_activeHotspot?.ambientPath != null) {
+      AudioService.playAmbient(
+        _activeHotspot!.ambientPath!,
+        volume: 0.18,
+      );
+    }
     _resetIdleTimer();
+  }
+
+  /// Header back button — saves progress and exits with audio cleanup.
+  /// Mirrors the PopScope logic so there's only one exit path.
+  void _exitScene() {
+    // Block during unanswered Verdict or completion writes
+    if (_phase == _Phase.convergenceQuestion && !_allAnswered) return;
+    if (_phase == _Phase.choose && !_allAnswered) return;
+    if (_isCompleting && !_alreadyCompleted) return;
+    // Save hotspot progress before leaving
+    if (!_alreadyCompleted && !_isCompleting) {
+      final allFound = _discovered.union(_pendingDiscovery);
+      if (allFound.isNotEmpty) {
+        PrefsService.saveHotspotProgress(widget.event.id, allFound);
+      }
+    }
+    AudioService.stopAmbient();
+    AudioService.stopSfx();
+    AudioService.stopVoiceover();
+    Navigator.of(context).pop();
   }
 
   void _saveAndExit() {
@@ -503,6 +537,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         PrefsService.saveHotspotProgress(widget.event.id, allFound);
       }
     }
+    // Stop all audio before leaving
+    AudioService.stopAmbient();
+    AudioService.stopSfx();
+    AudioService.stopVoiceover();
     setState(() => _showSettings = false);
     Navigator.of(context).pop();
   }
@@ -773,8 +811,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _dismissPanel() {
     AudioService.stopVoiceover(); // Rule: immediate stop on panel dismiss
-    // Fade out hotspot ambient bed
-    AudioService.fadeOut(duration: const Duration(milliseconds: 800));
+    // Stop hotspot ambient IMMEDIATELY — no fade (prevents race with next hotspot)
+    AudioService.stopAmbient();
     final dismissed = _activeHotspot;
     setState(() {
       if (dismissed != null && _pendingDiscovery.contains(dismissed.id)) {
@@ -906,7 +944,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   /// "Continue Journey" — layered reward flow then auto-pop.
   /// Sequence: chapter screen → badge → XP → navigate to event list.
   Future<void> _completeAndPop() async {
+    // Kill any lingering ambient from the Verdict card before the reward flow
     AudioService.stopVoiceover();
+    AudioService.stopAmbient();
     if (!mounted) return;
 
     // Step 1: Chapter completion (if last event in era)
@@ -943,11 +983,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
     // Step 4: Auto-navigate to event list
     if (!mounted) return;
+    AudioService.stopAmbient();
+    AudioService.stopSfx();
     Navigator.pop(context, true);
   }
 
   /// Back to events for replays.
   void _continue() {
+    AudioService.stopAmbient();
+    AudioService.stopSfx();
     AudioService.stopVoiceover();
     Navigator.pop(context);
   }
@@ -981,6 +1025,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             PrefsService.saveHotspotProgress(widget.event.id, allFound);
           }
         }
+        // Stop all audio before leaving (prevents bleed into next screen)
+        AudioService.stopAmbient();
+        AudioService.stopSfx();
+        AudioService.stopVoiceover();
         Navigator.of(context).pop();
       },
       child: Scaffold(
@@ -1125,7 +1173,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_rounded,
                         color: AppColors.textBody, size: 20),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: _exitScene,
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
