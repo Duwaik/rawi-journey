@@ -260,10 +260,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _gameLoop.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
-    // Immediate stop — no fade leak into next screen
-    AudioService.stopAmbient();
+    // Stop SFX/VO immediately, fade ambient briefly for smooth exit
     AudioService.stopSfx();
     AudioService.stopVoiceover();
+    AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     super.dispose();
   }
 
@@ -420,7 +420,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _onBranchSelected(BranchOption selected) {
     AudioService.stopVoiceover(); // Rule 3: immediate stop on option select
-    AudioService.stopAmbient(); // Stop Crossroads ambient immediately
+    AudioService.fadeOut(duration: const Duration(milliseconds: 300)); // Fade Crossroads
     final event = widget.event;
     final bp = event.branchPoint!;
     final isA = selected.targetHotspotId == bp.optionA.targetHotspotId;
@@ -523,9 +523,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         PrefsService.saveHotspotProgress(widget.event.id, allFound);
       }
     }
-    AudioService.stopAmbient();
     AudioService.stopSfx();
     AudioService.stopVoiceover();
+    AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     Navigator.of(context).pop();
   }
 
@@ -537,10 +537,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         PrefsService.saveHotspotProgress(widget.event.id, allFound);
       }
     }
-    // Stop all audio before leaving
-    AudioService.stopAmbient();
+    // Fade ambient, stop SFX/VO immediately
     AudioService.stopSfx();
     AudioService.stopVoiceover();
+    AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     setState(() => _showSettings = false);
     Navigator.of(context).pop();
   }
@@ -811,8 +811,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _dismissPanel() {
     AudioService.stopVoiceover(); // Rule: immediate stop on panel dismiss
-    // Stop hotspot ambient IMMEDIATELY — no fade (prevents race with next hotspot)
-    AudioService.stopAmbient();
+    // Short fade out (200ms) — smooth but fast enough for next hotspot
+    AudioService.fadeOut(duration: const Duration(milliseconds: 200));
     final dismissed = _activeHotspot;
     setState(() {
       if (dismissed != null && _pendingDiscovery.contains(dismissed.id)) {
@@ -946,7 +946,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   Future<void> _completeAndPop() async {
     // Kill any lingering ambient from the Verdict card before the reward flow
     AudioService.stopVoiceover();
-    AudioService.stopAmbient();
+    AudioService.fadeOut(duration: const Duration(milliseconds: 300));
     if (!mounted) return;
 
     // Step 1: Chapter completion (if last event in era)
@@ -983,16 +983,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
     // Step 4: Auto-navigate to event list
     if (!mounted) return;
-    AudioService.stopAmbient();
     AudioService.stopSfx();
+    AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     Navigator.pop(context, true);
   }
 
   /// Back to events for replays.
   void _continue() {
-    AudioService.stopAmbient();
     AudioService.stopSfx();
     AudioService.stopVoiceover();
+    AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     Navigator.pop(context);
   }
 
@@ -1025,10 +1025,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             PrefsService.saveHotspotProgress(widget.event.id, allFound);
           }
         }
-        // Stop all audio before leaving (prevents bleed into next screen)
-        AudioService.stopAmbient();
+        // Fade ambient, stop SFX/VO immediately, then pop
         AudioService.stopSfx();
         AudioService.stopVoiceover();
+        AudioService.fadeOut(duration: const Duration(milliseconds: 250));
         Navigator.of(context).pop();
       },
       child: Scaffold(
