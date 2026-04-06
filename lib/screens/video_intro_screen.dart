@@ -82,7 +82,7 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
         child: _controller.value.isInitialized
             ? SizedBox.expand(
                 child: FittedBox(
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   child: SizedBox(
                     width: _controller.value.size.width,
                     height: _controller.value.size.height,
