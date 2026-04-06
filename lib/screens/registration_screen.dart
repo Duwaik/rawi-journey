@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
-import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
@@ -20,7 +19,6 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  final _pageCtrl = PageController();
   final _nameCtrl = TextEditingController();
   final _nameFocus = FocusNode();
   int _currentPage = 0;
@@ -38,7 +36,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   void dispose() {
-    _pageCtrl.dispose();
     _nameCtrl.dispose();
     _nameFocus.dispose();
     super.dispose();
@@ -47,20 +44,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void _nextPage() {
     FocusScope.of(context).unfocus();
     if (_currentPage < _totalPages - 1) {
-      _pageCtrl.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
+      setState(() => _currentPage = _currentPage + 1);
     }
   }
 
   void _prevPage() {
     FocusScope.of(context).unfocus();
     if (_currentPage > 0) {
-      _pageCtrl.previousPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
+      setState(() => _currentPage = _currentPage - 1);
     }
   }
 
@@ -71,7 +62,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     await PrefsService.setLanguage(_selectedLang);
     await PrefsService.setOnboardingComplete();
 
-    AudioService.fadeOut(duration: const Duration(milliseconds: 2500));
+    // R7-01: ambient_intro.mp3 carries through to events list — DO NOT fade out.
+    // The events list is the "home" screen and uses the same ambient.
 
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
@@ -171,16 +163,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                   ),
 
-                  // Pages
+                  // R7-03: Crossfade between pages (no horizontal slide)
                   Expanded(
-                    child: PageView(
-                      controller: _pageCtrl,
-                      physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (i) => setState(() => _currentPage = i),
-                      children: [
-                        _buildIdentityPage(isAr),
-                        _buildLanguagePage(),
-                      ],
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeIn,
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(opacity: animation, child: child),
+                      child: _currentPage == 0
+                          ? KeyedSubtree(
+                              key: const ValueKey('identity'),
+                              child: _buildIdentityPage(isAr),
+                            )
+                          : KeyedSubtree(
+                              key: const ValueKey('language'),
+                              child: _buildLanguagePage(),
+                            ),
                     ),
                   ),
                 ],

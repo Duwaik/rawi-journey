@@ -11,15 +11,28 @@ class AudioService {
   static AudioPlayer? _sfx;
   static AudioPlayer? _vo;
   static StreamSubscription? _voSub;
+  /// Asset path of the currently playing ambient (for continuous-ambient logic).
+  static String? _currentAmbientPath;
 
   /// Start playing an ambient audio asset at the given volume.
   /// Used for: onboarding music (looping) and hotspot atmospheric beds.
+  ///
+  /// If another ambient is already playing AND [assetPath] is the same,
+  /// this returns early — the ambient continues uninterrupted. This is
+  /// what enables the continuous "home" ambient pattern (Sprint 49 R7-01).
+  /// If a different ambient is playing, it fades out briefly before
+  /// the new one starts (LOCKED RULE: no hard cuts).
   static Future<void> playAmbient(String assetPath, {
     double volume = 0.3,
     bool loop = true,
   }) async {
     if (!PrefsService.musicEnabled) return;
-    await stopAmbient();
+    // If the same ambient is already playing, don't restart it —
+    // let it carry continuously across screens.
+    if (_ambient != null && _currentAmbientPath == assetPath) return;
+    // LOCKED RULE: fade previous ambient briefly before new one starts
+    await fadeOut(duration: const Duration(milliseconds: 200));
+    _currentAmbientPath = assetPath;
     _ambient = AudioPlayer();
     try {
       await _ambient!.setAsset(assetPath);
@@ -29,6 +42,7 @@ class AudioService {
     } catch (_) {
       _ambient?.dispose();
       _ambient = null;
+      _currentAmbientPath = null;
     }
   }
 
@@ -72,7 +86,8 @@ class AudioService {
   /// Skips playback if VO is disabled in preferences.
   static Future<void> playVoiceover(String assetPath, {double volume = 0.7}) async {
     if (!PrefsService.voEnabled) return;
-    await stopVoiceover();
+    // LOCKED RULE: always fade previous VO before starting new (no hard cuts)
+    await fadeOutVoiceover(duration: const Duration(milliseconds: 150));
     _vo = AudioPlayer();
     try {
       // Duck ambient
@@ -97,16 +112,22 @@ class AudioService {
     }
   }
 
-  /// Fade out voiceover over 500ms.
-  static Future<void> fadeOutVoiceover() async {
+  /// Fade out voiceover over [duration] then dispose.
+  /// LOCKED RULE: VO never hard-cuts. Always fade.
+  /// Default 200ms is fast enough for rapid VO swaps (dismiss → next hotspot)
+  /// but smooth enough to feel cinematic.
+  static Future<void> fadeOutVoiceover({
+    Duration duration = const Duration(milliseconds: 200),
+  }) async {
     final player = _vo;
     if (player == null) return;
     final startVol = player.volume;
-    const steps = 10;
+    const steps = 8;
+    final stepDuration = duration ~/ steps;
     for (int i = steps; i >= 0; i--) {
       if (_vo != player) return;
       await player.setVolume(startVol * (i / steps));
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future.delayed(stepDuration);
     }
     await _voSub?.cancel();
     _voSub = null;
@@ -116,7 +137,9 @@ class AudioService {
     _ambient?.setVolume(0.18);
   }
 
-  /// Stop voiceover immediately.
+  /// Stop voiceover immediately (emergency only — dispose, app backgrounded).
+  /// For all user-visible transitions, use [fadeOutVoiceover] instead.
+  /// LOCKED RULE: prefer fadeOutVoiceover everywhere except lifecycle emergencies.
   static Future<void> stopVoiceover() async {
     await _voSub?.cancel();
     _voSub = null;
@@ -126,9 +149,11 @@ class AudioService {
     _ambient?.setVolume(0.18);
   }
 
-  /// Smoothly fade out ambient over [duration] then stop.
+  /// Smoothly fade out ambient over [duration] then stop and dispose.
+  /// LOCKED RULE: ambient never hard-cuts. Always fade.
+  /// Default 400ms feels cinematic without being sluggish.
   static Future<void> fadeOut({
-    Duration duration = const Duration(milliseconds: 1500),
+    Duration duration = const Duration(milliseconds: 400),
   }) async {
     final player = _ambient;
     if (player == null) return;
@@ -145,13 +170,15 @@ class AudioService {
     await player.stop();
     await player.dispose();
     _ambient = null;
+    _currentAmbientPath = null;
   }
 
-  /// Immediately stop ambient audio.
+  /// Immediately stop ambient audio (emergency only — use fadeOut for UI).
   static Future<void> stopAmbient() async {
     await _ambient?.stop();
     await _ambient?.dispose();
     _ambient = null;
+    _currentAmbientPath = null;
   }
 
   /// Stop SFX.

@@ -41,20 +41,12 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
       vsync: this,
       duration: const Duration(seconds: 8),
     )..repeat();
-    // Start transition ambient (fade in)
-    _startTransitionAmbient();
+    // R7-01: Home ambient (ambient_intro.mp3) is already playing from
+    // events list. Fade it out smoothly as the title card appears —
+    // no separate transition ambient, just continuity into silence
+    // before the immersive event's hotspot ambients take over.
+    AudioService.fadeOut(duration: const Duration(milliseconds: 800));
     _runSequence();
-  }
-
-  Future<void> _startTransitionAmbient() async {
-    if (!PrefsService.musicEnabled) return;
-    await AudioService.playAmbient(
-      'assets/audio/ambient/ambient_transition.mp3',
-      volume: 0.0,
-    );
-    if (_disposed) return;
-    await AudioService.fadeAmbientTo(0.20,
-        duration: const Duration(milliseconds: 600));
   }
 
   Future<void> _runSequence() async {
@@ -103,8 +95,8 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
   void dispose() {
     _disposed = true;
     _particleCtrl.dispose();
-    // Fade out transition ambient as scene takes over
-    AudioService.fadeOut(duration: const Duration(milliseconds: 500));
+    // Home ambient already faded during initState (800ms fade).
+    // Immersive event's hotspot ambients will take over cleanly.
     super.dispose();
   }
 

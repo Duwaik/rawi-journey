@@ -201,7 +201,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                           // Replay VO
                           GestureDetector(
                             onTap: () {
-                              AudioService.stopVoiceover();
+                              // playVoiceover fades previous internally (LOCKED RULE)
                               AudioService.playVoiceover(widget.voPath!);
                             },
                             child: Container(
@@ -221,7 +221,8 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                           GestureDetector(
                             onTap: () {
                               if (PrefsService.voEnabled) {
-                                AudioService.stopVoiceover();
+                                AudioService.fadeOutVoiceover(
+                                    duration: const Duration(milliseconds: 200));
                                 PrefsService.setVoEnabled(false);
                               } else {
                                 PrefsService.setVoEnabled(true);

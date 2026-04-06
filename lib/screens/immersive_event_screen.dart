@@ -260,9 +260,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _gameLoop.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
-    // Stop SFX/VO immediately, fade ambient briefly for smooth exit
+    // Fade all audio for smooth exit (LOCKED RULE: no hard cuts)
     AudioService.stopSfx();
-    AudioService.stopVoiceover();
+    AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     super.dispose();
   }
@@ -419,7 +419,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // ── Branch choice handler ──────────────────────────────────────────────────
 
   void _onBranchSelected(BranchOption selected) {
-    AudioService.stopVoiceover(); // Rule 3: immediate stop on option select
+    AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 300)); // Fade Crossroads
     final event = widget.event;
     final bp = event.branchPoint!;
@@ -480,9 +480,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _joyDx = 0;
     _joyDy = 0;
     _idleTimer?.cancel();
-    AudioService.stopAmbient();
+    // Fade ambient + VO when opening settings (LOCKED RULE: no cuts)
     AudioService.stopSfx();
-    AudioService.stopVoiceover();
+    AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
+    AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     setState(() {
       _showSettings = true;
       _isWalking = false;
@@ -524,7 +525,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       }
     }
     AudioService.stopSfx();
-    AudioService.stopVoiceover();
+    AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     Navigator.of(context).pop();
   }
@@ -537,9 +538,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         PrefsService.saveHotspotProgress(widget.event.id, allFound);
       }
     }
-    // Fade ambient, stop SFX/VO immediately
+    // Fade everything for smooth exit
     AudioService.stopSfx();
-    AudioService.stopVoiceover();
+    AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     setState(() => _showSettings = false);
     Navigator.of(context).pop();
@@ -666,7 +667,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       final delay = type == 'exp' ? 500 : 600;
       Future.delayed(Duration(milliseconds: delay), () {
         if (mounted) {
-          AudioService.stopVoiceover(); // Rule 1: stop previous
+          // playVoiceover internally fades any previous VO (LOCKED RULE)
           AudioService.playVoiceover(path);
         }
       });
@@ -690,7 +691,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       // Rule 2: Hotspot VO starts 400ms after panel opens
       Future.delayed(const Duration(milliseconds: 400), () {
         if (mounted && _activeHotspot == hotspot) {
-          AudioService.stopVoiceover(); // Rule 1: stop previous
+          // playVoiceover internally fades any previous VO (LOCKED RULE)
           AudioService.playVoiceover(path);
         }
       });
@@ -810,8 +811,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       widget.event.questions.isEmpty || _answers.every((a) => a != null);
 
   void _dismissPanel() {
-    AudioService.stopVoiceover(); // Rule: immediate stop on panel dismiss
-    // Short fade out (200ms) — smooth but fast enough for next hotspot
+    // LOCKED RULE: fade VO and ambient, never hard cut
+    AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 200));
     final dismissed = _activeHotspot;
     setState(() {
@@ -845,7 +846,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       if (branchVoPath != null) {
         Future.delayed(const Duration(milliseconds: 600), () {
           if (mounted && _showBranchCard) {
-            AudioService.stopVoiceover();
+            // playVoiceover internally fades any previous VO (LOCKED RULE)
             AudioService.playVoiceover(branchVoPath);
           }
         });
@@ -944,8 +945,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   /// "Continue Journey" — layered reward flow then auto-pop.
   /// Sequence: chapter screen → badge → XP → navigate to event list.
   Future<void> _completeAndPop() async {
-    // Kill any lingering ambient from the Verdict card before the reward flow
-    AudioService.stopVoiceover();
+    // LOCKED RULE: fade VO and ambient before reward flow (no cuts)
+    AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 300));
     AudioService.fadeOut(duration: const Duration(milliseconds: 300));
     if (!mounted) return;
 
@@ -991,7 +992,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   /// Back to events for replays.
   void _continue() {
     AudioService.stopSfx();
-    AudioService.stopVoiceover();
+    AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     Navigator.pop(context);
   }
@@ -1025,9 +1026,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             PrefsService.saveHotspotProgress(widget.event.id, allFound);
           }
         }
-        // Fade ambient, stop SFX/VO immediately, then pop
+        // LOCKED RULE: fade all audio on exit (no cuts)
         AudioService.stopSfx();
-        AudioService.stopVoiceover();
+        AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
         AudioService.fadeOut(duration: const Duration(milliseconds: 250));
         Navigator.of(context).pop();
       },
@@ -1478,7 +1479,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                         onTap: () {
                           final path = _choiceVoPath(answered ? 'exp' : 'q');
                           if (path != null) {
-                            AudioService.stopVoiceover();
+                            // playVoiceover fades previous internally (LOCKED RULE)
                             AudioService.playVoiceover(path);
                           }
                         },
@@ -1498,7 +1499,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                       GestureDetector(
                         onTap: () {
                           if (PrefsService.voEnabled) {
-                            AudioService.stopVoiceover();
+                            AudioService.fadeOutVoiceover(
+                                duration: const Duration(milliseconds: 200));
                             PrefsService.setVoEnabled(false);
                           } else {
                             PrefsService.setVoEnabled(true);

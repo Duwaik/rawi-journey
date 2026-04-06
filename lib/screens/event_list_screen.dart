@@ -65,17 +65,28 @@ class _EventListScreenState extends State<EventListScreen> {
     final active = _activeEra();
     if (active != null) _expandedEras.add(active);
 
-    if (PrefsService.musicEnabled) {
-      AudioService.playAmbient(
-        'assets/audio/ambient_desert_evening.wav',
-        volume: 0.10,
-      );
-    }
+    // R7-01: ambient_intro.mp3 is the "home" sound of the app.
+    // playAmbient is idempotent — if it's already playing (carried from
+    // intro/registration), this is a no-op. If it was stopped (e.g.,
+    // returning from an event), it starts and fades in.
+    _startHomeAmbient();
+  }
+
+  Future<void> _startHomeAmbient() async {
+    if (!PrefsService.musicEnabled) return;
+    await AudioService.playAmbient(
+      'assets/audio/ambient/ambient_intro.mp3',
+      volume: 0.0,
+    );
+    if (!mounted) return;
+    await AudioService.fadeAmbientTo(0.22,
+        duration: const Duration(milliseconds: 800));
   }
 
   @override
   void dispose() {
-    AudioService.fadeOut();
+    // R7-01: do NOT stop ambient on dispose — it carries into transition
+    // and the transition screen fades it out itself.
     super.dispose();
   }
 
@@ -95,9 +106,8 @@ class _EventListScreenState extends State<EventListScreen> {
       _events.where((e) => PrefsService.isEventCompleted(e.globalOrder)).length;
 
   Future<void> _openEvent(JourneyEvent event) async {
-    await AudioService.fadeOut(duration: const Duration(milliseconds: 400));
-    if (!mounted) return;
-
+    // R7-01: DO NOT fade out the home ambient here. The cinematic
+    // transition screen fades it out smoothly as the title card appears.
     final config = sceneConfigs[event.id];
     final hasScene = config != null && config.groundLayers.isNotEmpty;
 
@@ -492,8 +502,21 @@ class _EventListScreenState extends State<EventListScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.bg,
-        body: Column(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // R7-02: Cinematic desert background (matches intro/registration)
+            Image.asset(
+              'assets/scenes/scene_welcome.jpg',
+              fit: BoxFit.cover,
+            ),
+            // Heavy dark overlay (85% opacity) — keeps UI readable, warmth visible
+            Container(
+              color: AppColors.bg.withAlpha(216),
+            ),
+            // Existing UI
+            Column(
           children: [
             // ── Header ────────────────────────────────────────────────
             Container(
@@ -531,9 +554,7 @@ class _EventListScreenState extends State<EventListScreen> {
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () async {
-                      await AudioService.fadeOut(
-                          duration: const Duration(milliseconds: 300));
-                      if (!mounted) return;
+                      // R7-01: ambient carries into Settings — it's still "home"
                       await Navigator.push(
                         context,
                         PageRouteBuilder(
@@ -547,13 +568,8 @@ class _EventListScreenState extends State<EventListScreen> {
                               child: child),
                         ),
                       );
+                      if (!mounted) return;
                       _refresh();
-                      if (PrefsService.musicEnabled) {
-                        AudioService.playAmbient(
-                          'assets/audio/ambient_desert_evening.wav',
-                          volume: 0.10,
-                        );
-                      }
                     },
                     child: Container(
                       width: 34, height: 34,
@@ -578,6 +594,8 @@ class _EventListScreenState extends State<EventListScreen> {
                 children: _buildListItems(),
               ),
             ),
+          ],
+        ),
           ],
         ),
       ),
