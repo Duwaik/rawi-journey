@@ -12,6 +12,7 @@ import 'cinematic_transition_screen.dart';
 import 'immersive_event_screen.dart';
 import 'journey_event_screen.dart';
 import 'settings_screen.dart';
+import 'video_intro_screen.dart';
 import '../widgets/cinematic/fly_transition.dart';
 import '../widgets/rawi_dialog.dart';
 
@@ -105,34 +106,75 @@ class _EventListScreenState extends State<EventListScreen> {
   int get _completedCount =>
       _events.where((e) => PrefsService.isEventCompleted(e.globalOrder)).length;
 
+  /// Returns video intro path for events with cinematic videos.
+  /// Only on first play — replays use regular cinematic transition.
+  String? _getVideoIntro(String eventId, int globalOrder) {
+    if (PrefsService.isEventCompleted(globalOrder)) return null;
+    const videoIntros = {
+      'j_1_1_2': 'assets/video/event2_intro.mp4',
+      // Add more: 'j_1_1_X': 'assets/video/eventX_intro.mp4',
+    };
+    return videoIntros[eventId];
+  }
+
   Future<void> _openEvent(JourneyEvent event) async {
-    // R7-01: DO NOT fade out the home ambient here. The cinematic
-    // transition screen fades it out smoothly as the title card appears.
     final config = sceneConfigs[event.id];
     final hasScene = config != null && config.groundLayers.isNotEmpty;
 
     if (hasScene) {
-      await Navigator.push(
-        context,
-        PageRouteBuilder(
-          opaque: false,
-          transitionDuration: Duration.zero,
-          pageBuilder: (ctx, animation, secondaryAnimation) =>
-              CinematicTransitionScreen(
-            event: event,
-            onComplete: () {
-              // Replace transition with immersive event — no nested push.
-              // When immersive pops, we return directly to event list.
-              if (ctx.mounted) {
-                Navigator.pushReplacement(
-                  ctx,
-                  flyDownRoute(ImmersiveEventScreen(event: event)),
-                );
-              }
-            },
+      // Check for video intro (first play only)
+      final videoPath = _getVideoIntro(event.id, event.globalOrder);
+
+      if (videoPath != null) {
+        // Fade home ambient before video (LOCKED RULE: fade, no cut)
+        AudioService.fadeOut(duration: const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (!mounted) return;
+
+        await Navigator.push(
+          context,
+          PageRouteBuilder(
+            opaque: true,
+            transitionDuration: const Duration(milliseconds: 300),
+            pageBuilder: (ctx, animation, secondaryAnimation) =>
+                FadeTransition(
+              opacity: animation,
+              child: VideoIntroScreen(
+                videoPath: videoPath,
+                onComplete: () {
+                  if (ctx.mounted) {
+                    Navigator.pushReplacement(
+                      ctx,
+                      flyDownRoute(ImmersiveEventScreen(event: event)),
+                    );
+                  }
+                },
+              ),
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        // Regular cinematic transition (no video)
+        await Navigator.push(
+          context,
+          PageRouteBuilder(
+            opaque: false,
+            transitionDuration: Duration.zero,
+            pageBuilder: (ctx, animation, secondaryAnimation) =>
+                CinematicTransitionScreen(
+              event: event,
+              onComplete: () {
+                if (ctx.mounted) {
+                  Navigator.pushReplacement(
+                    ctx,
+                    flyDownRoute(ImmersiveEventScreen(event: event)),
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      }
     } else {
       await Navigator.push(
         context,
