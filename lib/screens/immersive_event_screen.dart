@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../character_art.dart';
 import '../data/scene_configs.dart';
 import '../models/journey_event.dart';
 import '../models/scene_config.dart';
@@ -1354,6 +1355,26 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Carrying portrait — chapter celebration
+                          ClipOval(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.gold, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.gold.withAlpha(40),
+                                    blurRadius: 16,
+                                  ),
+                                ],
+                              ),
+                              child: Image.asset(
+                                CharacterArt.carrying(),
+                                width: 72, height: 72, fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Text(
                             widget.event.era.emoji,
                             style: const TextStyle(fontSize: 48),
@@ -1469,9 +1490,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header + VO replay
+                    // Header + witnessing portrait + VO replay
                     Row(
                     children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          CharacterArt.witnessing(),
+                          width: 40, height: 40, fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           _isAr ? 'ماذا يحفظ التاريخ؟' : 'What does history remember?',
@@ -1802,11 +1831,23 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_isAr ? 'ماذا كنت ستفعل؟' : 'What would you do?',
-                style: GoogleFonts.lora(color: _eraColor.withAlpha(200),
-                    fontSize: 14,
-                    fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
-                    fontWeight: FontWeight.w600)),
+            Row(children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  CharacterArt.witnessing(),
+                  width: 40, height: 40, fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child:
+                Text(_isAr ? 'ماذا كنت ستفعل؟' : 'What would you do?',
+                    style: GoogleFonts.lora(color: _eraColor.withAlpha(200),
+                        fontSize: 14,
+                        fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ]),
             const SizedBox(height: 12),
             Text(question,
                 style: GoogleFonts.cinzelDecorative(

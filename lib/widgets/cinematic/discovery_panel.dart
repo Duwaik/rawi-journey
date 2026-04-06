@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
+import '../../character_art.dart';
 import '../../services/audio_service.dart';
 import '../../services/prefs_service.dart';
 import '../scroll_hint_wrapper.dart';
@@ -150,9 +151,17 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                       const SizedBox(height: 16),
                     ],
 
-                    // Label row
+                    // Label row with witnessing portrait
                     Row(
                       children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.asset(
+                            CharacterArt.witnessing(),
+                            width: 32, height: 32, fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Text(widget.icon,
                             style: const TextStyle(fontSize: 18)),
                         const SizedBox(width: 8),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
+import '../../character_art.dart';
 import '../../models/badge_definition.dart';
 import '../../services/audio_service.dart';
 import '../../services/prefs_service.dart';
@@ -109,6 +110,20 @@ class _BadgeOverlayState extends State<BadgeOverlay>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Carrying portrait — celebration moment
+                        ClipOval(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.gold, width: 2),
+                            ),
+                            child: Image.asset(
+                              CharacterArt.carrying(),
+                              width: 56, height: 56, fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         // Badge icon — geometric gold placeholder (painterly art coming)
                         Transform.scale(
                           scale: _iconPop.value,

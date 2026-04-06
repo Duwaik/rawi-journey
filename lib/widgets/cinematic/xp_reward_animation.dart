@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
+import '../../character_art.dart';
 import '../../services/audio_service.dart';
 
 /// Animated XP reveal: star pop → count-up → particle burst → total line.
@@ -132,10 +133,24 @@ class _XpRewardAnimationState extends State<XpRewardAnimation>
                       );
                     }),
 
-                  // Star + XP number
+                  // Character + Star + XP number
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Carrying portrait
+                      ClipOval(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.gold, width: 2),
+                          ),
+                          child: Image.asset(
+                            CharacterArt.carrying(),
+                            width: 64, height: 64, fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       Transform.scale(
                         scale: _starScale.value,
                         child: const Icon(Icons.star_rounded,

@@ -264,7 +264,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _GenderCard(
-                imagePath: 'assets/figures/companion_male.jpg',
+                imagePath: 'assets/figures/rawi_portrait.jpg',
                 label: isAr ? 'راوي' : 'Rawi',
                 selected: _selectedGender == 'male',
                 onTap: () {
@@ -274,7 +274,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               const SizedBox(width: 24),
               _GenderCard(
-                imagePath: 'assets/figures/companion_female.jpg',
+                imagePath: 'assets/figures/rawiah_portrait.jpg',
                 label: isAr ? 'راوية' : 'Rawiah',
                 selected: _selectedGender == 'female',
                 onTap: () {

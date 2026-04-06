@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../character_art.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
@@ -123,12 +124,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _SectionHeader(
                       label: _isAr ? 'الملف الشخصي' : 'Profile', isAr: _isAr),
                   const SizedBox(height: 8),
-                  _InfoRow(
-                    icon: Icons.person_outline_rounded,
-                    label: _isAr ? 'الاسم' : 'Name',
-                    value: PrefsService.userName.isNotEmpty
-                        ? PrefsService.userName
-                        : (_isAr ? 'رحّال' : 'Traveler'),
+                  // Profile card with portrait
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.textMuted.withAlpha(30)),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipOval(
+                          child: Image.asset(
+                            CharacterArt.portrait(),
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                PrefsService.userName.isNotEmpty
+                                    ? PrefsService.userName
+                                    : (_isAr ? 'رحّال' : 'Traveler'),
+                                style: GoogleFonts.nunito(
+                                  fontSize: 15,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                _gender == 'female'
+                                    ? (_isAr ? 'الراوية' : 'Rawiah')
+                                    : (_isAr ? 'الراوي' : 'Rawi'),
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 8),
                   _TapRow(

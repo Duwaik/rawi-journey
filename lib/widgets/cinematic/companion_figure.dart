@@ -51,8 +51,8 @@ class _CompanionFigureState extends State<CompanionFigure>
   Widget build(BuildContext context) {
     final isMale = PrefsService.userGender == 'male';
     final imagePath = isMale
-        ? 'assets/figures/male_companion_inscene.jpg'
-        : 'assets/figures/female_companion_inscene.jpg';
+        ? 'assets/figures/rawi_walking.jpg'
+        : 'assets/figures/rawiah_walking.jpg';
 
     return AnimatedBuilder(
       animation: _anim,
