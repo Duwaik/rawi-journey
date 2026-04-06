@@ -96,6 +96,8 @@ class PrefsService {
     await prefs.setStringList(_keyEarnedBadges, []);
     await prefs.setBool(_keyTutorialSeen, false);
     await prefs.setBool(_keyChoiceTutSeen, false);
+    // R9-02: Reset onboarding so user sees intro cinematic + registration again
+    await prefs.setBool(_keyOnboardingDone, false);
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────

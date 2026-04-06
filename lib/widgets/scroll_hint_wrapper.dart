@@ -77,7 +77,16 @@ class _ScrollHintWrapperState extends State<ScrollHintWrapper>
             bottom: 6,
             left: 0,
             right: 0,
-            child: IgnorePointer(
+            child: GestureDetector(
+              onTap: () {
+                final viewport = widget.controller.position.viewportDimension;
+                final target = widget.controller.offset + (viewport * 0.8);
+                widget.controller.animateTo(
+                  target.clamp(0, widget.controller.position.maxScrollExtent),
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutCubic,
+                );
+              },
               child: Center(
                 child: AnimatedBuilder(
                   animation: _bounceAnim,

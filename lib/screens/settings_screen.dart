@@ -257,11 +257,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 8),
                         Text(
                           _isAr
-                              ? 'صُنع بحبّ في عمّان'
-                              : 'Made with ♥ in Amman',
+                              ? 'كن شاهداً. احمل الرواية.'
+                              : 'Witness history. Carry the story.',
                           style: GoogleFonts.lora(
                             fontSize: 13,
-                            color: AppColors.gold.withAlpha(160),
+                            fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+                            color: AppColors.gold.withAlpha(140),
                           ),
                           textDirection:
                               _isAr ? TextDirection.rtl : TextDirection.ltr,

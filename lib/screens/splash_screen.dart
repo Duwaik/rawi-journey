@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -76,8 +77,22 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: Center(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Cinematic desert background (matches intro/registration/events list)
+          ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Image.asset(
+              'assets/scenes/scene_welcome.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Container(
+            color: Colors.black.withAlpha(180),
+          ),
+          Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -124,6 +139,8 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ],
         ),
+        ),
+        ],
       ),
     );
   }

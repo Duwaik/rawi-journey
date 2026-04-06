@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -76,26 +77,40 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: GestureDetector(
-        onTap: _onTap,
-        behavior: HitTestBehavior.opaque,
-        child: _controller.value.isInitialized
-            ? SizedBox.expand(
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: _controller.value.size.width,
-                    height: _controller.value.size.height,
-                    child: VideoPlayer(_controller),
+      body: _controller.value.isInitialized
+          ? GestureDetector(
+              onTap: _onTap,
+              behavior: HitTestBehavior.opaque,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Layer 1: Blurred scaled-up video fills entire screen
+                  Transform.scale(
+                    scale: 3.0,
+                    child: ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                      child: VideoPlayer(_controller),
+                    ),
                   ),
-                ),
-              )
-            : const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.gold,
-                ),
+                  // Layer 2: Dark overlay to tone down the blur
+                  Container(
+                    color: Colors.black.withAlpha(100),
+                  ),
+                  // Layer 3: Actual video centered (contain fit)
+                  Center(
+                    child: AspectRatio(
+                      aspectRatio: _controller.value.aspectRatio,
+                      child: VideoPlayer(_controller),
+                    ),
+                  ),
+                ],
               ),
-      ),
+            )
+          : const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.gold,
+              ),
+            ),
     );
   }
 }

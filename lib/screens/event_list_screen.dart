@@ -75,13 +75,16 @@ class _EventListScreenState extends State<EventListScreen> {
 
   Future<void> _startHomeAmbient() async {
     if (!PrefsService.musicEnabled) return;
+    // Delay to avoid race with previous screen's dispose/fadeOut
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
     await AudioService.playAmbient(
       'assets/audio/ambient/ambient_intro.mp3',
       volume: 0.0,
     );
     if (!mounted) return;
     await AudioService.fadeAmbientTo(0.22,
-        duration: const Duration(milliseconds: 800));
+        duration: const Duration(milliseconds: 1000));
   }
 
   @override
@@ -634,9 +637,9 @@ class _EventListScreenState extends State<EventListScreen> {
               'assets/scenes/scene_welcome.jpg',
               fit: BoxFit.cover,
             ),
-            // Heavy dark overlay (85% opacity) — keeps UI readable, warmth visible
+            // Heavy dark overlay (~92% opacity) — readable text, subtle warmth
             Container(
-              color: AppColors.bg.withAlpha(216),
+              color: AppColors.bg.withAlpha(235),
             ),
             // Existing UI
             Column(

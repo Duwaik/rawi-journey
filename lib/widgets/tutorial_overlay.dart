@@ -80,7 +80,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         onTap: _advance,
         behavior: HitTestBehavior.opaque,
         child: Container(
-          color: Colors.black.withAlpha(180),
+          color: Colors.black.withAlpha(210),
           child: Stack(
             children: [
               // ── Center content ──────────────────────────────────────
@@ -92,16 +92,23 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                     children: [
                       // Icon
                       Container(
-                        width: 64,
-                        height: 64,
+                        width: 72,
+                        height: 72,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.gold.withAlpha(25),
+                          color: AppColors.gold.withAlpha(30),
                           border: Border.all(
-                              color: AppColors.gold.withAlpha(80), width: 2),
+                              color: AppColors.gold.withAlpha(120), width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.gold.withAlpha(60),
+                              blurRadius: 20,
+                              spreadRadius: 4,
+                            ),
+                          ],
                         ),
                         child: Icon(step.icon,
-                            size: 28, color: AppColors.gold),
+                            size: 32, color: AppColors.gold),
                       ),
                       const SizedBox(height: 24),
 
