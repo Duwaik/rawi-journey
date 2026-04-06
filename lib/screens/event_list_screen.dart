@@ -178,13 +178,43 @@ class _EventListScreenState extends State<EventListScreen> {
       }
     }
 
+    // Bottom motivational text
+    items.add(
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Text(
+            isAr ? '36 حدثاً بانتظارك' : '36 events await',
+            style: GoogleFonts.lora(
+              color: AppColors.gold.withAlpha(60),
+              fontSize: 13,
+              fontStyle: isAr ? FontStyle.normal : FontStyle.italic,
+            ),
+          ),
+        ),
+      ),
+    );
+
     return items;
   }
+
+  // Era teasers for collapsed headers
+  static const _eraTeasers = <JourneyEra, List<String>>{
+    JourneyEra.jahiliyyah: ['The world before the message', 'العالم قبل الرسالة'],
+    JourneyEra.earlyLife: ['Birth, guardianship, and the first signs', 'الميلاد والرعاية وأولى العلامات'],
+    JourneyEra.mecca: ['The call, persecution, and perseverance', 'الدعوة والاضطهاد والصبر'],
+    JourneyEra.medina: ['Migration, brotherhood, and victory', 'الهجرة والأخوّة والنصر'],
+  };
 
   Widget _buildChapterHeader(_Chapter chapter, JourneyEra era, bool isAr) {
     final name = isAr ? chapter.nameAr : chapter.name;
     final sub = isAr ? chapter.subtitleAr : chapter.subtitle;
     final expanded = _expandedEras.contains(era);
+    final eventCount = _events.where((e) => e.era == era).length;
+    final teaserPair = _eraTeasers[era];
+    final teaser = teaserPair != null
+        ? (isAr ? teaserPair[1] : teaserPair[0])
+        : null;
 
     return GestureDetector(
       onTap: () {
@@ -199,37 +229,58 @@ class _EventListScreenState extends State<EventListScreen> {
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.only(top: 12, bottom: 8, left: 4, right: 4),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(width: 24, height: 1, color: AppColors.gold.withAlpha(120)),
-            const SizedBox(width: 8),
-            Text(
-              name,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 1.5,
-              ),
+            Row(
+              children: [
+                Container(width: 24, height: 1, color: AppColors.gold.withAlpha(120)),
+                const SizedBox(width: 8),
+                Text(
+                  name,
+                  style: GoogleFonts.nunito(
+                    color: AppColors.gold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  sub,
+                  style: GoogleFonts.nunito(
+                    color: AppColors.textMuted.withAlpha(120),
+                    fontSize: 10,
+                  ),
+                ),
+                const Spacer(),
+                AnimatedRotation(
+                  turns: expanded ? 0.5 : 0.0,
+                  duration: const Duration(milliseconds: 250),
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: AppColors.gold.withAlpha(expanded ? 180 : 80),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              sub,
-              style: GoogleFonts.nunito(
-                color: AppColors.textMuted.withAlpha(120),
-                fontSize: 10,
+            // Preview teaser when collapsed
+            if (!expanded && teaser != null) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 32),
+                child: Text(
+                  '$eventCount events · $teaser',
+                  textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+                  style: GoogleFonts.nunito(
+                    color: AppColors.textMuted.withAlpha(80),
+                    fontSize: 10,
+                    fontStyle: isAr ? FontStyle.normal : FontStyle.italic,
+                  ),
+                ),
               ),
-            ),
-            const Spacer(),
-            AnimatedRotation(
-              turns: expanded ? 0.5 : 0.0,
-              duration: const Duration(milliseconds: 250),
-              child: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                size: 18,
-                color: AppColors.gold.withAlpha(expanded ? 180 : 80),
-              ),
-            ),
+            ],
           ],
         ),
       ),
@@ -315,6 +366,15 @@ class _EventListScreenState extends State<EventListScreen> {
                               : const Color(0xFF1E3040),
                       width: isNext ? 1 : 0.5,
                     ),
+                    boxShadow: isNext
+                        ? [
+                            BoxShadow(
+                              color: AppColors.gold.withAlpha(40),
+                              blurRadius: 16,
+                              spreadRadius: 2,
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Opacity(
                     opacity: locked ? 0.5 : 1.0,
@@ -436,8 +496,22 @@ class _EventListScreenState extends State<EventListScreen> {
                             );
                           })
                         else if (locked)
-                          Icon(Icons.lock_rounded,
-                              size: 16, color: const Color(0xFF3A5A5A)),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.lock_rounded,
+                                  size: 16, color: const Color(0xFF3A5A5A)),
+                              const SizedBox(height: 2),
+                              Text(
+                                isAr ? 'أكمل السابق' : 'Complete\nprevious',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.textMuted.withAlpha(80),
+                                  fontSize: 8,
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ),
@@ -458,9 +532,9 @@ class _EventListScreenState extends State<EventListScreen> {
       children: List.generate(count, (i) {
         final filled = i < discoveredCount;
         return Container(
-          margin: const EdgeInsets.only(right: 4),
-          width: 8,
-          height: 8,
+          margin: const EdgeInsets.only(right: 5),
+          width: 10,
+          height: 10,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: filled ? AppColors.gold : Colors.transparent,
@@ -468,6 +542,13 @@ class _EventListScreenState extends State<EventListScreen> {
               color: filled ? AppColors.gold : AppColors.gold.withAlpha(80),
               width: 1.5,
             ),
+            boxShadow: filled
+                ? [BoxShadow(
+                    color: AppColors.gold.withAlpha(60),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  )]
+                : null,
           ),
         );
       }),

@@ -32,6 +32,7 @@ import '../widgets/cinematic/starfield_layer.dart';
 import '../widgets/cinematic/virtual_joystick.dart';
 import '../widgets/settings_overlay.dart';
 import '../widgets/tutorial_overlay.dart';
+import 'event_list_screen.dart';
 
 enum _Phase { explore, choose, convergenceQuestion, complete }
 
@@ -300,7 +301,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
         _showTutorial ||
         _phase == _Phase.convergenceQuestion || _phase == _Phase.choose ||
-        _phase == _Phase.complete) return;
+        _phase == _Phase.complete) {
+      return;
+    }
     if (_phase != _Phase.explore) return;
     if (_autoWalking) return; // Don't mix manual + auto movement
 
@@ -982,11 +985,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       await Future.delayed(const Duration(milliseconds: 2500));
     }
 
-    // Step 4: Auto-navigate to event list
+    // Step 4: Navigate to fresh event list (next event unlocked)
     if (!mounted) return;
     AudioService.stopSfx();
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
-    Navigator.pop(context, true);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const EventListScreen()),
+      (route) => false,
+    );
   }
 
   /// Back to events for replays.
@@ -994,7 +1000,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     AudioService.stopSfx();
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
-    Navigator.pop(context);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const EventListScreen()),
+      (route) => false,
+    );
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
