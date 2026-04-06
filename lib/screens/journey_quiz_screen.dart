@@ -354,8 +354,8 @@ class _JourneyQuizScreenState extends State<JourneyQuizScreen>
                                         const SizedBox(width: 7),
                                         Text(
                                           isCorrect
-                                              ? 'History records...'
-                                              : 'What history records...',
+                                              ? 'The Rawi reflects...'
+                                              : 'The Rawi reflects...',
                                           style: GoogleFonts.nunito(
                                             color: AppColors.gold,
                                             fontSize: 11,

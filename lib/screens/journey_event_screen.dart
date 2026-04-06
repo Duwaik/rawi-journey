@@ -369,8 +369,8 @@ class _JourneyEventScreenState extends State<JourneyEventScreen>
                             const SizedBox(width: 7),
                             Text(
                               isCorrect
-                                  ? (_isAr ? 'يسجّل التاريخ...' : 'History records...')
-                                  : (_isAr ? 'ما يسجّله التاريخ...' : 'What history records...'),
+                                  ? (_isAr ? 'يتأمّل الراوي...' : 'The Rawi reflects...')
+                                  : (_isAr ? 'يتأمّل الراوي...' : 'The Rawi reflects...'),
                               style: GoogleFonts.nunito(
                                 color: AppColors.gold, fontSize: 11,
                                 fontWeight: FontWeight.w700, letterSpacing: 0.6)),

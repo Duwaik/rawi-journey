@@ -707,6 +707,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       AudioService.playSfx(hotspot.sfxPath!, volume: 0.4);
       _footstepPlaying = false;
     }
+    // Zero joystick + stop game loop to prevent stale movement after dismiss
+    _joyDx = 0;
+    _joyDy = 0;
+    _gameLoop.stop();
+    _gameLoop.reset();
     setState(() {
       _pendingDiscovery.add(hotspot.id);
       _isWalking = false;
@@ -819,6 +824,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 200));
     final dismissed = _activeHotspot;
+    // Ensure joystick is clean — prevents stale movement after dismiss
+    _joyDx = 0;
+    _joyDy = 0;
     setState(() {
       if (dismissed != null && _pendingDiscovery.contains(dismissed.id)) {
         _pendingDiscovery.remove(dismissed.id);
@@ -1661,7 +1669,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                                     size: 13, color: AppColors.gold),
                                 const SizedBox(width: 7),
                                 Text(
-                                  _isAr ? 'يسجّل التاريخ...' : 'History records...',
+                                  _isAr ? 'يتأمّل الراوي...' : 'The Rawi reflects...',
                                   style: GoogleFonts.nunito(
                                     color: AppColors.gold,
                                     fontSize: 11,
@@ -1923,7 +1931,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                               size: 13, color: AppColors.gold),
                           const SizedBox(width: 7),
                           Text(isCorrect
-                              ? (_isAr ? 'يسجّل التاريخ...' : 'History records...')
+                              ? (_isAr ? 'يتأمّل الراوي...' : 'The Rawi reflects...')
                               : (_isAr ? 'ما يسجّله التاريخ...' : 'What history records...'),
                               style: GoogleFonts.nunito(color: AppColors.gold,
                                   fontSize: 11, fontWeight: FontWeight.w700,
