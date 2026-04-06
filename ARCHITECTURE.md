@@ -1,6 +1,6 @@
 # Rawi — Architecture Document
 
-> Last updated: 2026-04-05
+> Last updated: 2026-04-06
 > Package: `com.rawi.journey`
 > Flutter 3.41.4 | Dart 3.11.1+
 
@@ -11,8 +11,8 @@
 | Metric | Count |
 |--------|-------|
 | Dart files | 43 |
-| Dart lines | ~12,200 |
-| Asset files | 202 (84 VO + 52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + others) |
+| Dart lines | ~12,250 |
+| Asset files | 203 (84 VO + 52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + 1 video + others) |
 | Playable immersive events | 3 (branching) |
 | Flat narrative events | 33 (linear, Events 4-36) |
 | Total events in data | 36 |
@@ -81,7 +81,8 @@ d:\Rawi_Journey\
 │   │   │                                        gold timeline thread, progress dots, Play CTA
 │   │   ├── cinematic_transition_screen.dart   # Fade-to-black + title card + particles +
 │   │   │                                        sky gradient + ambient fade-in
-│   │   ├── immersive_event_screen.dart        # THE CORE — 1877 lines:
+│   │   ├── video_intro_screen.dart             # Full-screen cinematic video intro (video_player)
+│   │   ├── immersive_event_screen.dart        # THE CORE — ~1900 lines:
 │   │   │   ├── Joystick-driven exploration
 │   │   │   ├── Branching: Gate → Crossroads → Paths → Gathering → Verdict
 │   │   │   ├── Linear: sequential hotspots → Reflection
@@ -128,7 +129,8 @@ d:\Rawi_Journey\
 │   ├── audio\                                 # 14 WAV (13 SFX + 1 footsteps)
 │   ├── audio\vo\                              # 84 MP3 (48 hotspot + 24 choice + 12 branch)
 │   ├── audio\companion\                       # 52 MP3 (13 lines x 4 variants)
-│   ├── audio\ambient\                         # Per-hotspot atmospheric beds + onboarding music (Khaled provides)
+│   ├── audio\ambient\                         # Per-hotspot atmospheric beds + onboarding music (ElevenLabs)
+│   ├── video\                                 # Cinematic event intros (Runway-generated MP4s)
 │   ├── scenes\                                # 16 JPG (3 scene + 12 bubble + 1 welcome)
 │   ├── figures\                               # 4 JPG (male/female x onboarding/inscene)
 │   └── icon\                                  # 1 JPG (app icon)
@@ -169,8 +171,9 @@ App Launch
   
 Event List
   │
-  ├── Tap Play (immersive event) → Cinematic Transition → pushReplacement → Immersive Event Screen
-  │                                  (Sprint 48 fix: no nested push, prevents replay freeze)
+  ├── Tap Play (immersive event):
+  │     If video intro exists (first play only) → VideoIntroScreen → pushReplacement → Immersive
+  │     Otherwise → Cinematic Transition → pushReplacement → Immersive Event Screen
   │     │
   │     ├── Branching (Events 1-3):
   │     │     Gate → Crossroads → Paths → Gathering → Verdict → Continue → pop(true)
@@ -373,3 +376,7 @@ follows strict chronological sequence.
 | 46 | Sound integration (8 ElevenLabs clips: ambients + SFX wired) |
 | 47 | Audio isolation (strict window containment, short fades, no bleeds) |
 | 48 | R6 testing (P0 freeze fix via pushReplacement, icon refinement, duplicate CTA, ambient race) |
+| 49 | R7 cinematic continuity (continuous ambient, events list BG, crossfade, flutter_launcher_icons, LOCKED fade rule) |
+| 50 | R8 completion flow (pushAndRemoveUntil, event list layout: gold glow, dots, teasers, lock hints) |
+| 51 | Video integration (video_player, Event 2 cinematic intro, blurred BG extension) |
+| 52 | R9 final polish (splash BG, reset onboarding, overlay, scroll clickable, tutorial glow, video blur) |

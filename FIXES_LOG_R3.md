@@ -187,3 +187,48 @@ Strict window containment across 10+ exit points. Short fades (200-500ms) replac
 | R6-03 | **Duplicate intro CTA screen** | P1 | "Witness history..." was in both `_lines` AND CTA section. Removed from `_lines`. CTA now uses Cinzel 22px matching sequence style. |
 | R6-04 | **Intro ambient silent** | P1 | `playAmbient` fire-and-forget before `fadeAmbientTo` — fade started while `setAsset` loading. Extracted into `_startIntroAmbient()` that awaits play THEN fades. Same fix in cinematic_transition. |
 | R6-05 | **Registration bg shifts with keyboard** | P1 | `resizeToAvoidBottomInset: false` + `GestureDetector` wrapping body with `onTap: unfocus` (tap anywhere to dismiss). |
+
+---
+
+## Round 7 — Cinematic Continuity (Sprint 49 — April 6, 2026)
+
+| # | Fix | Details |
+|---|-----|---------|
+| R7-01 | **Continuous intro ambient** | `ambient_intro.mp3` plays uninterrupted splash→events list. `playAmbient` idempotent. Transition fades out home ambient instead of playing its own. |
+| R7-02 | **Events list cinematic BG** | Desert image + dark overlay behind all event cards |
+| R7-03 | **Registration crossfade** | AnimatedSwitcher replaces PageView (no horizontal slide bleed) |
+| R7-04 | **flutter_launcher_icons** | Package generates proper foreground PNGs + adaptive icon XML |
+| RULE | **LOCKED: No hard audio cuts** | Every BG sound/VO fade (200-500ms). `playAmbient`/`playVoiceover` internally fade previous. Only lifecycle emergencies use hard stop. |
+
+---
+
+## Round 8 — Completion Flow + Event List (Sprint 50 — April 6, 2026)
+
+| # | Fix | Details |
+|---|-----|---------|
+| R8-01 | **Completion flow** | `pop` → `pushAndRemoveUntil(EventListScreen)` — auto-returns with next event unlocked |
+| R8-02 | **Event list polish** | Active card gold glow, 10px progress dots with glow, lock hint text, collapsed chapter teasers, "36 events await" bottom text |
+
+---
+
+## Video Integration (Sprint 51 — April 6, 2026)
+
+| # | Fix | Details |
+|---|-----|---------|
+| VID-01 | **Video intro screen** | `video_intro_screen.dart` — full-screen video player, skip after 3s, blurred BG extension |
+| VID-02 | **Event 2 wiring** | `_getVideoIntro()` map, first-play only, home ambient fades before video |
+
+---
+
+## Round 9 — Final Polish (Sprint 52 — April 6, 2026)
+
+| # | Fix | Details |
+|---|-----|---------|
+| R9-01 | **Splash cinematic BG** | Blurred desert + dark overlay (visual continuity end-to-end) |
+| R9-02 | **Reset full visual reset** | Clears `isOnboardingComplete` → full first-time experience replays |
+| R9-03 | **Events list darker overlay** | 85% → 92% for readability |
+| R9-04 | **Ambient restart delay** | 800ms delay + 1000ms fade-in (avoids race condition) |
+| R9-05 | **Tutorial visibility** | Dim 180→210, icon 72px with gold glow shadow |
+| R9-06 | **Scroll indicator clickable** | Tap scrolls 80% down (IgnorePointer removed) |
+| R9-07 | **Settings tagline** | App tagline replaces placeholder |
+| R9-08 | **Video blur BG** | Black letterbox → blurred scaled video + centered AspectRatio |

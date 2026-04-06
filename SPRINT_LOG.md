@@ -965,3 +965,69 @@ Race-safe: `fadeOut`'s internal `if (_ambient != player) return;` guard exits th
 - `flutter analyze` — 0 errors, 2 info-level only
 - `flutter test` — 6/6 passing
 - APK builds cleanly via direct Gradle
+
+---
+
+## Sprint 49 — R7 Cinematic Continuity
+**Date:** 2026-04-06
+**Status:** COMPLETE
+
+### LOCKED RULE: All BG sound and VO transitions are fades, never hard cuts.
+
+| Change | Details |
+|--------|---------|
+| **R7-01: Continuous ambient** | `ambient_intro.mp3` plays from splash through events list uninterrupted. `playAmbient` made idempotent (skips if same asset already playing). Registration no longer fades out. Events list restarts ambient on resume (800ms delay). Cinematic transition fades home ambient out instead of playing its own `ambient_transition.mp3`. |
+| **R7-02: Events list BG** | Desert scene image + 85% navy overlay (later darkened to 92% in R9). |
+| **R7-03: Registration crossfade** | PageView replaced with AnimatedSwitcher (500ms fade). No horizontal slide bleed. |
+| **R7-04: flutter_launcher_icons** | Package generates proper `ic_launcher_foreground.png` at all densities. Adaptive icon XML uses `@drawable/ic_launcher_foreground`. |
+| **Audio global audit** | `playVoiceover` internally fades previous (150ms). `fadeOutVoiceover` accepts configurable duration. `fadeOut` default 1500→400ms. Every `stopVoiceover` call → `fadeOutVoiceover`. Every `stopAmbient` → `fadeOut`. Only lifecycle emergencies use hard stops. |
+
+---
+
+## Sprint 50 — R8 Completion Flow + Event List Polish
+**Date:** 2026-04-06
+**Status:** COMPLETE
+
+| # | Change | Details |
+|---|--------|---------|
+| R8-01 | **Completion flow** | `Navigator.pop` → `pushAndRemoveUntil(EventListScreen)` on both `_completeAndPop` and `_continue`. Auto-returns to event list, next event unlocked. |
+| R8-02.1 | **Active card glow** | Gold shadow (alpha 40, blur 16) on current playable event card |
+| R8-02.2 | **Progress dots** | 8→10px, gold glow on filled dots |
+| R8-02.3 | **Lock hint** | "Complete previous" / "أكمل السابق" below lock icon |
+| R8-02.4 | **Chapter teasers** | Collapsed eras show event count + teaser (e.g. "2 events · The world before the message") |
+| R8-02.5 | **Bottom text** | "36 events await" / "36 حدثاً بانتظارك" at list bottom |
+
+---
+
+## Sprint 51 — Video Integration (Event 2)
+**Date:** 2026-04-06
+**Status:** COMPLETE
+
+| File | Details |
+|------|---------|
+| `video_intro_screen.dart` | NEW — Full-screen cinematic video player. Tap-to-skip after 3s. Blurred scaled-up video background (no black letterbox bars). `BoxFit.contain` for full frame. |
+| `event_list_screen.dart` | `_getVideoIntro()` map routes event IDs to video assets. First-play only (replays use cinematic transition). Home ambient fades out 500ms before video. `pushReplacement` to ImmersiveEventScreen. |
+| `pubspec.yaml` | Added `video_player: ^2.9.2` + `assets/video/` |
+| `assets/video/event2_intro.mp4` | 18MB, 20s — army marching + birds descending, baked-in audio |
+
+---
+
+## Sprint 52 — R9 Final Polish (8 Items)
+**Date:** 2026-04-06
+**Status:** COMPLETE
+
+| # | Change | Details |
+|---|--------|---------|
+| R9-01 | **Splash cinematic BG** | Blurred desert + dark overlay — visual continuity from splash through entire app |
+| R9-02 | **Reset full visual reset** | Clears `isOnboardingComplete` → user sees full intro cinematic + registration again |
+| R9-03 | **Events list darker** | Overlay 85% → 92% for better readability |
+| R9-04 | **Ambient restart delay** | 800ms delay before restart + 1000ms fade-in (avoids race with previous dispose) |
+| R9-05 | **Tutorial visibility** | Dim 180→210, icon 64→72px with gold glow shadow |
+| R9-06 | **Scroll indicator clickable** | IgnorePointer removed, tap scrolls 80% down with easeOutCubic |
+| R9-07 | **Settings tagline** | Replaced "Made with ♥ in Amman" with app tagline |
+| R9-08 | **Video blur BG** | Black letterbox → blurred scaled video + dark overlay + centered AspectRatio |
+
+### Quality
+- `flutter analyze` — **0 issues** (cleanest ever)
+- `flutter test` — 6/6 passing
+- APK builds successfully

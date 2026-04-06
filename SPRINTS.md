@@ -1,7 +1,7 @@
 # Rawi — Sprint Index
 
-> 48 sprints + post-audit across 5 days (April 1–5, 2026)
-> All sprints complete. R4/R5/R6 testing rounds fixed (45+ items).
+> 52 sprints + post-audit across 6 days (April 1–6, 2026)
+> All sprints complete. R4–R9 testing rounds fixed (70+ items). MVP Events 1-2 flawless.
 
 ---
 
@@ -90,7 +90,19 @@
 | 45 | R5 Code Review | **Arabic italic ROOT CAUSE**: Lora has no Arabic glyphs, fallback inherited italic. Conditional `isAr` on 14 instances. Transition particle gate fix. XP sizes bump. Scroll indicator bigger. Adaptive icon XML. |
 | 46 | Sound Integration | 8 ElevenLabs clips wired: intro + transition + crossroads ambients, 3 Event 1 hotspot ambients via `ambientPath`, XP + badge SFX one-shots. |
 | 47 | Audio Isolation | Strict window containment across 10+ exit points. Short fades (200-500ms) replace hard stops. No bleeds between screens/hotspots/overlays. Race-safe via player identity check. |
-| 48 | R6 Testing | **R6-01 P0 FREEZE FIX**: nested `Navigator.push` → `pushReplacement`, removed dead `ambient_desert_evening.wav` call. **R6-02 P0**: adaptive icon inline inset + roundIcon. R6-03: removed duplicate intro CTA. R6-04: intro ambient race (await play THEN fade). R6-05: registration keyboard shift. |
+| 48 | R6 Testing | P0 freeze fix (pushReplacement), icon refinement, duplicate CTA, ambient race, keyboard |
+
+---
+
+## Day 6 — April 6, 2026 (Sprints 49–52)
+**Focus:** Cinematic continuity, completion flow, video integration, final polish
+
+| # | Sprint | Key Deliverable |
+|---|--------|----------------|
+| 49 | R7 Cinematic Continuity | Continuous `ambient_intro.mp3` splash→events list. Events list desert BG. Registration crossfade. `flutter_launcher_icons`. **LOCKED RULE: no hard audio cuts.** Global audio audit. |
+| 50 | R8 Completion Flow + Event List | `pushAndRemoveUntil(EventListScreen)` on complete. Active card gold glow, 10px progress dots, lock hint text, chapter teasers, motivational bottom text. |
+| 51 | Video Integration | `video_player` package. `VideoIntroScreen` — full-screen with blurred BG extension. Event 2 cinematic intro (18MB MP4). First-play only. |
+| 52 | R9 Final Polish | Splash cinematic BG. Reset clears onboarding. Overlay 92%. Ambient 800ms delay. Tutorial gold glow. Scroll indicator clickable. Video blur BG. Settings tagline. |
 
 ---
 
@@ -98,7 +110,9 @@
 
 | # | Sprint | Scope |
 |---|--------|-------|
-| 49+ | Pending Khaled input | Remaining ambient clips (e1_poet, e1_verdict, e2_* x5), Jordanian VO regen, badge painterly artwork, video support, Young Rawi Mode (post-launch) |
+| 53+ | Content writing | Events 3-36 data + scene configs. One event per day. Follow RAWI_ROAD_TO_LAUNCH.md. |
+| — | Pending Khaled | Remaining 7 ambient clips, Jordanian VO regen, badge painterly artwork |
+| — | Post-Launch | Young Rawi Mode (age-adaptive content — see `doc/RAWI_YOUNG_RAWI_MODE.md`) |
 
 ---
 
@@ -106,11 +120,12 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sprints | 48 + post-audit |
-| Total days | 5 |
-| Bugs fixed | 105+ across 6 testing rounds + audit |
-| Dart files | 43 |
-| Dart lines | ~12,200 |
-| Audio files | 158 (84 VO + 52 companion + 14 SFX + 8 ambient/SFX ElevenLabs) |
-| Git commits | 25+ |
+| Total sprints | 52 + post-audit |
+| Total days | 6 |
+| Bugs fixed | 120+ across 9 testing rounds + audit |
+| Dart files | 44 |
+| Dart lines | ~12,250 |
+| Audio files | 159 (84 VO + 52 companion + 14 SFX + 8 ambient + 1 video) |
+| Video files | 1 (event2_intro.mp4, 18MB) |
+| Git commits | 55 |
 | Tests | 6 (5 branching + 1 smoke, all passing) |
