@@ -329,6 +329,35 @@ collapsed (teen, current), auto-expanded (adult).
 
 ---
 
+### Hasanat System (Launch — after 36 events complete)
+Dual reward track: XP (game progress) + Hasanat (spiritual dhikr).
+After event completion → XP overlay → "Would you like to earn Hasanat?"
+→ contextual dhikr card → honor-based "I've said it" → Hasanat counter.
+
+**Implementation when ready:**
+- Data: `Dhikr` model (arabic, transliteration, meaning, whenToSay, source)
+- Prefs: `hasanatTotal` (int), `dhikrDeclineCount` (frequency reducer)
+- UI: Dhikr card overlay (post-XP), Hasanat counter on profile/home
+- Flow: inserted into `_completeAndPop` after XP step, before pop
+- Layer 2 (post-launch): "Dhikr Garden" screen, morning/evening detection
+
+**Full spec:** `doc/RAWI_HASANAT_ARCHITECTURE.md`
+
+### Analytics & Crash Reporting (Pre-Launch — required)
+Firebase Crashlytics + Analytics. Offline-first (queue + send).
+No personal data. Anonymous device IDs only.
+
+**Implementation when ready:**
+- `firebase_core`, `firebase_crashlytics`, `firebase_analytics` packages
+- Crash wrapper in `main.dart` (FlutterError.onError + PlatformDispatcher)
+- Custom crash keys: event ID, screen name, language, XP
+- 40+ custom analytics events across onboarding, gameplay, rewards, settings
+- ~4 sprints total
+
+**Full spec:** `doc/RAWI_ANALYTICS_ARCHITECTURE.md`
+
+---
+
 ## Branching System Safety
 
 Events 4-36 have `branchPoint == null`. The `_isBranching` guard in

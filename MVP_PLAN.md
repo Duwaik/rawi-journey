@@ -9,7 +9,9 @@
 > **Done:** All 52 sprints. Sound fully integrated (8 ElevenLabs clips + 1 video). Completion flow clean. Visual continuity splash→events list. Registration redesigned. Settings reordered. Reset fully resets.
 > **Remaining:** Firebase Crashlytics (needs google-services.json), font bundling (deferred), remaining 7 ambient clips (e1_poet, e1_verdict, e2 x5), Jordanian VO regen, badge painterly artwork.
 > **Next:** Content writing for Events 3-36 (one event per day). Follow RAWI_ROAD_TO_LAUNCH.md.
-> **Post-Launch:** Young Rawi Mode (age-adaptive content — see `doc/RAWI_YOUNG_RAWI_MODE.md`), character pose art.
+> **Pre-Launch (required):** Firebase Crashlytics + Analytics (~4 sprints). See `doc/RAWI_ANALYTICS_ARCHITECTURE.md`.
+> **Launch:** Hasanat Layer 1 — single contextual dhikr per event (~3.5 sprints). See `doc/RAWI_HASANAT_ARCHITECTURE.md`.
+> **Post-Launch:** Young Rawi Mode (`doc/RAWI_YOUNG_RAWI_MODE.md`), Hasanat Layer 2 ("Dhikr Garden").
 >
 > **Event Terminology:** The Gate → The Crossroads → The Paths → The Gathering → The Verdict (branching). The Reflection (linear).
 > **Architecture:** See `ARCHITECTURE.md` for full details.

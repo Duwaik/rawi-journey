@@ -419,9 +419,14 @@ cupertino_icons: ^1.0.8    # iOS-style icons
 4. M4 data — 35 events in `m4_data.dart`
 5. Era-pack download system (audio not bundled in APK)
 6. **Young Rawi Mode** — age-adaptive content (see below)
-7. Video support — cinematic videos per event (Runway-generated)
+7. Video support — cinematic videos per event (Runway-generated) ✅ Event 2 done
 8. Badge artwork — 7 painterly badge images (Bing Image Creator)
-9. Character pose art — Walking/Witnessing/Reflecting/Carrying for Rawi/Rawiah
+9. Character pose art ✅ Done — 9 images integrated across 8 screens
+10. **Hasanat System** — dual reward track (XP + spiritual dhikr). See `doc/RAWI_HASANAT_ARCHITECTURE.md`
+    - Layer 1 (Launch): Single contextual dhikr after each event. ~3.5 sprints.
+    - Layer 2 (Post-Launch): "Dhikr Garden" — multiple adhkar, repeatable, time-aware.
+11. **Analytics & Crash Reporting** — Firebase Crashlytics + Analytics. See `doc/RAWI_ANALYTICS_ARCHITECTURE.md`
+    - Required before public launch. ~4 sprints. Offline-first, anonymous.
 
 ### Young Rawi Mode (Post-Launch — Month 1–3)
 
@@ -509,6 +514,8 @@ d:\Rawi_Journey\assets\
 | 6 | Companion figure | Image-based in circle (not CustomPainter) | 2026-04-01 |
 | 7 | Young Rawi Mode | One app, age-adaptive content (not separate app) | 2026-04-05 |
 | 8 | Ambient sound | Per-hotspot atmospheric beds (not looping scene bg) | 2026-04-04 |
+| 9 | Hasanat system | Dhikr only (no Quran), honor-based, always optional, Layer 1 at launch | 2026-04-07 |
+| 10 | Analytics | Firebase Crashlytics + Analytics, anonymous, offline-first, pre-launch | 2026-04-07 |
 
 ### Still Pending
 1. **App store name:** "Rawi" only, or "Rawi: The Seerah"?
