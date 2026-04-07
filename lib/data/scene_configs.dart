@@ -37,6 +37,10 @@ final Map<String, SceneConfig> sceneConfigs = {
         sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
         imagePath: 'assets/scenes/bubble_kaabah.jpg',
         ambientPath: 'assets/audio/ambient/ambient_e1_kaabah.mp3',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 1',
+        sourceRefAr: 'الرحيق المختوم، الفصل 1',
+        didYouKnow: 'The Ka\'bah was originally built by Ibrahim ﷺ and his son Ismail ﷺ as a house of pure monotheism — with no roof, open to the sky.',
+        didYouKnowAr: 'الكعبة بناها إبراهيم ﷺ وابنه إسماعيل ﷺ أصلاً بيتاً للتوحيد الخالص — بلا سقف، مفتوحة على السماء.',
       ),
       SceneHotspot(
         id: 'idols',
@@ -49,6 +53,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         sfxPath: 'assets/audio/sfx_idols_incense.wav',
         imagePath: 'assets/scenes/bubble_idols.jpg',
         ambientPath: 'assets/audio/ambient/ambient_e1_idols.mp3',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 2',
+        sourceRefAr: 'الرحيق المختوم، الفصل 2',
       ),
       SceneHotspot(
         id: 'poet',
@@ -60,6 +66,10 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'شاعر ينشد أبياتاً خلابة عن الشرف والشجاعة — بينما على بعد أزقة قليلة، رجل يدفن ابنته الوليدة في الرمال دون كلمة. العالم يتحرك في تناقضات.\n\nمشيت في هذا الفناء. رأيت الثروة والفقر، العبادة والفراغ. الآن يصمت الشاعر، وتبقى أنت مع السؤال المعلّق في هواء الصحراء —',
         sfxPath: 'assets/audio/sfx_poet_crowd.wav',
         imagePath: 'assets/scenes/bubble_poet.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 2',
+        sourceRefAr: 'الرحيق المختوم، الفصل 2',
+        didYouKnow: 'Pre-Islamic poets held the same status as media does today — their verses could make or break a tribe\'s reputation across all of Arabia.',
+        didYouKnowAr: 'الشعراء في الجاهلية كانوا بمنزلة الإعلام اليوم — قصائدهم كانت تصنع سمعة القبيلة أو تدمرها في أنحاء الجزيرة.',
       ),
       SceneHotspot(
         id: 'merchants',
@@ -72,6 +82,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         sfxPath: 'assets/audio/sfx_merchants_bustle.wav',
         imagePath: 'assets/scenes/bubble_merchants.jpg',
         ambientPath: 'assets/audio/ambient/ambient_e1_merchants.mp3',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 2',
+        sourceRefAr: 'الرحيق المختوم، الفصل 2',
       ),
     ],
     // Walking path: start bottom → merchants → Ka'bah → idols → poet
@@ -139,6 +151,10 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'الأفق جنوباً مظلم بالغبار. أبرهة الأشرم — حاكم اليمن — يزحف بأفيال حرب وآلاف الجنود. مهمته: تدمير الكعبة وتحويل حج العرب إلى كنيسة فخمة بناها في صنعاء.',
         sfxPath: 'assets/audio/sfx_army_march.wav',
         imagePath: 'assets/scenes/bubble_army.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Quran 105:1-5',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | القرآن 105:1-5',
+        didYouKnow: 'Abraha built a massive cathedral in Sana\'a called Al-Qullays to divert the Arab pilgrimage away from the Ka\'bah — but the Arabs refused to abandon the ancient house.',
+        didYouKnowAr: 'بنى أبرهة كنيسة ضخمة في صنعاء تُسمى القُلّيس لتحويل حج العرب عن الكعبة — لكن العرب رفضوا هجر البيت العتيق.',
       ),
       SceneHotspot(
         id: 'muttalib',
@@ -150,6 +166,10 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: '"أنا ربّ الإبل. وللبيت ربّ يحميه." وقف عبد المطلب أمام أبرهة ولم يطلب إلا إبله — لا البيت الحرام. وأمر قومه بالانسحاب إلى الجبال.',
         sfxPath: 'assets/audio/sfx_muttalib_silence.wav',
         imagePath: 'assets/scenes/bubble_muttalib.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5',
+        didYouKnow: 'When Abraha\'s general took Abd al-Muttalib\'s camels, he went to negotiate — but only asked for his camels back, not for the Ka\'bah\'s protection. He said: "I am the lord of the camels. As for the House, it has a Lord who will protect it."',
+        didYouKnowAr: 'حين أخذ قائد أبرهة إبل عبد المطلب، ذهب للتفاوض — لكنه طالب فقط بإبله، لا بحماية الكعبة. قال: "أنا ربّ الإبل، وللبيت ربٌّ يحميه."',
       ),
       SceneHotspot(
         id: 'elephants',
@@ -161,6 +181,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'الأفيال تتوقف عند حدود الحرم وترفض التحرك. الحيوانات الضخمة تركع، مهما ضربها فرسانها. شيء خفي يمنعها.',
         sfxPath: 'assets/audio/sfx_elephants_rumble.wav',
         imagePath: 'assets/scenes/bubble_elephants.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5',
       ),
       SceneHotspot(
         id: 'birds',
@@ -172,6 +194,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'السماء تُظلم — لا بالغيوم، بل بالطيور. آلاف منها، تشبه الصقور، كل طائر يحمل ثلاثة أحجار من سجيل. المستحيل يتكشّف أمام عينيك. هذه حماية إلهية.\n\nسواء وقفت قرب الأفيال أو شاهدت من الجبال — هذه اللحظة تصلك بالطريقة ذاتها. السماء أجابت ما لم تستطع الأرض. وتبقى أنت مع سؤال واحد —',
         sfxPath: 'assets/audio/sfx_birds_swarm.wav',
         imagePath: 'assets/scenes/bubble_birds.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Quran 105:3-4',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | القرآن 105:3-4',
       ),
     ],
     // Path A: Start → Army (anchor) → Elephants → Muttalib → Birds (convergence)
@@ -240,6 +264,10 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'جاءت الأمطار دون سابق إنذار — سيل جارف اجتاح الوادي وضرب البيت العتيق. انهارت الجدران. تزحزحت الحجارة. الكعبة، المتهالكة بفعل القرون، لم تعد تحتمل. اتفقت قبائل قريش: يجب إعادة البناء. تراقب الرجال يحملون الحجارة من الوادي، يرصّونها بعناية. العمل بطيء لكنه موحّد — في الوقت الحالي.',
         sfxPath: 'assets/audio/sfx_flood_rubble.wav',
         imagePath: 'assets/scenes/bubble_flood.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'الرحيق المختوم، الفصل 6',
+        didYouKnow: 'The Ka\'bah was rebuilt several times throughout history. This particular rebuilding by Quraysh happened when Muhammad ﷺ was 35 years old — just 5 years before prophethood.',
+        didYouKnowAr: 'أُعيد بناء الكعبة عدة مرات عبر التاريخ. إعادة البناء هذه على يد قريش حدثت حين كان محمد ﷺ في الخامسة والثلاثين — قبل النبوة بخمس سنوات فقط.',
       ),
       SceneHotspot(
         id: 'dispute',
@@ -251,6 +279,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'الجدران شبه مكتملة. لكن مهمة واحدة بقيت — إعادة الحجر الأسود إلى ركنه المقدس. ومعها جاءت الأزمة. كل قبيلة تطالب بالحق. ترى الأيدي تقبض على مقابض السيوف. الأصوات تعلو. أربعة أيام من الخلاف، ولا حل. الحرم، المخصص للسلام، يرتجف على حافة سفك الدماء.',
         sfxPath: 'assets/audio/sfx_dispute_crowd.wav',
         imagePath: 'assets/scenes/bubble_dispute.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'الرحيق المختوم، الفصل 6',
       ),
       SceneHotspot(
         id: 'alamin',
@@ -262,6 +292,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'عند الفجر، يُفتح باب الحرم. أول من يدخل هو محمد \uFDFA — في الخامسة والثلاثين، تعرفه كل القبائل لكنه لا ينتمي لأي فريق. همسة تسري في الجمع: \'الأمين.\' لا أحد يعترض. لقد ائتمنوه — قبل النبوة بسنين.',
         sfxPath: 'assets/audio/sfx_dawn_wind.wav',
         imagePath: 'assets/scenes/bubble_alamin.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'الرحيق المختوم، الفصل 6',
       ),
       SceneHotspot(
         id: 'cloak',
@@ -273,6 +305,10 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'يطلب رداءً. يبسطه على الأرض ويضع الحجر الأسود فوقه. ثم يدعو زعيم كل قبيلة ليمسك بطرف. معاً يرفعون. معاً يحملونه إلى مكانه. يضع الحجر بيديه الشريفتين. لم تُحرم قبيلة. لم يُسفك دم. حكمة — قبل الوحي.\n\nسواء شاهدت السيوف تكاد تُسلّ أو الباب الذي دخل منه الأمين — وصلت إلى الحقيقة ذاتها. رجل ائتمنه العالم سلفاً أظهر للتو لماذا. والسؤال يبقى —',
         sfxPath: 'assets/audio/sfx_cloak_fabric.wav',
         imagePath: 'assets/scenes/bubble_cloak.jpg',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'الرحيق المختوم، الفصل 6',
+        didYouKnow: 'The Quraysh had agreed that the first person to enter the sanctuary at dawn would be their judge. That person turned out to be Muhammad ﷺ — by Allah\'s design, not by anyone\'s arrangement.',
+        didYouKnowAr: 'اتفقت قريش أن أول من يدخل الحرم عند الفجر يكون حَكَمهم. وكان ذلك الشخص محمداً ﷺ — بتدبير الله، لا بترتيب أحد.',
       ),
     ],
     // Path A: Start → Flood (anchor) → Dispute → Al-Amin → Cloak (convergence)
@@ -345,6 +381,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragment: 'The Year of the Elephant has barely passed. Mecca is still shaken — the people saw an army destroyed before their eyes, stones falling from birds they had never seen. The Quraysh know something has changed, though they cannot name it. Tonight, in the quarter of Banu Hashim, a woman is in labor. The house is small. The streets are quiet. No one in Mecca knows that this night will be remembered long after the Elephant is forgotten.',
         fragmentAr: 'عام الفيل بالكاد مرّ. مكة لا تزال مهتزة — رأى الناس جيشاً يُدمَّر أمام أعينهم، حجارة تسقط من طيور لم يروها قط. قريش تعلم أن شيئاً تغيّر، لكنها لا تستطيع تسميته. الليلة، في حي بني هاشم، امرأة تضع مولوداً. البيت صغير. الأزقة هادئة. لا أحد في مكة يعلم أن هذه الليلة ستُذكر طويلاً بعد أن يُنسى الفيل.',
         sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5',
       ),
       SceneHotspot(
         id: 'aminah_vision',
@@ -355,6 +393,10 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragment: 'When Aminah carried him, she saw a vision — a light emerging from her that illuminated the palaces of distant Syria. The Prophet \uFDFA himself would later say: "I am the supplication of my father Ibrahim, the glad tidings of my brother Isa, and my mother saw when she carried me a light that illuminated the palaces of Syria." She did not yet understand what it meant. But the light was real. And the child it announced would illuminate far more than palaces.',
         fragmentAr: 'حين حملت آمنة به، رأت رؤيا — نور يخرج منها يُضيء قصور الشام البعيدة. النبي \uFDFA نفسه سيقول لاحقاً: "أنا دعوة أبي إبراهيم، وبشرى أخي عيسى، ورأت أمي حين حملت بي نوراً أضاءت له قصور الشام." لم تفهم بعد ما يعنيه ذلك. لكن النور كان حقيقياً. والطفل الذي بشّر به سيُضيء أكثر بكثير من القصور.',
         sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+        sourceRef: 'Musnad Ahmad | Quran 2:129, 61:6',
+        sourceRefAr: 'مسند أحمد | القرآن 2:129، 61:6',
+        didYouKnow: 'The Prophet ﷺ described himself as the answer to three things: Ibrahim\'s prayer for a messenger from among his descendants, Isa\'s prophecy of "a messenger after me named Ahmad," and his mother\'s vision of light.',
+        didYouKnowAr: 'وصف النبي ﷺ نفسه بأنه إجابة ثلاثة أمور: دعوة إبراهيم بإرسال رسول من ذريته، وبشارة عيسى بـ"رسول يأتي من بعدي اسمه أحمد"، ورؤيا أمه بالنور.',
       ),
       SceneHotspot(
         id: 'naming_kaabah',
@@ -365,6 +407,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragment: 'Abd al-Muttalib carries the newborn to the Ka\'bah. He holds the child before the ancient house — the same house that Allah protected from Abraha\'s army just weeks before. He names him Muhammad: "The one who is praised again and again." The Arabs ask why he chose a name none of them have ever heard. He answers: "I want him to be praised in the heavens and on earth." A grandfather\'s hope. A name that would be spoken five times a day in every corner of the world.',
         fragmentAr: 'يحمل عبد المطلب المولود إلى الكعبة. يرفع الطفل أمام البيت العتيق — البيت نفسه الذي حماه الله من جيش أبرهة قبل أسابيع. يسمّيه محمداً: "الذي يُحمد مراراً وتكراراً." يسأله العرب لماذا اختار اسماً لم يسمعوه من قبل. يجيب: "أريده أن يُحمد في السماء والأرض." أمنية جَدّ. اسم سيُردد خمس مرات في اليوم في كل زاوية من العالم.',
         sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Ibn Hisham',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | ابن هشام',
       ),
       SceneHotspot(
         id: 'orphan_dawn',
@@ -375,6 +419,10 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragment: 'He was born without a father. Abdullah died months before — some say in Medina, returning from a trade journey, never knowing what Aminah carried. This child entered the world with nothing but a mother\'s embrace and a grandfather\'s prayer. Years later, Allah would address him directly: "Did He not find you an orphan and give you shelter?" Every loss was preparation. Every absence was by design. The most influential human being in history began with the least.',
         fragmentAr: 'وُلد بلا أب. عبد الله مات قبل أشهر — يُقال في المدينة، عائداً من رحلة تجارة، لم يعلم قط ما حملته آمنة. هذا الطفل دخل الدنيا بلا شيء سوى حضن أمّه ودعاء جدّه. بعد سنين، سيخاطبه الله مباشرة: "أَلَمْ يَجِدْكَ يَتِيمًا فَآوَىٰ؟" كل خسارة كانت إعداداً. كل غياب كان بتدبير. أكثر إنسان أثّر في التاريخ بدأ بأقل القليل.',
         sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Quran 93:6',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | القرآن 93:6',
+        didYouKnow: 'Abdullah, the Prophet\'s father, died at age 25 — so young that when his son was later asked about him, the details were few. The Prophet ﷺ once passed his father\'s grave in Medina and wept.',
+        didYouKnowAr: 'عبد الله، والد النبي، توفي في سن الخامسة والعشرين — شاباً جداً حتى أن التفاصيل عنه كانت قليلة حين سُئل ابنه لاحقاً. مرّ النبي ﷺ يوماً بقبر أبيه في المدينة وبكى.',
       ),
     ],
     // Linear path: Start → Night in Banu Hashim → Aminah's Vision → Naming → Orphan's Dawn

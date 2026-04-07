@@ -100,6 +100,10 @@ class JourneyQuestion {
   final String? deeperContent;
   final String? deeperContentAr;
 
+  /// Optional source reference shown below the explanation.
+  final String? sourceRef;
+  final String? sourceRefAr;
+
   const JourneyQuestion({
     required this.id,
     required this.question,
@@ -111,6 +115,8 @@ class JourneyQuestion {
     required this.explanationAr,
     this.deeperContent,
     this.deeperContentAr,
+    this.sourceRef,
+    this.sourceRefAr,
   });
 }
 

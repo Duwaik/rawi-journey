@@ -19,6 +19,10 @@ class DiscoveryPanel extends StatefulWidget {
   final bool centerMode;
   final String? deeperContent;
   final String? voPath;
+  final String? didYouKnow;
+  final String? didYouKnowAr;
+  final String? sourceRef;
+  final String? sourceRefAr;
 
   const DiscoveryPanel({
     super.key,
@@ -31,6 +35,10 @@ class DiscoveryPanel extends StatefulWidget {
     this.centerMode = false,
     this.deeperContent,
     this.voPath,
+    this.didYouKnow,
+    this.didYouKnowAr,
+    this.sourceRef,
+    this.sourceRefAr,
   });
 
   @override
@@ -44,6 +52,12 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
   final ScrollController _scrollCtrl = ScrollController();
+
+  // "Did You Know?" state
+  String? _dykResponse; // null = not answered, 'knew' or 'new'
+
+  String? get _dykText => widget.isAr ? widget.didYouKnowAr : widget.didYouKnow;
+  String? get _sourceText => widget.isAr ? widget.sourceRefAr : widget.sourceRef;
 
   @override
   void initState() {
@@ -199,9 +213,71 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                         isAr: widget.isAr,
                       ),
 
+                    // "Did You Know?" section
+                    if (_dykText != null) ...[
+                      const SizedBox(height: 12),
+                      Container(height: 1, color: AppColors.gold.withAlpha(50)),
+                      const SizedBox(height: 12),
+                      Row(children: [
+                        Text('💡 ',
+                            style: const TextStyle(fontSize: 14)),
+                        Text(
+                          widget.isAr ? 'هل تعلم؟' : 'Did you know?',
+                          style: GoogleFonts.nunito(
+                            color: AppColors.gold,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ]),
+                      const SizedBox(height: 8),
+                      Text(
+                        _dykText!,
+                        style: GoogleFonts.lora(
+                          color: const Color(0xFFD6CCBE),
+                          fontSize: 14,
+                          fontStyle: widget.isAr ? FontStyle.normal : FontStyle.italic,
+                          height: 1.7,
+                        ),
+                        textDirection: widget.isAr ? TextDirection.rtl : TextDirection.ltr,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _DykButton(
+                            label: widget.isAr ? 'كنت أعرف' : 'I knew this',
+                            selected: _dykResponse == 'knew',
+                            onTap: () => setState(() => _dykResponse = 'knew'),
+                          ),
+                          const SizedBox(width: 12),
+                          _DykButton(
+                            label: widget.isAr ? 'جديدة عليّ' : 'New to me',
+                            selected: _dykResponse == 'new',
+                            onTap: () => setState(() => _dykResponse = 'new'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Container(height: 1, color: AppColors.gold.withAlpha(50)),
+                    ],
+
+                    // Source reference
+                    if (_sourceText != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        '📖 $_sourceText',
+                        style: GoogleFonts.nunito(
+                          color: const Color(0xFF8A9BB0),
+                          fontSize: 11,
+                        ),
+                        textDirection: widget.isAr ? TextDirection.rtl : TextDirection.ltr,
+                      ),
+                    ],
+
                     const SizedBox(height: 16),
 
-                    // Tap to continue + VO replay
+                    // Tap to continue + VO replay (gated behind DYK response if DYK exists)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
@@ -434,6 +510,44 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DykButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _DykButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: selected ? AppColors.teal.withAlpha(40) : Colors.transparent,
+          border: Border.all(
+            color: selected ? AppColors.teal : AppColors.textMuted.withAlpha(60),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? AppColors.teal : AppColors.textMuted,
           ),
         ),
       ),

@@ -37,6 +37,14 @@ class SceneHotspot {
   /// Optional ambient atmospheric bed (plays while discovery panel is open).
   final String? ambientPath;
 
+  /// Optional "Did You Know?" fact shown below the fragment.
+  final String? didYouKnow;
+  final String? didYouKnowAr;
+
+  /// Optional source reference shown at bottom of card.
+  final String? sourceRef;
+  final String? sourceRefAr;
+
   const SceneHotspot({
     required this.id,
     required this.x,
@@ -51,6 +59,10 @@ class SceneHotspot {
     this.deeperContent,
     this.deeperContentAr,
     this.ambientPath,
+    this.didYouKnow,
+    this.didYouKnowAr,
+    this.sourceRef,
+    this.sourceRefAr,
   });
 }
 

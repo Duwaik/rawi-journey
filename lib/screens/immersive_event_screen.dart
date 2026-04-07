@@ -1291,6 +1291,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               imagePath: _activeHotspot!.imagePath,
               deeperContent: _isAr ? _activeHotspot!.deeperContentAr : _activeHotspot!.deeperContent,
               voPath: _voPath(_activeHotspot!),
+              didYouKnow: _activeHotspot!.didYouKnow,
+              didYouKnowAr: _activeHotspot!.didYouKnowAr,
+              sourceRef: _activeHotspot!.sourceRef,
+              sourceRefAr: _activeHotspot!.sourceRefAr,
               centerMode: true),
 
           // ── The Reflection (linear events 4+) ─────────────────────
@@ -1696,6 +1700,20 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     ),
                   ],
 
+                  // Source reference (below explanation)
+                  if (answered && q.sourceRef != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        '📖 ${_isAr ? (q.sourceRefAr ?? q.sourceRef!) : q.sourceRef!}',
+                        style: GoogleFonts.nunito(
+                          color: const Color(0xFF8A9BB0),
+                          fontSize: 11,
+                        ),
+                        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+                      ),
+                    ),
+
                   // Go Deeper (if available)
                   if (answered && q.deeperContent != null)
                     GoDeeperSection(
@@ -1849,7 +1867,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
               const SizedBox(width: 10),
               Expanded(child:
-                Text(_isAr ? 'ماذا كنت ستفعل؟' : 'What would you do?',
+                Text(_isAr ? 'ماذا يحفظ التاريخ؟' : 'What does history remember?',
                     style: GoogleFonts.lora(color: _eraColor.withAlpha(200),
                         fontSize: 14,
                         fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
@@ -1930,9 +1948,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                               : Icons.auto_stories_rounded,
                               size: 13, color: AppColors.gold),
                           const SizedBox(width: 7),
-                          Text(isCorrect
-                              ? (_isAr ? 'يتأمّل الراوي...' : 'The Rawi reflects...')
-                              : (_isAr ? 'ما يسجّله التاريخ...' : 'What history records...'),
+                          Text(_isAr ? 'يتأمّل الراوي...' : 'The Rawi reflects...',
                               style: GoogleFonts.nunito(color: AppColors.gold,
                                   fontSize: 11, fontWeight: FontWeight.w700,
                                   letterSpacing: 0.6)),
@@ -1944,6 +1960,19 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                                 fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
                                 height: 1.7),
                             textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr),
+                        // Source reference
+                        if (q.sourceRef != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              '📖 ${_isAr ? (q.sourceRefAr ?? q.sourceRef!) : q.sourceRef!}',
+                              style: GoogleFonts.nunito(
+                                color: const Color(0xFF8A9BB0),
+                                fontSize: 11,
+                              ),
+                              textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+                            ),
+                          ),
                       ],
                     ),
                   ),
