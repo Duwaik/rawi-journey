@@ -43,7 +43,8 @@ class EventListScreen extends StatefulWidget {
   State<EventListScreen> createState() => _EventListScreenState();
 }
 
-class _EventListScreenState extends State<EventListScreen> {
+class _EventListScreenState extends State<EventListScreen>
+    with WidgetsBindingObserver {
   late List<JourneyEvent> _events;
   late int _currentOrder;
   final Set<JourneyEra> _expandedEras = {};
@@ -59,6 +60,7 @@ class _EventListScreenState extends State<EventListScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _events = List.of(m1Events)
       ..sort((a, b) => a.globalOrder.compareTo(b.globalOrder));
     _currentOrder = PrefsService.currentOrder;
@@ -67,9 +69,6 @@ class _EventListScreenState extends State<EventListScreen> {
     if (active != null) _expandedEras.add(active);
 
     // R7-01: ambient_intro.mp3 is the "home" sound of the app.
-    // playAmbient is idempotent — if it's already playing (carried from
-    // intro/registration), this is a no-op. If it was stopped (e.g.,
-    // returning from an event), it starts and fades in.
     _startHomeAmbient();
   }
 
@@ -89,9 +88,17 @@ class _EventListScreenState extends State<EventListScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // R7-01: do NOT stop ambient on dispose — it carries into transition
-    // and the transition screen fades it out itself.
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Restart home ambient after returning from background
+      _startHomeAmbient();
+    }
   }
 
   void _refresh() {

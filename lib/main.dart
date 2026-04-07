@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 import 'screens/splash_screen.dart';
+import 'services/audio_service.dart';
 import 'services/prefs_service.dart';
 
 void main() async {
@@ -32,8 +33,38 @@ void main() async {
   runApp(const RawiApp());
 }
 
-class RawiApp extends StatelessWidget {
+class RawiApp extends StatefulWidget {
   const RawiApp({super.key});
+
+  @override
+  State<RawiApp> createState() => _RawiAppState();
+}
+
+class _RawiAppState extends State<RawiApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // Global: fade all audio when app goes to background (LOCKED RULE: no hard cuts)
+      AudioService.fadeOut(duration: const Duration(milliseconds: 300));
+      AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
+      AudioService.stopSfx();
+    }
+    // Resume is handled per-screen (event list restarts ambient_intro,
+    // immersive_event_screen restarts scene ambient via its own observer)
+  }
 
   @override
   Widget build(BuildContext context) {
