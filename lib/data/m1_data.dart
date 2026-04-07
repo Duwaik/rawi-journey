@@ -200,40 +200,40 @@ final List<JourneyEvent> m1Events = [
     id: 'j_1_2_2',
     era: JourneyEra.earlyLife,
     globalOrder: 4,
-    latitude: 21.4225, longitude: 39.8262,
-    year: 575,
-    title: 'Under the Care of Abd al-Muttalib',
-    titleAr: 'في كنف عبد المطلب',
-    location: 'Mecca',
-    locationAr: 'مكة المكرمة',
+    latitude: 22.0, longitude: 40.5,
+    year: 570,
+    title: 'The Nursing Years \u2014 Halimah',
+    titleAr: 'سنوات الرضاعة \u2014 حليمة',
+    location: 'Banu Sa\'d',
+    locationAr: 'بادية بني سعد',
     narrative:
-        'You see the boy at the Ka\'bah courtyard. He is six years old — and he has just lost his mother. Aminah died on the road back from Medina, at a place called Al-Abwa\'. He watched her fall ill. He watched her stop breathing. And now he sits beside his grandfather on the mat that no other child is allowed to touch.\n\n'
-        'Abd al-Muttalib keeps the boy closer than his own sons. When the elders of Quraysh gather at the Ka\'bah, Muhammad ﷺ sits at his grandfather\'s side — a privilege no one questions. The old man\'s hand rests on the boy\'s shoulder. There is something in this child that everyone senses but no one can name.\n\n'
-        'Two years pass. You see the old man growing weaker. Before he dies, he calls his son Abu Talib to his side and entrusts Muhammad ﷺ to him. The boy has lost his father before birth, his mother at six, and now his grandfather at eight. Every earthly protection is being stripped away — one by one.',
+        'It is a year of drought. Ten women from the tribe of Banu Sa\'d ride into Mecca looking for infants to nurse \u2014 it is their custom, and their livelihood. They come on weak animals, with dry milk and hungry children of their own. Every woman finds a child from a wealthy family. Every woman except one.\n\n'
+        'Halimah bint Abi Dhu\'ayb is the last. She has been refused, and she has refused \u2014 an orphan boy with no father to pay. Her husband says: "Take him. Perhaps Allah will place blessing in him." She takes the child because no one else is left. And from the moment he is in her arms, everything changes.',
     narrativeAr:
-        'ترى الصبي في فناء الكعبة. عمره ست سنوات — وقد فقد أمه للتوّ. آمنة ماتت في طريق العودة من المدينة، في مكان يُسمى الأبواء. شاهدها تمرض. شاهدها تتوقف عن التنفس. والآن يجلس بجانب جدّه على البساط الذي لا يُسمح لطفل آخر بلمسه.\n\n'
-        'عبد المطلب يبقي الصبي أقرب إليه من أبنائه. حين يجتمع شيوخ قريش عند الكعبة، يجلس محمد ﷺ إلى جانب جدّه — امتياز لا يعترض عليه أحد. يد الشيخ تستقر على كتف الصبي. شيء في هذا الطفل يحسّه الجميع لكن لا أحد يستطيع تسميته.\n\n'
-        'يمرّ عامان. ترى الشيخ يضعف. قبل أن يموت، يستدعي ابنه أبا طالب ويأتمنه على محمد ﷺ. الصبي فقد أباه قبل الولادة، وأمه في السادسة، وجدّه الآن في الثامنة. كل حماية أرضية تُنتزع — واحدة تلو الأخرى.',
-    source: 'Sahih Muslim 2353 — account of the Prophet\'s ﷺ early guardianship',
-    xpReward: 25,
+        'إنه عام جدب. عشر نساء من قبيلة بني سعد يدخلن مكة بحثاً عن رُضَّع \u2014 هذه عادتهن ومصدر رزقهن. جئن على دوابّ هزيلة، بلبن جافّ وأطفال جياع. كل امرأة تجد طفلاً من عائلة ثرية. كل امرأة إلا واحدة.\n\n'
+        'حليمة بنت أبي ذؤيب هي الأخيرة. رُفضت، ورَفضت \u2014 طفل يتيم بلا أب يدفع. يقول زوجها: "خذيه. لعل الله يجعل لنا فيه بركة." تأخذ الطفل لأنه لم يبقَ سواه. ومن اللحظة التي يستقرّ فيها بين ذراعيها، يتغيّر كل شيء.',
+    source: 'Al-Raheeq Al-Makhtum, Ch. 5 | Ibn Hisham',
+    xpReward: 20,
     questions: [
       JourneyQuestion(
         id: 'q_1_2_2_a',
-        question: 'Muhammad ﷺ has lost his mother. He sits beside his grandfather at the Ka\'bah — the one seat no other child may touch. Where does your gaze settle?',
-        questionAr: 'فقد محمد ﷺ أمه. يجلس بجانب جدّه عند الكعبة — المقعد الذي لا يلمسه طفل سواه. أين يستقر نظرك؟',
+        question: 'When Halimah first took the orphan child, what happened immediately?',
+        questionAr: 'حين أخذت حليمة الطفل اليتيم أول مرة، ماذا حدث فوراً؟',
         options: [
-          'On the boy\'s face — quiet, watchful, carrying something you cannot name',
-          'On the elders who glance at him with curiosity — sensing what they cannot explain',
-          'On Abd al-Muttalib\'s hand resting on the boy\'s shoulder — a protection that will not last',
+          'The other women congratulated her for taking a child from the family of Abd al-Muttalib',
+          'Her milk flowed, her animals gave milk, and her weak donkey outpaced the entire caravan',
+          'A star appeared over the child and the Bedouin recognized him as special',
         ],
         optionsAr: [
-          'على وجه الصبي — هادئ، يقظ، يحمل شيئاً لا تستطيع تسميته',
-          'على الشيوخ الذين يلمحونه بفضول — يحسّون بما لا يستطيعون تفسيره',
-          'على يد عبد المطلب المستقرة على كتف الصبي — حماية لن تدوم',
+          'هنّأتها النساء لأنها أخذت طفلاً من عائلة عبد المطلب',
+          'درّ حليبها، وأعطت ماشيتها الحليب، وأتانها الضعيفة سبقت القافلة بأكملها',
+          'ظهر نجم فوق الطفل وعرف البدو أنه مميّز',
         ],
-        correctIndex: 2,
-        explanation: 'The Rawi reflects: Abd al-Muttalib gave the boy an honor given to no other child — a seat beside him at the Ka\'bah. Two years later, he too would die. But before leaving, he entrusted Muhammad ﷺ to his son Abu Talib. Every earthly protection was being removed — so that the boy would learn to rely only on Allah.',
-        explanationAr: 'يتأمّل الراوي: منح عبد المطلب الصبي شرفاً لم يمنحه لطفل سواه — مقعداً بجانبه عند الكعبة. بعد عامين، سيموت هو أيضاً. لكنه قبل رحيله أوصى بمحمد ﷺ إلى ابنه أبي طالب. كل حماية أرضية كانت تُنزع — ليتعلم الصبي الاعتماد على الله وحده.',
+        correctIndex: 1,
+        explanation: 'The Rawi reflects: Halimah took him because no one else was left. She expected nothing. But from the moment she held him, her dry milk flowed, her starving animals gave milk, and her weak donkey led the caravan home. Her husband looked at her and said: "You have taken a blessed soul." Every blessing came not from wealth or status \u2014 but from the child no one wanted. Allah places His light where He chooses.',
+        explanationAr: 'يتأمّل الراوي: أخذته حليمة لأنه لم يبقَ سواه. لم تتوقع شيئاً. لكن من لحظة حملته، درّ حليبها الجاف، وأعطت ماشيتها الجائعة الحليب، وأتانها الضعيفة قادت القافلة إلى الديار. نظر إليها زوجها وقال: "لقد أخذتِ نسمة مباركة." كل بركة جاءت لا من ثروة أو مكانة \u2014 بل من الطفل الذي لم يرده أحد. الله يضع نوره حيث يشاء.',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Ibn Hisham',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | ابن هشام',
       ),
     ],
   ),

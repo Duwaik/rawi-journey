@@ -458,4 +458,102 @@ final Map<String, SceneConfig> sceneConfigs = {
     particleColor: const Color(0x50C9A84C),
     showGrain: true,
   ),
+
+  // ── Event 4: The Nursing Years — Halimah (570 CE) ────────────────────────
+  'j_1_2_2': SceneConfig(
+    hubLayers: _meccaHubLayers,
+    groundLayers: const [
+      ParallaxLayer(
+        assetPath: 'assets/scenes/scene_event1_kaabah.jpg', // placeholder — Khaled provides desert morning BG
+        speed: 0.15,
+        verticalPosition: 0.0,
+        heightFraction: 1.0,
+      ),
+    ],
+    hotspots: const [
+      SceneHotspot(
+        id: 'drought_year',
+        x: 0.50, y: 0.62,
+        icon: '🏜️',
+        label: 'The Drought Year',
+        labelAr: 'عام الجدب',
+        fragment: 'The women of Banu Sa\'d arrive in Mecca in a year the Arabs call "shahba\'" \u2014 gray, barren, merciless. Halimah\'s own child cries through the night because her milk has dried. Her donkey is so weak it slows the entire caravan \u2014 the other women curse her pace. In Mecca, every nursing woman finds a well-born child with a generous father. Halimah is offered only one: an orphan whose father died before he was born. She turns away. What can an orphan\'s family pay?',
+        fragmentAr: 'نساء بني سعد يصلن مكة في عام يسمّيه العرب "شهباء" \u2014 رمادي، قاحل، بلا رحمة. طفل حليمة نفسه يبكي طوال الليل لأن حليبها جفّ. أتانها ضعيفة جداً حتى إنها تبطئ القافلة بأكملها \u2014 النساء يلعنّ بطأها. في مكة، كل مرضعة تجد طفلاً من عائلة كريمة بأب سخيّ. حليمة لا يُعرض عليها سوى طفل واحد: يتيم مات أبوه قبل أن يُولد. تُعرض عنه. ماذا ستدفع عائلة يتيم؟',
+        sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Ibn Hisham',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | ابن هشام',
+      ),
+      SceneHotspot(
+        id: 'blessed_soul',
+        x: 0.25, y: 0.44,
+        icon: '🤲',
+        label: 'A Blessed Soul',
+        labelAr: 'نَسَمة مباركة',
+        fragment: 'Halimah returns to the gathering place. Every other child has been taken. Only the orphan remains. She tells her husband: "I hate to return to our people with nothing. Let me take this orphan." He replies: "Take him. Perhaps Allah will place blessing in him." She lifts the child \u2014 and in that instant, her milk flows. The baby drinks until he is full. His milk-brother drinks until he is full. Their old she-camel, which had not given a drop, suddenly fills with milk. Her husband milks it and they both drink until they are satisfied. He looks at her and says: "By Allah, Halimah \u2014 you have taken a blessed soul."',
+        fragmentAr: 'تعود حليمة إلى مكان التجمّع. كل طفل آخر أُخذ. لم يبقَ سوى اليتيم. تقول لزوجها: "أكره أن أرجع إلى قومي بلا شيء. دعني آخذ هذا اليتيم." يجيب: "خذيه. لعل الله يجعل لنا فيه بركة." تحمل الطفل \u2014 وفي تلك اللحظة، يدرّ حليبها. الرضيع يشرب حتى يرتوي. أخوه في الرضاعة يشرب حتى يرتوي. ناقتهم العجوز التي لم تعطِ قطرة، تمتلئ فجأة بالحليب. زوجها يحلبها ويشربان حتى يشبعا. ينظر إليها ويقول: "والله يا حليمة \u2014 لقد أخذتِ نسمة مباركة."',
+        sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Ibn Hisham',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | ابن هشام',
+        didYouKnow: 'It was the custom of noble Quraysh families to send their newborns to Bedouin tribes in the desert \u2014 so the children would grow strong in body and pure in Arabic tongue. The Prophet \uFDFA later said: "I am the most eloquent of the Arabs, for I am from Quraysh and I was nursed among Banu Sa\'d."',
+        didYouKnowAr: 'كان من عادة أشراف قريش إرسال مواليدهم إلى قبائل البادية \u2014 ليكبر الأطفال أقوياء في أجسامهم وفصحاء في لسانهم. قال النبي \uFDFA لاحقاً: "أنا أفصح العرب، بَيد أني من قريش واسترضعت في بني سعد."',
+      ),
+      SceneHotspot(
+        id: 'green_land',
+        x: 0.72, y: 0.42,
+        icon: '🌿',
+        label: 'The Green Land',
+        labelAr: 'الأرض الخضراء',
+        fragment: 'They return to the land of Banu Sa\'d \u2014 the driest land Halimah has ever known. But now, wherever her sheep graze, they return full of milk. Her neighbors\' sheep graze the same hills and return with nothing. The people of Banu Sa\'d begin sending their shepherds to follow Halimah\'s flock, hoping for the same blessing. It does not work for them. The blessing follows the child, not the land. He grows faster than any boy his age. Halimah watches him and knows \u2014 this is not an ordinary child.',
+        fragmentAr: 'يعودون إلى أرض بني سعد \u2014 أجدب أرض عرفتها حليمة. لكن الآن، أينما رعت أغنامها، تعود ممتلئة بالحليب. أغنام جيرانها ترعى التلال ذاتها وتعود بلا شيء. أهل بني سعد يرسلون رعاتهم ليتبعوا قطيع حليمة، أملاً في البركة نفسها. لا تنجح معهم. البركة تتبع الطفل، لا الأرض. ينمو أسرع من أي صبي في سنّه. حليمة تراقبه وتعلم \u2014 هذا ليس طفلاً عادياً.',
+        sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Ibn Hisham',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | ابن هشام',
+        didYouKnow: 'Halimah\'s donkey, which had been so weak it slowed the entire caravan on the way to Mecca, outpaced every animal on the way back. The other women said in amazement: "Is this the same donkey you came on?"',
+        didYouKnowAr: 'أتان حليمة التي كانت ضعيفة جداً حتى أبطأت القافلة بأكملها في طريقها إلى مكة، سبقت كل دابة في طريق العودة. قالت النساء بدهشة: "أهذه الأتان التي خرجتِ عليها؟"',
+      ),
+      SceneHotspot(
+        id: 'keep_him',
+        x: 0.50, y: 0.28,
+        icon: '💛',
+        label: '"Let Me Keep Him"',
+        labelAr: '"دعيني أبقيه"',
+        fragment: 'After two years, it is time to return the child to his mother Aminah. But Halimah cannot bear to let him go. She has watched the blessings multiply \u2014 in her milk, her animals, her land, her family. She goes to Aminah and begs: "Let me keep him longer. I fear the plague of Mecca for him." She argues until Aminah agrees. The child returns to Banu Sa\'d. He will stay until he is four or five \u2014 running barefoot in the open desert, learning the pure Arabic of the Bedouin, growing under a sky wider than anything Mecca could offer. Allah is raising His prophet in the wilderness.',
+        fragmentAr: 'بعد سنتين، حان وقت إعادة الطفل إلى أمه آمنة. لكن حليمة لا تطيق فراقه. شاهدت البركات تتضاعف \u2014 في حليبها، وماشيتها، وأرضها، وأهلها. تذهب إلى آمنة وتتوسل: "دعيني أبقيه. أخاف عليه من وباء مكة." تُلحّ حتى توافق آمنة. يعود الطفل إلى بني سعد. سيبقى حتى الرابعة أو الخامسة \u2014 يركض حافياً في الصحراء المفتوحة، يتعلم عربية البدو الصافية، يكبر تحت سماء أوسع مما تقدمه مكة. الله يربّي نبيّه في البرّية.',
+        sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+        sourceRef: 'Al-Raheeq Al-Makhtum, Ch. 5 | Ibn Hisham',
+        sourceRefAr: 'الرحيق المختوم، الفصل 5 | ابن هشام',
+      ),
+    ],
+    // Linear path: Start → Drought Year → Blessed Soul → Green Land → Keep Him
+    pathWaypoints: const [
+      Offset(0.50, 0.80),
+      Offset(0.51, 0.72),
+      Offset(0.50, 0.62),  // Hotspot 1
+      Offset(0.38, 0.54),
+      Offset(0.25, 0.44),  // Hotspot 2
+      Offset(0.45, 0.42),
+      Offset(0.72, 0.42),  // Hotspot 3
+      Offset(0.63, 0.36),
+      Offset(0.50, 0.28),  // Hotspot 4
+    ],
+    // Early morning desert — pale gold/amber → warm blue
+    skyGradient: const [
+      Color(0xFF0A1420),
+      Color(0xFF142030),
+      Color(0xFF1E2C40),
+      Color(0xFF2A3850),
+      Color(0xFF3A4A58),
+      Color(0xFF5A5A48),
+      Color(0xFF8A7040),
+      Color(0xFFB88838),
+      Color(0xFFD8A840),
+    ],
+    skyStops: const [0.0, 0.12, 0.24, 0.36, 0.48, 0.58, 0.70, 0.85, 1.0],
+    showStars: false,
+    showMoon: false,
+    particleType: ParticleType.dust,
+    particleCount: 20,
+    particleColor: const Color(0x40B8986E),
+    showGrain: true,
+  ),
 };
