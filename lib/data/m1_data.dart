@@ -2,7 +2,7 @@ import '../models/branch_point.dart';
 import '../models/journey_event.dart';
 
 // ── M1: The Prophetic Journey ──────────────────────────────────────────────
-// 36 events across 4 chapters. All content sourced from the Quran,
+// 39 events across 4 chapters. All content sourced from the Quran,
 // Sahih Bukhari, Sahih Muslim, and authenticated scholarly works.
 //
 // COMPANION MODE — Second-person voice. The user witnesses history.
@@ -239,43 +239,169 @@ final List<JourneyEvent> m1Events = [
   ),
 
   JourneyEvent(
-    id: 'j_1_2_3',
+    id: 'j_m1_005',
     era: JourneyEra.earlyLife,
     globalOrder: 5,
+    latitude: 22.0, longitude: 40.5,
+    year: 574,
+    title: 'The Opening of the Chest',
+    titleAr: 'شرح الصدر',
+    location: 'Banu Sa\'d',
+    locationAr: 'بادية بني سعد',
+    narrative:
+        'He is four years old \u2014 perhaps five. A child of the desert, raised among the sons of Banu Sa\'d. He runs barefoot under open skies, speaks the pure Arabic of the Bedouin, and knows no life beyond the tents and the sheep. Today, he is playing with the other boys in the field behind the settlement.\n\n'
+        'Then two men appear \u2014 dressed in white, carrying a golden basin. The other children scatter. What happens next will leave a mark on his chest that his Companions will see decades later. And it will send Halimah racing back to Mecca, terrified \u2014 to return the child she loves to the mother who is waiting.',
+    narrativeAr:
+        'هو في الرابعة \u2014 ربما الخامسة. طفل الصحراء، نشأ بين أبناء بني سعد. يركض حافياً تحت سماوات مفتوحة، يتكلم عربية البدو الصافية، ولا يعرف حياة غير الخيام والأغنام. اليوم، يلعب مع الصبيان في الأرض خلف المضارب.\n\n'
+        'ثم يظهر رجلان \u2014 بثياب بيضاء، يحملان طستاً من ذهب. الأطفال الآخرون يتفرّقون. ما سيحدث بعد ذلك سيترك أثراً في صدره يراه أصحابه بعد عقود. وسيجعل حليمة تركض عائدة إلى مكة، مرعوبة \u2014 لتعيد الطفل الذي تحبّه إلى الأم التي تنتظر.',
+    source: 'Sahih Muslim #162 | Al-Raheeq Al-Makhtum, Ch. 5',
+    xpReward: 30,
+    questions: [
+      JourneyQuestion(
+        id: 'q_m1_005_a',
+        question: 'When the angels opened the chest of the young Muhammad \uFDFA, what did they remove from his heart?',
+        questionAr: 'حين شقّ الملَكان صدر محمد \uFDFA الصغير، ماذا أخرجا من قلبه؟',
+        options: [
+          'A drop of black blood \u2014 and they said "this is the share of Shaytan from you"',
+          'A small stone \u2014 a symbol of the idols that surrounded the Ka\'bah',
+          'Nothing \u2014 they only washed his heart with Zamzam water',
+        ],
+        optionsAr: [
+          'علقة سوداء \u2014 وقالا "هذا حظ الشيطان منك"',
+          'حصاة صغيرة \u2014 رمز للأصنام التي أحاطت بالكعبة',
+          'لا شيء \u2014 فقط غسلا قلبه بماء زمزم',
+        ],
+        correctIndex: 0,
+        explanation: 'The Rawi reflects: They removed a dark clot from his heart and said: "This is the share of Shaytan from you." Then they washed his heart with Zamzam water in a golden basin and returned it. Anas ibn Malik said he could still see the mark of the stitching on the Prophet\'s chest years later. From his earliest childhood, Allah was preparing him \u2014 purifying his heart before the world would need it most.',
+        explanationAr: 'يتأمّل الراوي: استخرجا علقة سوداء من قلبه وقالا: "هذا حظ الشيطان منك." ثم غسلا قلبه بماء زمزم في طست من ذهب وأعاداه. قال أنس بن مالك إنه كان يرى أثر المخيط في صدر النبي \uFDFA بعد سنين. منذ طفولته المبكرة، كان الله يُعدّه \u2014 يُطهّر قلبه قبل أن يحتاجه العالم أشد الحاجة.',
+        sourceRef: 'Sahih Muslim #162 | Al-Raheeq Al-Makhtum, Ch. 5',
+        sourceRefAr: 'صحيح مسلم #162 | الرحيق المختوم، الفصل 5',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_m1_006',
+    era: JourneyEra.earlyLife,
+    globalOrder: 6,
+    latitude: 23.45, longitude: 39.17,
+    year: 576,
+    title: 'Death of Aminah',
+    titleAr: 'وفاة آمنة',
+    location: 'Al-Abwa',
+    locationAr: 'الأبواء',
+    narrative:
+        'Aminah takes her son and sets out for Medina. With them travels Umm Ayman, the faithful servant of the family. The boy is six years old. His mother wants him to see the place where his father Abdullah is buried, and to meet his uncles from Banu al-Najjar.\n\n'
+        'They stay a month. Then on the road back to Mecca, Aminah falls ill. At a small village called Al-Abwa, she can go no further. She dies there \u2014 far from home, with her six-year-old son beside her. Umm Ayman takes the child by the hand and walks him across the desert, back to Mecca, back to his grandfather. The boy who entered the world without a father now stands without a mother.',
+    narrativeAr:
+        'تأخذ آمنة ابنها وتنطلق نحو المدينة. ترافقهم أم أيمن، خادمة العائلة الوفية. الصبي في السادسة من عمره. أمه تريده أن يرى المكان الذي دُفن فيه أبوه عبد الله، وأن يلتقي أخواله من بني النجار.\n\n'
+        'يمكثون شهراً. ثم في طريق العودة إلى مكة، تمرض آمنة. في قرية صغيرة تُدعى الأبواء، لا تستطيع المواصلة. تموت هناك \u2014 بعيدة عن بيتها، وابنها ذو الست سنوات بجانبها. أم أيمن تأخذ الطفل بيده وتمشي به عبر الصحراء، عائدة إلى مكة، عائدة إلى جدّه. الصبي الذي دخل الدنيا بلا أب يقف بلا أم.',
+    source: 'Sahih Muslim #976 | Al-Raheeq Al-Makhtum, Ch. 5',
+    xpReward: 20,
+    questions: [
+      JourneyQuestion(
+        id: 'q_m1_006_a',
+        question: 'Where did Aminah, the mother of the Prophet \uFDFA, die?',
+        questionAr: 'أين ماتت آمنة، أم النبي \uFDFA؟',
+        options: [
+          'In Mecca, surrounded by the family of Abd al-Muttalib',
+          'In Medina, at the home of Banu al-Najjar',
+          'At Al-Abwa, on the road between Medina and Mecca',
+        ],
+        optionsAr: [
+          'في مكة، بين أهل عبد المطلب',
+          'في المدينة، في بيت بني النجار',
+          'في الأبواء، على الطريق بين المدينة ومكة',
+        ],
+        correctIndex: 2,
+        explanation: 'The Rawi reflects: Aminah died at Al-Abwa on the journey back from Medina. Her son was six years old. Umm Ayman, the devoted servant, carried him home to Mecca. The Prophet \uFDFA never forgot either of them. He called Umm Ayman "my mother after my mother" and wept at his mother\'s grave when he visited it years later. From his earliest years, loss shaped him. But so did the love of those who refused to let go of his hand.',
+        explanationAr: 'يتأمّل الراوي: ماتت آمنة في الأبواء في طريق العودة من المدينة. كان ابنها في السادسة من عمره. أم أيمن، الخادمة الوفية، حملته عائدة إلى مكة. النبي \uFDFA لم ينسَ أيّاً منهما. سمّى أم أيمن "أمي بعد أمي" وبكى عند قبر أمه حين زاره بعد سنين. منذ سنواته الأولى، صاغته الخسارة. لكن صاغه أيضاً حبّ من رفضوا أن يتركوا يده.',
+        sourceRef: 'Sahih Muslim #976 | Al-Raheeq Al-Makhtum, Ch. 5',
+        sourceRefAr: 'صحيح مسلم #976 | الرحيق المختوم، الفصل 5',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_m1_007',
+    era: JourneyEra.earlyLife,
+    globalOrder: 7,
     latitude: 21.4225, longitude: 39.8262,
-    year: 578,
-    title: 'The Guardian: Abu Talib',
-    titleAr: 'الكافل: أبو طالب',
+    year: 576,
+    title: 'Under the Care of Abd al-Muttalib',
+    titleAr: 'في كنف عبد المطلب',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
     narrative:
-        'You walk alongside the trade caravan heading north toward Syria. The sun is fierce, the camels are heavy-laden, and Abu Talib — not a wealthy man, but a man of honor — leads the way. Beside him, a boy of twelve: Muhammad ﷺ, eyes wide, taking in lands he has never seen.\n\n'
-        'Abu Talib did not have to take this orphan. He has children of his own and barely enough to feed them. But he welcomed Muhammad ﷺ as a son — a place at his table, a place in his home, a place in his heart. And now he brings the boy on this journey because he cannot bear to leave him behind.\n\n'
-        'You watch Abu Talib throughout the journey — the way he positions himself between the boy and the sun, the way he checks on him at every rest stop, the way he watches over him in his sleep. This is not duty. This is love. A love that will one day shield a prophet from the most powerful forces in Arabia.',
+        'Abd al-Muttalib has a seat in the shade of the Ka\'bah that belongs to him alone. No one in Mecca sits on it. But the orphan boy climbs onto it without hesitation. His uncles reach to pull him away. Abd al-Muttalib stops them: "Leave my son alone. By Allah, he has a great destiny."\n\n'
+        'For two years, he raises the boy by his own side. Then Abd al-Muttalib dies when Muhammad \uFDFA is eight years old. Before he dies, he calls his son Abu Talib and entrusts the child to him. Three losses before the age of eight \u2014 father, mother, grandfather. The Quran would later say: "Did He not find you an orphan and give you shelter?"',
     narrativeAr:
-        'تمشي بجانب القافلة التجارية المتجهة شمالاً نحو الشام. الشمس حارقة، والجمال مُثقلة، وأبو طالب — ليس رجلاً ثرياً، لكنه رجل شرف — يقود الطريق. إلى جانبه، صبي في الثانية عشرة: محمد ﷺ، عيناه واسعتان، يتأمل أراضي لم يرها من قبل.\n\n'
-        'لم يكن على أبي طالب أن يأخذ هذا اليتيم. لديه أبناؤه ويكاد لا يجد ما يكفيهم. لكنه رحّب بمحمد ﷺ كابن — مكان على مائدته، مكان في بيته، مكان في قلبه. والآن يصطحب الصبي في هذه الرحلة لأنه لا يطيق أن يتركه.\n\n'
-        'تراقب أبا طالب طوال الرحلة — كيف يضع نفسه بين الصبي والشمس، كيف يطمئن عليه في كل استراحة، كيف يحرسه في نومه. هذا ليس واجباً. هذه محبة. محبة ستحمي يوماً نبيّاً من أقوى القوى في جزيرة العرب.',
-    source: 'Sahih Bukhari 3884 — the Prophet ﷺ on Abu Talib\'s guardianship',
+        'لعبد المطلب فراش في ظل الكعبة لا يملكه سواه. لا أحد في مكة يجلس عليه. لكن الصبي اليتيم يصعد عليه دون تردد. أعمامه يمدّون أيديهم ليبعدوه. عبد المطلب يوقفهم: "دعوا ابني. فوالله إن له لشأناً."\n\n'
+        'لمدة سنتين، يربّيه بجانبه. ثم يموت عبد المطلب ومحمد \uFDFA في الثامنة من عمره. قبل أن يموت، يعهد بالطفل إلى ابنه أبي طالب. ثلاث خسارات قبل الثامنة \u2014 الأب والأم والجد. القرآن سيقول لاحقاً: "أَلَمْ يَجِدْكَ يَتِيمًا فَآوَىٰ؟"',
+    source: 'Quran 93:6 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5',
+    xpReward: 20,
+    questions: [
+      JourneyQuestion(
+        id: 'q_m1_007_a',
+        question: 'Before Abd al-Muttalib died, he entrusted his grandson Muhammad \uFDFA to one of his sons. Who was it?',
+        questionAr: 'قبل أن يموت عبد المطلب، عهد بحفيده محمد \uFDFA إلى أحد أبنائه. من كان؟',
+        options: [
+          'Hamza, the youngest and strongest of his sons',
+          'Abu Talib, who would protect him for the next forty years',
+          'Abu Lahab, the wealthiest of his sons',
+        ],
+        optionsAr: [
+          'حمزة، أصغر أبنائه وأقواهم',
+          'أبو طالب، الذي سيحميه أربعين سنة قادمة',
+          'أبو لهب، أغنى أبنائه',
+        ],
+        correctIndex: 1,
+        explanation: 'The Rawi reflects: Abd al-Muttalib chose Abu Talib. Not the wealthiest son, not the strongest. The one he trusted most with what mattered most. Abu Talib would keep that promise for forty years. He sheltered Muhammad \uFDFA through childhood, defended him through the years of persecution, and never abandoned him even when all of Mecca turned against them both. The guardianship of the Prophet \uFDFA was never random. Every hand that held him was chosen by Allah.',
+        explanationAr: 'يتأمّل الراوي: اختار عبد المطلب أبا طالب. ليس الابن الأغنى، ولا الأقوى. بل الذي يثق به أكثر فيما يهمّ أكثر. أبو طالب سيحفظ هذا العهد أربعين سنة. آوى محمداً \uFDFA في الطفولة، ودافع عنه في سنوات الاضطهاد، ولم يتخلَّ عنه حتى حين انقلبت مكة كلها عليهما. رعاية النبي \uFDFA لم تكن عشوائية قط. كل يد حملته كانت مختارة من الله.',
+        sourceRef: 'Quran 93:6 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5',
+        sourceRefAr: 'القرآن 93:6 | ابن هشام | الرحيق المختوم، الفصل 5',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_1_2_3',
+    era: JourneyEra.earlyLife,
+    globalOrder: 8,
+    latitude: 21.4225, longitude: 39.8262,
+    year: 578,
+    title: 'The Guardian: Abu Talib',
+    titleAr: 'في كنف أبي طالب',
+    location: 'Mecca',
+    locationAr: 'مكة المكرمة',
+    narrative:
+        'Abu Talib is not a wealthy man. He has children of his own and barely enough to feed them. But he takes the orphan in without hesitation. Muhammad \uFDFA gets a place at his table, a place in his home, a place in his heart.\n\n'
+        'When Muhammad \uFDFA is twelve years old, Abu Talib takes him on a trade journey to Syria. The boy clings to him and begs to come: "How can you leave me? I have no father and no mother." Abu Talib\u2019s heart breaks, and he takes the boy with him. For forty years, he will never stop choosing him.',
+    narrativeAr:
+        'أبو طالب ليس رجلاً ثرياً. لديه أبناؤه ويكاد لا يجد ما يكفيهم. لكنه يأخذ اليتيم دون تردد. محمد \uFDFA يحصل على مكان في مائدته، مكان في بيته، مكان في قلبه.\n\n'
+        'حين يبلغ محمد \uFDFA الثانية عشرة، يصطحبه أبو طالب في رحلة تجارية إلى الشام. الصبي يتعلق به ويتوسل: "كيف تتركني وليس لي أب ولا أم؟" ينكسر قلب أبي طالب فيأخذه معه. أربعين سنة، لم يتوقف عن اختياره.',
+    source: 'Sahih Bukhari #3884 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5-6',
     xpReward: 25,
     questions: [
       JourneyQuestion(
         id: 'q_1_2_3_a',
-        question: 'Abu Talib leads the caravan to Syria. The young Muhammad ﷺ walks beside him. You travel with them. What do you observe most closely?',
-        questionAr: 'أبو طالب يقود القافلة إلى الشام. محمد ﷺ الصغير يمشي بجانبه. ترافقهم في الطريق. ما الذي تراقبه عن كثب؟',
+        question: 'When the young Muhammad \uFDFA begged Abu Talib to take him on the trade journey to Syria, what did he say to convince his uncle?',
+        questionAr: 'حين توسل محمد \uFDFA الصغير لأبي طالب أن يصطحبه في رحلة التجارة إلى الشام، ماذا قال ليقنع عمّه؟',
         options: [
-          'The boy\'s eager eyes — seeing new lands for the first time',
-          'Abu Talib — who never lets the boy out of his sight, not once',
-          'The merchants on the road who already seem to respect the boy\'s presence',
+          'He promised to help with the trading and earn his place',
+          'He said he had no father and no mother, so how could his uncle leave him behind',
+          'He said he had a dream that he must travel north',
         ],
         optionsAr: [
-          'عينا الصبي المتلهفتين — يرى أراضي جديدة للمرة الأولى',
-          'أبو طالب — الذي لا يترك الصبي يغيب عن نظره لحظة واحدة',
-          'التجار على الطريق الذين يبدو أنهم يحترمون حضور الصبي',
+          'وعده بالمساعدة في التجارة وأن يستحق مكانه',
+          'قال إنه ليس له أب ولا أم، فكيف يتركه عمّه',
+          'قال إنه رأى في المنام أنه يجب أن يسافر شمالاً',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: Abu Talib raised him as his own son and protected him for decades — even after Islam came and the most powerful men in Mecca demanded Muhammad ﷺ be surrendered. Though Abu Talib never embraced Islam himself, his love was a mercy from Allah that allowed the Prophet ﷺ to continue his mission.',
-        explanationAr: 'يتأمّل الراوي: ربّاه أبو طالب كابنه وحماه لعقود — حتى بعد مجيء الإسلام ومطالبة أقوى رجال مكة بتسليم محمد ﷺ. وإن لم يعتنق أبو طالب الإسلام بنفسه، فإن محبته كانت رحمة من الله أتاحت للنبي ﷺ مواصلة رسالته.',
+        explanation: 'The Rawi reflects: The twelve year old boy held onto his uncle and said: "How can you leave me? I have no father and no mother." Abu Talib\u2019s heart broke, and he took the boy with him on the long journey to Syria. This was not just a trade trip. It was the first time Muhammad \uFDFA saw the world beyond Mecca. And it was one of countless moments where Abu Talib chose this orphan over his own comfort. For forty years, he never stopped choosing him.',
+        explanationAr: 'يتأمّل الراوي: الصبي ذو الاثنتي عشرة سنة تعلّق بعمّه وقال: "كيف تتركني وليس لي أب ولا أم؟" انكسر قلب أبي طالب فأخذه معه في الرحلة الطويلة إلى الشام. لم تكن هذه مجرد رحلة تجارية. كانت المرة الأولى التي يرى فيها محمد \uFDFA العالم خارج مكة. وكانت واحدة من لحظات لا تُحصى اختار فيها أبو طالب هذا اليتيم على راحته. أربعين سنة، لم يتوقف عن اختياره.',
+        sourceRef: 'Sahih Bukhari #3884 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'صحيح البخاري #3884 | ابن هشام | الرحيق المختوم، الفصل 6',
       ),
     ],
   ),
@@ -283,7 +409,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_2_4',
     era: JourneyEra.earlyLife,
-    globalOrder: 6,
+    globalOrder: 9,
     latitude: 21.4225, longitude: 39.8262,
     year: 590,
     title: 'Hilf al-Fudul — The Pact of the Virtuous',
@@ -325,7 +451,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_2_5',
     era: JourneyEra.earlyLife,
-    globalOrder: 7,
+    globalOrder: 11,
     latitude: 21.4225, longitude: 39.8262,
     year: 595,
     title: 'Marriage to Khadijah RA',
@@ -367,7 +493,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_1_3',
     era: JourneyEra.earlyLife,
-    globalOrder: 8,
+    globalOrder: 12,
     latitude: 21.4225, longitude: 39.8262,
     year: 605,
     title: 'The Black Stone — A Wise Arbitration',
@@ -434,7 +560,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_2_6',
     era: JourneyEra.earlyLife,
-    globalOrder: 9,
+    globalOrder: 13,
     latitude: 21.4225, longitude: 39.8262,
     year: 605,
     title: 'Solitude in Cave Hira',
@@ -476,7 +602,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_2_7',
     era: JourneyEra.earlyLife,
-    globalOrder: 10,
+    globalOrder: 14,
     latitude: 21.4578, longitude: 39.8579,
     year: 610,
     title: 'The First Revelation',
@@ -518,7 +644,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_2_8',
     era: JourneyEra.earlyLife,
-    globalOrder: 11,
+    globalOrder: 15,
     latitude: 21.4225, longitude: 39.8262,
     year: 610,
     title: 'The First Believers',
@@ -560,7 +686,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_1',
     era: JourneyEra.mecca,
-    globalOrder: 12,
+    globalOrder: 16,
     latitude: 21.4225, longitude: 39.8262,
     year: 613,
     title: 'The Call Goes Public',
@@ -602,7 +728,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_2',
     era: JourneyEra.mecca,
-    globalOrder: 13,
+    globalOrder: 17,
     latitude: 21.4225, longitude: 39.8262,
     year: 614,
     title: 'Persecution Begins',
@@ -644,7 +770,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_3',
     era: JourneyEra.mecca,
-    globalOrder: 14,
+    globalOrder: 18,
     latitude: 14.1270, longitude: 38.7181,
     year: 615,
     title: 'Migration to Abyssinia',
@@ -686,7 +812,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_4',
     era: JourneyEra.mecca,
-    globalOrder: 15,
+    globalOrder: 19,
     latitude: 21.4225, longitude: 39.8262,
     year: 616,
     title: 'The Boycott — Three Years of Siege',
@@ -728,7 +854,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_5',
     era: JourneyEra.mecca,
-    globalOrder: 16,
+    globalOrder: 20,
     latitude: 21.4225, longitude: 39.8262,
     year: 619,
     title: 'Year of Grief — Khadijah and Abu Talib',
@@ -772,7 +898,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_11',
     era: JourneyEra.mecca,
-    globalOrder: 17,
+    globalOrder: 21,
     latitude: 21.4225, longitude: 39.8262,
     year: 619,
     title: 'The Journey to Ta\'if — Rejection and Resilience',
@@ -814,7 +940,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_6',
     era: JourneyEra.mecca,
-    globalOrder: 18,
+    globalOrder: 22,
     latitude: 31.7683, longitude: 35.2137,
     year: 620,
     title: 'Al-Isra\' wal-Mi\'raj — The Night Journey',
@@ -858,7 +984,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_7',
     era: JourneyEra.mecca,
-    globalOrder: 19,
+    globalOrder: 23,
     latitude: 21.4225, longitude: 39.8262,
     year: 620,
     title: 'The Pledge of Aqabah — First',
@@ -900,7 +1026,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_8',
     era: JourneyEra.mecca,
-    globalOrder: 20,
+    globalOrder: 24,
     latitude: 21.4225, longitude: 39.8262,
     year: 621,
     title: 'The Second Pledge of Aqabah',
@@ -942,7 +1068,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_9',
     era: JourneyEra.mecca,
-    globalOrder: 21,
+    globalOrder: 25,
     latitude: 21.4225, longitude: 39.8262,
     year: 622,
     title: 'The Plot to Kill the Prophet ﷺ',
@@ -984,7 +1110,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_3_10',
     era: JourneyEra.mecca,
-    globalOrder: 22,
+    globalOrder: 26,
     latitude: 21.2927, longitude: 40.2188,
     year: 622,
     title: 'Cave Thawr — Three Days in Hiding',
@@ -1026,7 +1152,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_1',
     era: JourneyEra.medina,
-    globalOrder: 23,
+    globalOrder: 27,
     latitude: 24.4686, longitude: 39.6142,
     year: 622,
     yearAH: 1,
@@ -1069,7 +1195,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_2',
     era: JourneyEra.medina,
-    globalOrder: 24,
+    globalOrder: 28,
     latitude: 24.4686, longitude: 39.6142,
     year: 622,
     yearAH: 1,
@@ -1112,7 +1238,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_3',
     era: JourneyEra.medina,
-    globalOrder: 25,
+    globalOrder: 29,
     latitude: 24.4686, longitude: 39.6142,
     year: 622,
     yearAH: 1,
@@ -1155,7 +1281,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_4',
     era: JourneyEra.medina,
-    globalOrder: 26,
+    globalOrder: 30,
     latitude: 23.7309, longitude: 38.7806,
     year: 624,
     yearAH: 2,
@@ -1198,7 +1324,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_5',
     era: JourneyEra.medina,
-    globalOrder: 27,
+    globalOrder: 31,
     latitude: 24.5028, longitude: 39.6224,
     year: 625,
     yearAH: 3,
@@ -1241,7 +1367,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_6',
     era: JourneyEra.medina,
-    globalOrder: 28,
+    globalOrder: 32,
     latitude: 24.4686, longitude: 39.6142,
     year: 627,
     yearAH: 5,
@@ -1284,7 +1410,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_7',
     era: JourneyEra.medina,
-    globalOrder: 29,
+    globalOrder: 33,
     latitude: 21.4861, longitude: 39.8374,
     year: 628,
     yearAH: 6,
@@ -1327,7 +1453,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_8',
     era: JourneyEra.medina,
-    globalOrder: 30,
+    globalOrder: 34,
     latitude: 24.4686, longitude: 39.6142,
     year: 628,
     yearAH: 6,
@@ -1370,7 +1496,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_9',
     era: JourneyEra.medina,
-    globalOrder: 31,
+    globalOrder: 35,
     latitude: 21.4225, longitude: 39.8262,
     year: 630,
     yearAH: 8,
@@ -1413,7 +1539,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_10',
     era: JourneyEra.medina,
-    globalOrder: 32,
+    globalOrder: 36,
     latitude: 21.4225, longitude: 39.8262,
     year: 630,
     yearAH: 8,
@@ -1456,7 +1582,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_11',
     era: JourneyEra.medina,
-    globalOrder: 33,
+    globalOrder: 37,
     latitude: 29.3697, longitude: 34.8060,
     year: 630,
     yearAH: 9,
@@ -1499,7 +1625,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_12',
     era: JourneyEra.medina,
-    globalOrder: 34,
+    globalOrder: 38,
     latitude: 24.4686, longitude: 39.6142,
     year: 631,
     yearAH: 9,
@@ -1542,7 +1668,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_13',
     era: JourneyEra.medina,
-    globalOrder: 35,
+    globalOrder: 39,
     latitude: 21.4225, longitude: 39.8262,
     year: 632,
     yearAH: 10,
@@ -1585,7 +1711,7 @@ final List<JourneyEvent> m1Events = [
   JourneyEvent(
     id: 'j_1_4_14',
     era: JourneyEra.medina,
-    globalOrder: 36,
+    globalOrder: 40,
     latitude: 24.4686, longitude: 39.6142,
     year: 632,
     yearAH: 11,
