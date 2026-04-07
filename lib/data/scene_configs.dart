@@ -323,4 +323,91 @@ final Map<String, SceneConfig> sceneConfigs = {
     ambientVolume: 0.18,
     showGrain: true,
   ),
+
+  // ── Event 3: Birth of the Prophet ﷺ (570 CE) ────────────────────────────
+  'j_1_2_1': SceneConfig(
+    hubLayers: _meccaHubLayers,
+    groundLayers: const [
+      ParallaxLayer(
+        assetPath: 'assets/scenes/scene_event1_kaabah.jpg', // placeholder — Khaled provides night Mecca BG
+        speed: 0.15,
+        verticalPosition: 0.0,
+        heightFraction: 1.0,
+      ),
+    ],
+    hotspots: const [
+      SceneHotspot(
+        id: 'night_banu_hashim',
+        x: 0.48, y: 0.62,
+        icon: '🌙',
+        label: 'The Night in Banu Hashim',
+        labelAr: 'ليلة في بني هاشم',
+        fragment: 'The Year of the Elephant has barely passed. Mecca is still shaken — the people saw an army destroyed before their eyes, stones falling from birds they had never seen. The Quraysh know something has changed, though they cannot name it. Tonight, in the quarter of Banu Hashim, a woman is in labor. The house is small. The streets are quiet. No one in Mecca knows that this night will be remembered long after the Elephant is forgotten.',
+        fragmentAr: 'عام الفيل بالكاد مرّ. مكة لا تزال مهتزة — رأى الناس جيشاً يُدمَّر أمام أعينهم، حجارة تسقط من طيور لم يروها قط. قريش تعلم أن شيئاً تغيّر، لكنها لا تستطيع تسميته. الليلة، في حي بني هاشم، امرأة تضع مولوداً. البيت صغير. الأزقة هادئة. لا أحد في مكة يعلم أن هذه الليلة ستُذكر طويلاً بعد أن يُنسى الفيل.',
+        sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+      ),
+      SceneHotspot(
+        id: 'aminah_vision',
+        x: 0.25, y: 0.45,
+        icon: '✨',
+        label: 'Aminah\'s Vision',
+        labelAr: 'رؤيا آمنة',
+        fragment: 'When Aminah carried him, she saw a vision — a light emerging from her that illuminated the palaces of distant Syria. The Prophet \uFDFA himself would later say: "I am the supplication of my father Ibrahim, the glad tidings of my brother Isa, and my mother saw when she carried me a light that illuminated the palaces of Syria." She did not yet understand what it meant. But the light was real. And the child it announced would illuminate far more than palaces.',
+        fragmentAr: 'حين حملت آمنة به، رأت رؤيا — نور يخرج منها يُضيء قصور الشام البعيدة. النبي \uFDFA نفسه سيقول لاحقاً: "أنا دعوة أبي إبراهيم، وبشرى أخي عيسى، ورأت أمي حين حملت بي نوراً أضاءت له قصور الشام." لم تفهم بعد ما يعنيه ذلك. لكن النور كان حقيقياً. والطفل الذي بشّر به سيُضيء أكثر بكثير من القصور.',
+        sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+      ),
+      SceneHotspot(
+        id: 'naming_kaabah',
+        x: 0.72, y: 0.42,
+        icon: '🕋',
+        label: 'The Naming at the Ka\'bah',
+        labelAr: 'التسمية عند الكعبة',
+        fragment: 'Abd al-Muttalib carries the newborn to the Ka\'bah. He holds the child before the ancient house — the same house that Allah protected from Abraha\'s army just weeks before. He names him Muhammad: "The one who is praised again and again." The Arabs ask why he chose a name none of them have ever heard. He answers: "I want him to be praised in the heavens and on earth." A grandfather\'s hope. A name that would be spoken five times a day in every corner of the world.',
+        fragmentAr: 'يحمل عبد المطلب المولود إلى الكعبة. يرفع الطفل أمام البيت العتيق — البيت نفسه الذي حماه الله من جيش أبرهة قبل أسابيع. يسمّيه محمداً: "الذي يُحمد مراراً وتكراراً." يسأله العرب لماذا اختار اسماً لم يسمعوه من قبل. يجيب: "أريده أن يُحمد في السماء والأرض." أمنية جَدّ. اسم سيُردد خمس مرات في اليوم في كل زاوية من العالم.',
+        sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+      ),
+      SceneHotspot(
+        id: 'orphan_dawn',
+        x: 0.50, y: 0.28,
+        icon: '🌅',
+        label: 'The Orphan\'s First Dawn',
+        labelAr: 'فجر اليتيم الأول',
+        fragment: 'He was born without a father. Abdullah died months before — some say in Medina, returning from a trade journey, never knowing what Aminah carried. This child entered the world with nothing but a mother\'s embrace and a grandfather\'s prayer. Years later, Allah would address him directly: "Did He not find you an orphan and give you shelter?" Every loss was preparation. Every absence was by design. The most influential human being in history began with the least.',
+        fragmentAr: 'وُلد بلا أب. عبد الله مات قبل أشهر — يُقال في المدينة، عائداً من رحلة تجارة، لم يعلم قط ما حملته آمنة. هذا الطفل دخل الدنيا بلا شيء سوى حضن أمّه ودعاء جدّه. بعد سنين، سيخاطبه الله مباشرة: "أَلَمْ يَجِدْكَ يَتِيمًا فَآوَىٰ؟" كل خسارة كانت إعداداً. كل غياب كان بتدبير. أكثر إنسان أثّر في التاريخ بدأ بأقل القليل.',
+        sfxPath: 'assets/audio/sfx_kaabah_wind.wav',
+      ),
+    ],
+    // Linear path: Start → Night in Banu Hashim → Aminah's Vision → Naming → Orphan's Dawn
+    pathWaypoints: const [
+      Offset(0.50, 0.80),  // Start
+      Offset(0.49, 0.72),  // Walk up
+      Offset(0.48, 0.62),  // Hotspot 1: The Night
+      Offset(0.37, 0.54),  // Turn left toward Aminah's Vision
+      Offset(0.25, 0.45),  // Hotspot 2: Aminah's Vision
+      Offset(0.45, 0.42),  // Cross center
+      Offset(0.72, 0.42),  // Hotspot 3: The Naming
+      Offset(0.63, 0.36),  // Turn up
+      Offset(0.50, 0.28),  // Hotspot 4: The Orphan's First Dawn
+    ],
+    // Night sky — deep indigo/navy, stars visible, warm glow on horizon
+    skyGradient: const [
+      Color(0xFF020510),  // very deep night at top
+      Color(0xFF060C1A),
+      Color(0xFF0C1428),
+      Color(0xFF101830),
+      Color(0xFF141E38),
+      Color(0xFF182440),
+      Color(0xFF1C2C4A),
+      Color(0xFF243450),
+      Color(0xFF2E3C48),  // faint warm glow at horizon
+    ],
+    skyStops: const [0.0, 0.12, 0.24, 0.36, 0.48, 0.58, 0.70, 0.85, 1.0],
+    showStars: true,
+    showMoon: true,
+    moonPosition: const Offset(0.80, 0.06),
+    particleType: ParticleType.dust,
+    particleCount: 25,
+    particleColor: const Color(0x50C9A84C),
+    showGrain: true,
+  ),
 };

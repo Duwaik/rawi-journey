@@ -156,38 +156,36 @@ final List<JourneyEvent> m1Events = [
     globalOrder: 3,
     latitude: 21.4225, longitude: 39.8262,
     year: 570,
-    title: 'The Birth of the Prophet ﷺ',
-    titleAr: 'مولد النبي ﷺ',
+    title: 'The Birth of the Prophet \uFDFA',
+    titleAr: 'مولد النبي \uFDFA',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
     narrative:
         'It is the month of Rabi\' al-Awwal, in the Year of the Elephant. You are in the narrow streets of the Banu Hashim quarter of Mecca. The night is quiet — the city still talks of the army that was destroyed, of the birds, of the stones. And now, in a modest home, a child is born.\n\n'
-        'His father, Abdullah, did not live to see this moment — he died before the boy drew his first breath. His mother, Aminah bint Wahb, holds him close. His grandfather Abd al-Muttalib — one of the most powerful men in Mecca — takes the infant to the Ka\'bah and names him Muhammad. "The Praised One." It is a name the Arabs have never used before.\n\n'
-        'Within days, the child is given to a wet-nurse from the tribe of Banu Sa\'d. Halima al-Sa\'diyya carries him into the open desert — into clean air, wide skies, and the pure Arabic of the Bedouin. An orphan from his first breath. A prophet before the world knew it.',
+        'His father, Abdullah, did not live to see this moment — he died before the boy drew his first breath. His mother, Aminah bint Wahb, holds him close. His grandfather Abd al-Muttalib — one of the most powerful men in Mecca — takes the infant to the Ka\'bah and names him Muhammad. "The Praised One." It is a name the Arabs have never used before.',
     narrativeAr:
         'إنه شهر ربيع الأول، في عام الفيل. أنت في أزقة حي بني هاشم الضيقة في مكة. الليل هادئ — المدينة لا تزال تتحدث عن الجيش الذي دُمّر، عن الطيور، عن الحجارة. والآن، في بيت متواضع، يُولد طفل.\n\n'
-        'أبوه عبد الله لم يعش ليرى هذه اللحظة — مات قبل أن يأخذ الطفل نفَسه الأول. أمه آمنة بنت وهب تضمّه إليها. جدّه عبد المطلب — أحد أقوى رجال مكة — يحمل الرضيع إلى الكعبة ويسميه محمداً. "المحمود." اسم لم يستخدمه العرب من قبل.\n\n'
-        'في غضون أيام، يُسلَّم الطفل إلى مرضعة من قبيلة بني سعد. حليمة السعدية تحمله إلى الصحراء المفتوحة — إلى هواء نقي وسماوات واسعة وعربية البدو الصافية. يتيم منذ أول نفَس. نبيّ قبل أن يعرف العالم.',
-    source: 'Sahih Bukhari 3551 — lineage and birth of the Prophet ﷺ',
+        'أبوه عبد الله لم يعش ليرى هذه اللحظة — مات قبل أن يأخذ الطفل نفَسه الأول. أمه آمنة بنت وهب تضمّه إليها. جدّه عبد المطلب — أحد أقوى رجال مكة — يحمل الرضيع إلى الكعبة ويسميه محمداً. "المحمود." اسم لم يستخدمه العرب من قبل.',
+    source: 'Al-Raheeq Al-Makhtum, Ch. 5',
     xpReward: 30,
     questions: [
       JourneyQuestion(
         id: 'q_1_2_1_a',
-        question: 'A child has been born in Banu Hashim tonight. His father did not live to see him. Where does your gaze settle?',
-        questionAr: 'وُلد طفل في بني هاشم الليلة. أبوه لم يعش ليراه. أين يستقر نظرك؟',
+        question: 'Abd al-Muttalib chose a name for his grandson that no Arab had ever used before. What was the name, and why did he choose it?',
+        questionAr: 'اختار عبد المطلب لحفيده اسماً لم يستخدمه أي عربي من قبل. ما الاسم، ولماذا اختاره؟',
         options: [
-          'On the newborn in his mother\'s arms — fragile, fatherless, and utterly still',
-          'On his grandfather Abd al-Muttalib, carrying him to the Ka\'bah to name him',
-          'On the stars above Mecca — the same sky that sent the birds against Abraha',
+          'Ahmad — because the angels told him in a dream',
+          'Muhammad — because he wanted him to be praised in the heavens and on earth',
+          'Abdullah — because it was his late father\'s name',
         ],
         optionsAr: [
-          'على المولود بين ذراعي أمه — ضعيف، يتيم، ساكن تماماً',
-          'على جدّه عبد المطلب، يحمله إلى الكعبة ليسمّيه',
-          'على نجوم مكة — السماء ذاتها التي أرسلت الطير على أبرهة',
+          'أحمد — لأن الملائكة أخبرته في المنام',
+          'محمد — لأنه أراد أن يُحمد في السماء والأرض',
+          'عبد الله — لأنه اسم أبيه الراحل',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: Abd al-Muttalib named him Muhammad — "the Praised One" — a name never before used among the Arabs. He carried him to the Ka\'bah and gave thanks. The most important birth in human history arrived quietly, in an orphan\'s first breath.',
-        explanationAr: 'يتأمّل الراوي: سمّاه عبد المطلب محمداً — "المحمود" — اسم لم يُستخدم من قبل بين العرب. حمله إلى الكعبة وشكر الله. أهم ولادة في تاريخ البشرية جاءت بهدوء، في أول نفَس يتيم.',
+        explanation: 'The Rawi reflects: Abd al-Muttalib named him Muhammad — "The Praised One" — and when the Arabs questioned the unfamiliar name, he said he wished for his grandson to be praised in the heavens and on earth. He could not have known how completely that wish would be fulfilled. Today, the name Muhammad is spoken in the call to prayer five times a day across the globe — the most praised name in human history.',
+        explanationAr: 'يتأمّل الراوي: سمّاه عبد المطلب محمداً — "المحمود" — وحين تساءل العرب عن الاسم الغريب، قال إنه يريد لحفيده أن يُحمد في السماء والأرض. لم يكن يعلم كم ستتحقق أمنيته بالكامل. اليوم، اسم محمد يُردد في الأذان خمس مرات يومياً حول العالم — أكثر اسم حُمِد في تاريخ البشرية.',
       ),
     ],
   ),
