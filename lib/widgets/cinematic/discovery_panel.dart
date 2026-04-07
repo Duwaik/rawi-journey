@@ -277,7 +277,8 @@ class _DiscoveryPanelState extends State<DiscoveryPanel>
 
                     const SizedBox(height: 16),
 
-                    // Tap to continue + VO replay (gated behind DYK response if DYK exists)
+                    // Tap to continue + VO replay — only show if no DYK, or DYK answered
+                    if (_dykText == null || _dykResponse != null)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
