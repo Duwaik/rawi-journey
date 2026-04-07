@@ -364,9 +364,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // 7. App pause/settings: stop ALL VO immediately
 
   void _showBubble(String text, {String? voPath}) {
+    // Failsafe: zero all movement state when showing any bubble
+    _joyDx = 0;
+    _joyDy = 0;
+    if (_gameLoop.isAnimating && !_autoWalking) {
+      _gameLoop.stop();
+      _gameLoop.reset();
+    }
     setState(() {
       _bubbleText = text;
       _bubbleVisible = true;
+      _isWalking = false;
     });
     if (voPath != null) {
       // Companion bubbles are short — use SFX layer, don't duck ambient
@@ -392,6 +400,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _onIdle() {
     if (!mounted || _phase != _Phase.explore || _activeHotspot != null || _showSettings || _showBranchCard) return;
+    // Failsafe: ensure figure is frozen during idle (no stale joystick values)
+    _joyDx = 0;
+    _joyDy = 0;
+    _gameLoop.stop();
+    _gameLoop.reset();
+    _isWalking = false;
     _idleTriggerCount++;
     final total = _discovered.length + _pendingDiscovery.length;
     final List<DialogueLine> lines;

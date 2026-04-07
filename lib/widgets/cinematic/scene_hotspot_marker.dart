@@ -72,8 +72,7 @@ class _SceneHotspotMarkerState extends State<SceneHotspotMarker>
       child: Opacity(
         opacity: locked ? 0.6 : 1.0,
         child: SizedBox(
-          width: 90,
-          height: 90,
+          width: 120,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -239,7 +238,7 @@ class _SceneHotspotMarkerState extends State<SceneHotspotMarker>
                       fontWeight: FontWeight.w700,
                     ),
                     textAlign: TextAlign.center,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
