@@ -26,14 +26,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'الجزيرة العربية قبل النور',
     location: 'Arabian Peninsula',
     locationAr: 'الجزيرة العربية',
-    narrative:
-        'You stand at the edge of the Ka\'bah courtyard as the sun sets over Mecca. The air is thick with incense smoke drifting from the idol shrines that crowd around the ancient house. Three hundred and sixty stone figures watch you with empty eyes.\n\n'
-        'Around you, the world moves in contradictions. A poet recites verses of breathtaking beauty about honor and courage, while a few streets away, a man buries his newborn daughter in the sand without a word. Merchants haggle over silk and spices on trade routes that stretch from Yemen to Syria, while the poor beg at the Ka\'bah walls, invisible to those who pass.\n\n'
-        'And yet, the Ka\'bah stands. Built by Ibrahim ﷺ and his son Ismail ﷺ as a house of the One God. That memory lingers in the stones, even as idols press against them from every side. Something is coming. You can feel it in the desert wind.',
-    narrativeAr:
-        'تقف على حافة فناء الكعبة والشمس تغرب فوق مكة. الهواء ثقيل بدخان البخور المتصاعد من معابد الأصنام المتراصة حول البيت العتيق. ثلاثمئة وستون تمثالاً حجرياً يحدّقون فيك بعيون فارغة.\n\n'
-        'من حولك، العالم يتحرك في تناقضات. شاعر ينشد أبياتاً خلابة عن الشرف والشجاعة، بينما على بعد أزقة قليلة، رجل يدفن ابنته الوليدة في الرمال دون كلمة. تجّار يساومون على الحرير والتوابل في طرق تجارية تمتد من اليمن إلى الشام، بينما الفقراء يستجدون عند جدران الكعبة، لا يراهم أحد.\n\n'
-        'ومع ذلك، الكعبة تقف. بناها إبراهيم ﷺ وابنه إسماعيل ﷺ بيتاً للإله الواحد. تلك الذكرى لا تزال حيّة في الحجارة، حتى وإن تزاحمت الأصنام حولها من كل جانب. شيء ما قادم. تحسّه في ريح الصحراء.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Quran 3:154, "أَمْرُ اللَّهِ كَانَ قَدَرًا مَّقْدُورًا"',
     xpReward: 20,
     anchorHotspotId: 'kaabah',
@@ -77,8 +71,8 @@ final List<JourneyEvent> m1Events = [
           'أكثر من ألف، تغطي كل جدار وسطح في مكة',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: 360 idols stood around the Ka\'bah, the house Ibrahim \uFDFA built for the One God. Nearly one for every day of the year. Yet the Ka\'bah itself still stood, waiting. The truth was buried under layers of custom and self-interest, but it was never erased. It waited for the one who would restore it.',
-        explanationAr: 'يتأمّل الراوي: 360 صنماً أحاطت بالكعبة التي بناها إبراهيم \uFDFA للإله الواحد، واحد لكل يوم تقريباً من أيام السنة. لكن الكعبة ذاتها ظلت قائمة تنتظر فالحق دُفن تحت طبقات العادات والمصالح لكنه لم يُمحَ قط وظل ينتظر من يعيده.',
+        explanation: '360 idols stood around the Ka\'bah, the house Ibrahim \uFDFA built for the One God. Nearly one for every day of the year. Yet the Ka\'bah itself still stood, waiting. The truth was buried under layers of custom and self-interest, but it was never erased. It waited for the one who would restore it.',
+        explanationAr: '360 صنماً أحاطت بالكعبة التي بناها إبراهيم \uFDFA للإله الواحد، واحد لكل يوم تقريباً من أيام السنة. لكن الكعبة ذاتها ظلت قائمة تنتظر، فالحق دُفن تحت طبقات العادات والمصالح لكنه لم يُمحَ قط وظل ينتظر من يعيده.',
         sourceRef: 'Sahih Muslim | Al-Raheeq Al-Makhtum, Ch. 1-2',
         sourceRefAr: 'صحيح مسلم | الرحيق المختوم، الفصل 1-2',
       ),
@@ -95,14 +89,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'عام الفيل',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
-    narrative:
-        'The ground shakes beneath your feet. You are on the outskirts of Mecca, and the horizon to the south is dark with dust. Abraha al-Ashram, the ruler of Yemen, is marching on the city with an army unlike anything Arabia has seen. War elephants. Thousands of soldiers. His mission: destroy the Ka\'bah and redirect the Arabs\' pilgrimage to a grand church he built in San\'a.\n\n'
-        'The Quraysh are fleeing. Abd al-Muttalib, the custodian of the Ka\'bah, has told the people to withdraw to the mountains. He stood before Abraha and asked only for his camels, not for the Ka\'bah. When Abraha mocked him, he replied: "I am the lord of the camels. The Ka\'bah has a Lord who will protect it."\n\n'
-        'The army advances. The elephants halt at the boundary of the sacred precinct and refuse to move forward. Then the sky darkens, not with clouds, but with birds. Thousands of them, carrying stones of baked clay. You watch the impossible unfold before your eyes.',
-    narrativeAr:
-        'الأرض تهتز تحت قدميك. أنت على أطراف مكة، والأفق جنوباً مظلم بالغبار. أبرهة الأشرم، حاكم اليمن، يزحف على المدينة بجيش لم تشهد الجزيرة العربية مثله. أفيال حرب. آلاف الجنود. مهمته: تدمير الكعبة وتحويل حج العرب إلى كنيسة فخمة بناها في صنعاء.\n\n'
-        'قريش تفرّ. عبد المطلب، سادن الكعبة، أمر الناس بالانسحاب إلى الجبال. وقف أمام أبرهة ولم يطلب إلا إبله، لا الكعبة. وحين سخر منه أبرهة، أجاب: "أنا ربّ الإبل. وللبيت ربّ يحميه."\n\n'
-        'الجيش يتقدم. الأفيال تتوقف عند حدود الحرم وترفض التحرك. ثم تُظلم السماء، لا بالغيوم، بل بالطيور. آلاف منها، تحمل حجارة من سجيل. تشاهد المستحيل يتكشّف أمام عينيك.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Quran Surah Al-Fil (105): "أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَابِ الْفِيلِ"',
     xpReward: 30,
     anchorHotspotId: 'army',
@@ -146,8 +134,8 @@ final List<JourneyEvent> m1Events = [
           'طلب ممراً آمناً للنساء والأطفال من قريش',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: When the people asked Abd al-Muttalib why he only requested his camels and not protection for the Ka\'bah, he gave one of the most powerful statements in pre-Islamic history: "I am the lord of the camels, and the House has a Lord who will protect it." He was right. No human army defended the Ka\'bah that day. Allah sent flocks of birds carrying stones of baked clay, and Abraha\'s army was destroyed like consumed straw.',
-        explanationAr: 'يتأمّل الراوي: حين سأل الناس عبد المطلب لماذا طلب إبله فقط ولم يطلب حماية الكعبة أجاب بواحدة من أقوى العبارات في تاريخ ما قبل الإسلام: "أنا ربّ الإبل وللبيت ربٌّ يحميه." كان مُحقاً فلم يدافع جيش بشري عن الكعبة في ذلك اليوم وأرسل الله طيراً أبابيل ترميهم بحجارة من سجيل فجعلهم كعصف مأكول.',
+        explanation: 'When the people asked Abd al-Muttalib why he only requested his camels and not protection for the Ka\'bah, he gave one of the most powerful statements in pre-Islamic history: "I am the lord of the camels, and the House has a Lord who will protect it." He was right. No human army defended the Ka\'bah that day. Allah sent flocks of birds carrying stones of baked clay, and Abraha\'s army was destroyed like consumed straw.',
+        explanationAr: 'حين سأل الناس عبد المطلب لماذا طلب إبله فقط ولم يطلب حماية الكعبة أجاب بواحدة من أقوى العبارات في تاريخ ما قبل الإسلام: "أنا ربّ الإبل وللبيت ربٌّ يحميه." كان مُحقاً فلم يدافع جيش بشري عن الكعبة في ذلك اليوم وأرسل الله طيراً أبابيل ترميهم بحجارة من سجيل فجعلهم كعصف مأكول.',
         sourceRef: 'Quran 105:1-5 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5',
         sourceRefAr: 'القرآن 105:1-5 | ابن هشام | الرحيق المختوم، الفصل 5',
       ),
@@ -164,12 +152,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'مولد النبي \uFDFA',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
-    narrative:
-        'It is the month of Rabi\' al-Awwal, in the Year of the Elephant. You are in the narrow streets of the Banu Hashim quarter of Mecca. The night is quiet. The city still talks of the army that was destroyed, of the birds, of the stones. And now, in a modest home, a child is born.\n\n'
-        'His father, Abdullah, did not live to see this moment. He died before the boy drew his first breath. His mother, Aminah bint Wahb, holds him close. His grandfather Abd al-Muttalib, one of the most powerful men in Mecca, takes the infant to the Ka\'bah and names him Muhammad. "The Praised One." It is a name the Arabs have never used before.',
-    narrativeAr:
-        'إنه شهر ربيع الأول، في عام الفيل. أنت في أزقة حي بني هاشم الضيقة في مكة. الليل هادئ. المدينة لا تزال تتحدث عن الجيش الذي دُمّر، عن الطيور، عن الحجارة. والآن، في بيت متواضع، يُولد طفل.\n\n'
-        'أبوه عبد الله لم يعش ليرى هذه اللحظة. مات قبل أن يأخذ الطفل نفَسه الأول. أمه آمنة بنت وهب تضمّه إليها. جدّه عبد المطلب، أحد أقوى رجال مكة، يحمل الرضيع إلى الكعبة ويسميه محمداً. "المحمود." اسم لم يستخدمه العرب من قبل.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Al-Raheeq Al-Makhtum, Ch. 5',
     xpReward: 30,
     questions: [
@@ -188,8 +172,8 @@ final List<JourneyEvent> m1Events = [
           'عبد الله، لأنه اسم أبيه الراحل',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: Abd al-Muttalib named him Muhammad, "The Praised One", and when the Arabs questioned the unfamiliar name, he said he wished for his grandson to be praised in the heavens and on earth. He could not have known how completely that wish would be fulfilled. Today, the name Muhammad is spoken in the call to prayer five times a day across the globe, the most praised name in human history.',
-        explanationAr: 'يتأمّل الراوي: سمّاه عبد المطلب محمداً أي "المحمود" وحين تساءل العرب عن الاسم الغريب قال إنه يريد لحفيده أن يُحمد في السماء والأرض. لم يكن يعلم كم ستتحقق أمنيته بالكامل. اليوم اسم محمد يُردد في الأذان خمس مرات يومياً حول العالم وهو أكثر اسم حُمِد في تاريخ البشرية.',
+        explanation: 'Abd al-Muttalib named him Muhammad, "The Praised One", and when the Arabs questioned the unfamiliar name, he said he wished for his grandson to be praised in the heavens and on earth. He could not have known how completely that wish would be fulfilled. Today, the name Muhammad is spoken in the call to prayer five times a day across the globe, the most praised name in human history.',
+        explanationAr: 'سمّاه عبد المطلب محمداً أي "المحمود" وحين تساءل العرب عن الاسم الغريب قال إنه يريد لحفيده أن يُحمد في السماء والأرض. لم يكن يعلم كم ستتحقق أمنيته بالكامل. اليوم اسم محمد يُردد في الأذان خمس مرات يومياً حول العالم وهو أكثر اسم حُمِد في تاريخ البشرية.',
         sourceRef: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5',
         sourceRefAr: 'ابن هشام | الرحيق المختوم، الفصل 5',
       ),
@@ -206,12 +190,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'سنوات الرضاعة: حليمة',
     location: 'Banu Sa\'d',
     locationAr: 'بادية بني سعد',
-    narrative:
-        'It is a year of drought. Ten women from the tribe of Banu Sa\'d ride into Mecca looking for infants to nurse. It is their custom, and their livelihood. They come on weak animals, with dry milk and hungry children of their own. Every woman finds a child from a wealthy family. Every woman except one.\n\n'
-        'Halimah bint Abi Dhu\'ayb is the last. She has been refused, and she has refused, an orphan boy with no father to pay. Her husband says: "Take him. Perhaps Allah will place blessing in him." She takes the child because no one else is left. And from the moment he is in her arms, everything changes.',
-    narrativeAr:
-        'إنه عام جدب. عشر نساء من قبيلة بني سعد يدخلن مكة بحثاً عن رُضَّع. هذه عادتهن ومصدر رزقهن. جئن على دوابّ هزيلة، بلبن جافّ وأطفال جياع. كل امرأة تجد طفلاً من عائلة ثرية. كل امرأة إلا واحدة.\n\n'
-        'حليمة بنت أبي ذؤيب هي الأخيرة. رُفضت، ورَفضت، طفل يتيم بلا أب يدفع. يقول زوجها: "خذيه. لعل الله يجعل لنا فيه بركة." تأخذ الطفل لأنه لم يبقَ سواه. ومن اللحظة التي يستقرّ فيها بين ذراعيها، يتغيّر كل شيء.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Al-Raheeq Al-Makhtum, Ch. 5 | Ibn Hisham',
     xpReward: 20,
     questions: [
@@ -230,8 +210,8 @@ final List<JourneyEvent> m1Events = [
           'ظهر نجم فوق الطفل وعرف البدو أنه مميّز',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: Halimah took him because no one else was left. She expected nothing. But from the moment she held him, her dry milk flowed, her starving animals gave milk, and her weak donkey led the caravan home. Her husband looked at her and said: "You have taken a blessed soul." Every blessing came not from wealth or status, but from the child no one wanted. Allah places His light where He chooses.',
-        explanationAr: 'يتأمّل الراوي: أخذته حليمة لأنه لم يبقَ سواه ولم تتوقع شيئاً. لكن من لحظة حملته درّ حليبها الجاف وأعطت ماشيتها الجائعة الحليب وأتانها الضعيفة قادت القافلة إلى الديار. نظر إليها زوجها وقال: "لقد أخذتِ نسمة مباركة." كل بركة جاءت لا من ثروة أو مكانة بل من الطفل الذي لم يرده أحد فالله يضع نوره حيث يشاء.',
+        explanation: 'Halimah took him because no one else was left. She expected nothing. But from the moment she held him, her dry milk flowed, her starving animals gave milk, and her weak donkey led the caravan home. Her husband looked at her and said: "You have taken a blessed soul." Every blessing came not from wealth or status, but from the child no one wanted. Allah places His light where He chooses.',
+        explanationAr: 'أخذته حليمة لأنه لم يبقَ سواه ولم تتوقع شيئاً. لكن من لحظة حملته درّ حليبها الجاف وأعطت ماشيتها الجائعة الحليب وأتانها الضعيفة قادت القافلة إلى الديار. نظر إليها زوجها وقال: "لقد أخذتِ نسمة مباركة." كل بركة جاءت لا من ثروة أو مكانة بل من الطفل الذي لم يرده أحد فالله يضع نوره حيث يشاء.',
         sourceRef: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5',
         sourceRefAr: 'ابن هشام | الرحيق المختوم، الفصل 5',
       ),
@@ -248,12 +228,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'شرح الصدر',
     location: 'Banu Sa\'d',
     locationAr: 'بادية بني سعد',
-    narrative:
-        'He is four years old, perhaps five. A child of the desert, raised among the sons of Banu Sa\'d. He runs barefoot under open skies, speaks the pure Arabic of the Bedouin, and knows no life beyond the tents and the sheep. Today, he is playing with the other boys in the field behind the settlement.\n\n'
-        'Then two men appear, dressed in white, carrying a golden basin. The other children scatter. What happens next will leave a mark on his chest that his Companions will see decades later. And it will send Halimah racing back to Mecca, terrified, to return the child she loves to the mother who is waiting.',
-    narrativeAr:
-        'هو في الرابعة، ربما الخامسة. طفل الصحراء، نشأ بين أبناء بني سعد. يركض حافياً تحت سماوات مفتوحة، يتكلم عربية البدو الصافية، ولا يعرف حياة غير الخيام والأغنام. اليوم، يلعب مع الصبيان في الأرض خلف المضارب.\n\n'
-        'ثم يظهر رجلان، بثياب بيضاء، يحملان طستاً من ذهب. الأطفال الآخرون يتفرّقون. ما سيحدث بعد ذلك سيترك أثراً في صدره يراه أصحابه بعد عقود. وسيجعل حليمة تركض عائدة إلى مكة، مرعوبة، لتعيد الطفل الذي تحبّه إلى الأم التي تنتظر.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Sahih Muslim #162 | Al-Raheeq Al-Makhtum, Ch. 5',
     xpReward: 30,
     questions: [
@@ -272,8 +248,8 @@ final List<JourneyEvent> m1Events = [
           'لا شيء، فقط غسلا قلبه بماء زمزم',
         ],
         correctIndex: 0,
-        explanation: 'The Rawi reflects: They removed a dark clot from his heart and said: "This is the share of Shaytan from you." Then they washed his heart with Zamzam water in a golden basin and returned it. Anas ibn Malik said he could still see the mark of the stitching on the Prophet\'s chest years later. From his earliest childhood, Allah was preparing him, purifying his heart before the world would need it most.',
-        explanationAr: 'يتأمّل الراوي: استخرجا علقة سوداء من قلبه وقالا: "هذا حظ الشيطان منك" ثم غسلا قلبه بماء زمزم في طست من ذهب وأعاداه. قال أنس بن مالك إنه كان يرى أثر المخيط في صدر النبي \uFDFA بعد سنين. منذ طفولته المبكرة كان الله يُعدّه ويُطهّر قلبه قبل أن يحتاجه العالم أشد الحاجة.',
+        explanation: 'They removed a dark clot from his heart and said: "This is the share of Shaytan from you." Then they washed his heart with Zamzam water in a golden basin and returned it. Anas ibn Malik said he could still see the mark of the stitching on the Prophet\'s chest years later. From his earliest childhood, Allah was preparing him, purifying his heart before the world would need it most.',
+        explanationAr: 'استخرجا علقة سوداء من قلبه وقالا: "هذا حظ الشيطان منك" ثم غسلا قلبه بماء زمزم في طست من ذهب وأعاداه. قال أنس بن مالك إنه كان يرى أثر المخيط في صدر النبي \uFDFA بعد سنين. منذ طفولته المبكرة كان الله يُعدّه ويُطهّر قلبه قبل أن يحتاجه العالم أشد الحاجة.',
         sourceRef: 'Sahih Muslim #162 | Al-Raheeq Al-Makhtum, Ch. 5',
         sourceRefAr: 'صحيح مسلم #162 | الرحيق المختوم، الفصل 5',
       ),
@@ -290,12 +266,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'وفاة آمنة',
     location: 'Al-Abwa',
     locationAr: 'الأبواء',
-    narrative:
-        'Aminah takes her son and sets out for Medina. With them travels Umm Ayman, the faithful servant of the family. The boy is six years old. His mother wants him to see the place where his father Abdullah is buried, and to meet his uncles from Banu al-Najjar.\n\n'
-        'They stay a month. Then on the road back to Mecca, Aminah falls ill. At a small village called Al-Abwa, she can go no further. She dies there, far from home, with her six-year-old son beside her. Umm Ayman takes the child by the hand and walks him across the desert, back to Mecca, back to his grandfather. The boy who entered the world without a father now stands without a mother.',
-    narrativeAr:
-        'تأخذ آمنة ابنها وتنطلق نحو المدينة. ترافقهم أم أيمن، خادمة العائلة الوفية. الصبي في السادسة من عمره. أمه تريده أن يرى المكان الذي دُفن فيه أبوه عبد الله، وأن يلتقي أخواله من بني النجار.\n\n'
-        'يمكثون شهراً. ثم في طريق العودة إلى مكة، تمرض آمنة. في قرية صغيرة تُدعى الأبواء، لا تستطيع المواصلة. تموت هناك، بعيدة عن بيتها، وابنها ذو الست سنوات بجانبها. أم أيمن تأخذ الطفل بيده وتمشي به عبر الصحراء، عائدة إلى مكة، عائدة إلى جدّه. الصبي الذي دخل الدنيا بلا أب يقف بلا أم.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Sahih Muslim #976 | Al-Raheeq Al-Makhtum, Ch. 5',
     xpReward: 20,
     questions: [
@@ -314,8 +286,8 @@ final List<JourneyEvent> m1Events = [
           'في الأبواء، على الطريق بين المدينة ومكة',
         ],
         correctIndex: 2,
-        explanation: 'The Rawi reflects: Aminah died at Al-Abwa on the journey back from Medina. Her son was six years old. Umm Ayman, the devoted servant, carried him home to Mecca. The Prophet \uFDFA never forgot either of them. He called Umm Ayman "my mother after my mother" and wept at his mother\'s grave when he visited it years later. From his earliest years, loss shaped him. But so did the love of those who refused to let go of his hand.',
-        explanationAr: 'يتأمّل الراوي: ماتت آمنة في الأبواء في طريق العودة من المدينة وكان ابنها في السادسة من عمره. أم أيمن الخادمة الوفية حملته عائدة إلى مكة والنبي \uFDFA لم ينسَ أيّاً منهما فسمّى أم أيمن "أمي بعد أمي" وبكى عند قبر أمه حين زاره بعد سنين. منذ سنواته الأولى صاغته الخسارة لكن صاغه أيضاً حبّ من رفضوا أن يتركوا يده.',
+        explanation: 'Aminah died at Al-Abwa on the journey back from Medina. Her son was six years old. Umm Ayman, the devoted servant, carried him home to Mecca. The Prophet \uFDFA never forgot either of them. He called Umm Ayman "my mother after my mother" and wept at his mother\'s grave when he visited it years later. From his earliest years, loss shaped him. But so did the love of those who refused to let go of his hand.',
+        explanationAr: 'ماتت آمنة في الأبواء في طريق العودة من المدينة وكان ابنها في السادسة من عمره. أم أيمن الخادمة الوفية حملته عائدة إلى مكة والنبي \uFDFA لم ينسَ أيّاً منهما فسمّى أم أيمن "أمي بعد أمي" وبكى عند قبر أمه حين زاره بعد سنين. منذ سنواته الأولى صاغته الخسارة لكن صاغه أيضاً حبّ من رفضوا أن يتركوا يده.',
         sourceRef: 'Sahih Muslim #976 | Al-Raheeq Al-Makhtum, Ch. 5',
         sourceRefAr: 'صحيح مسلم #976 | الرحيق المختوم، الفصل 5',
       ),
@@ -332,12 +304,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'في كنف عبد المطلب',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
-    narrative:
-        'Abd al-Muttalib has a seat in the shade of the Ka\'bah that belongs to him alone. No one in Mecca sits on it. But the orphan boy climbs onto it without hesitation. His uncles reach to pull him away. Abd al-Muttalib stops them: "Leave my son alone. By Allah, he has a great destiny."\n\n'
-        'For two years, he raises the boy by his own side. Then Abd al-Muttalib dies when Muhammad \uFDFA is eight years old. Before he dies, he calls his son Abu Talib and entrusts the child to him. Three losses before the age of eight: father, mother, grandfather. The Quran would later say: "Did He not find you an orphan and give you shelter?"',
-    narrativeAr:
-        'لعبد المطلب فراش في ظل الكعبة لا يملكه سواه. لا أحد في مكة يجلس عليه. لكن الصبي اليتيم يصعد عليه دون تردد. أعمامه يمدّون أيديهم ليبعدوه. عبد المطلب يوقفهم: "دعوا ابني. فوالله إن له لشأناً."\n\n'
-        'لمدة سنتين، يربّيه بجانبه. ثم يموت عبد المطلب ومحمد \uFDFA في الثامنة من عمره. قبل أن يموت، يعهد بالطفل إلى ابنه أبي طالب. ثلاث خسارات قبل الثامنة: الأب والأم والجد. القرآن سيقول لاحقاً: "أَلَمْ يَجِدْكَ يَتِيمًا فَآوَىٰ؟"',
+    narrative: '',
+    narrativeAr: '',
     source: 'Quran 93:6 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5',
     xpReward: 20,
     questions: [
@@ -356,8 +324,8 @@ final List<JourneyEvent> m1Events = [
           'أبو لهب، أغنى أبنائه',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: Abd al-Muttalib chose Abu Talib. Not the wealthiest son, not the strongest. The one he trusted most with what mattered most. Abu Talib would keep that promise for forty years. He sheltered Muhammad \uFDFA through childhood, defended him through the years of persecution, and never abandoned him even when all of Mecca turned against them both. The guardianship of the Prophet \uFDFA was never random. Every hand that held him was chosen by Allah.',
-        explanationAr: 'يتأمّل الراوي: اختار عبد المطلب أبا طالب ليس الابن الأغنى ولا الأقوى بل الذي يثق به أكثر فيما يهمّ أكثر. أبو طالب سيحفظ هذا العهد أربعين سنة آوى فيها محمداً \uFDFA في الطفولة ودافع عنه في سنوات الاضطهاد ولم يتخلَّ عنه حتى حين انقلبت مكة كلها عليهما. رعاية النبي \uFDFA لم تكن عشوائية قط فكل يد حملته كانت مختارة من الله.',
+        explanation: 'Abd al-Muttalib chose Abu Talib. Not the wealthiest son, not the strongest. The one he trusted most with what mattered most. Abu Talib would keep that promise for forty years. He sheltered Muhammad \uFDFA through childhood, defended him through the years of persecution, and never abandoned him even when all of Mecca turned against them both. The guardianship of the Prophet \uFDFA was never random. Every hand that held him was chosen by Allah.',
+        explanationAr: 'اختار عبد المطلب أبا طالب ليس الابن الأغنى ولا الأقوى بل الذي يثق به أكثر فيما يهمّ أكثر. أبو طالب سيحفظ هذا العهد أربعين سنة آوى فيها محمداً \uFDFA في الطفولة ودافع عنه في سنوات الاضطهاد ولم يتخلَّ عنه حتى حين انقلبت مكة كلها عليهما. رعاية النبي \uFDFA لم تكن عشوائية قط فكل يد حملته كانت مختارة من الله.',
         sourceRef: 'Quran 93:6 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5',
         sourceRefAr: 'القرآن 93:6 | ابن هشام | الرحيق المختوم، الفصل 5',
       ),
@@ -374,12 +342,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'في كنف أبي طالب',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
-    narrative:
-        'Abu Talib is not a wealthy man. He has children of his own and barely enough to feed them. But he takes the orphan in without hesitation. Muhammad \uFDFA gets a place at his table, a place in his home, a place in his heart.\n\n'
-        'When Muhammad \uFDFA is twelve years old, Abu Talib takes him on a trade journey to Syria. The boy clings to him and begs to come: "How can you leave me? I have no father and no mother." Abu Talib\u2019s heart breaks, and he takes the boy with him. For forty years, he will never stop choosing him.',
-    narrativeAr:
-        'أبو طالب ليس رجلاً ثرياً. لديه أبناؤه ويكاد لا يجد ما يكفيهم. لكنه يأخذ اليتيم دون تردد. محمد \uFDFA يحصل على مكان في مائدته، مكان في بيته، مكان في قلبه.\n\n'
-        'حين يبلغ محمد \uFDFA الثانية عشرة، يصطحبه أبو طالب في رحلة تجارية إلى الشام. الصبي يتعلق به ويتوسل: "كيف تتركني وليس لي أب ولا أم؟" ينكسر قلب أبي طالب فيأخذه معه. أربعين سنة، لم يتوقف عن اختياره.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Sahih Bukhari #3884 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 5-6',
     xpReward: 25,
     questions: [
@@ -398,8 +362,8 @@ final List<JourneyEvent> m1Events = [
           'قال إنه رأى في المنام أنه يجب أن يسافر شمالاً',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: The twelve year old boy held onto his uncle and said: "How can you leave me? I have no father and no mother." Abu Talib\u2019s heart broke, and he took the boy with him on the long journey to Syria. This was not just a trade trip. It was the first time Muhammad \uFDFA saw the world beyond Mecca. And it was one of countless moments where Abu Talib chose this orphan over his own comfort. For forty years, he never stopped choosing him.',
-        explanationAr: 'يتأمّل الراوي: الصبي ذو الاثنتي عشرة سنة تعلّق بعمّه وقال: "كيف تتركني وليس لي أب ولا أم؟" فانكسر قلب أبي طالب وأخذه معه في الرحلة الطويلة إلى الشام. لم تكن هذه مجرد رحلة تجارية بل كانت المرة الأولى التي يرى فيها محمد \uFDFA العالم خارج مكة وكانت واحدة من لحظات لا تُحصى اختار فيها أبو طالب هذا اليتيم على راحته. أربعين سنة لم يتوقف عن اختياره.',
+        explanation: 'The twelve year old boy held onto his uncle and said: "How can you leave me? I have no father and no mother." Abu Talib\u2019s heart broke, and he took the boy with him on the long journey to Syria. This was not just a trade trip. It was the first time Muhammad \uFDFA saw the world beyond Mecca. And it was one of countless moments where Abu Talib chose this orphan over his own comfort. For forty years, he never stopped choosing him.',
+        explanationAr: 'الصبي ذو الاثنتي عشرة سنة تعلّق بعمّه وقال: "كيف تتركني وليس لي أب ولا أم؟" فانكسر قلب أبي طالب وأخذه معه في الرحلة الطويلة إلى الشام. لم تكن هذه مجرد رحلة تجارية بل كانت المرة الأولى التي يرى فيها محمد \uFDFA العالم خارج مكة وكانت واحدة من لحظات لا تُحصى اختار فيها أبو طالب هذا اليتيم على راحته. أربعين سنة لم يتوقف عن اختياره.',
         sourceRef: 'Sahih Bukhari #3884 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
         sourceRefAr: 'صحيح البخاري #3884 | ابن هشام | الرحيق المختوم، الفصل 6',
       ),
@@ -416,12 +380,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'حلف الفضول',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
-    narrative:
-        'A Yemeni merchant stands near the Ka\'bah, his voice breaking. He came to Mecca to trade, sold his goods to a man of Quraysh, and was never paid. He has no tribe in this city. No one to demand his rights. So he cries out to anyone who still believes that honor means something.\n\n'
-        'Something stirs. The noblest clans gather in the house of Abdullah ibn Jud\'an and swear a covenant: from this day forward, they will stand as one against any injustice in Mecca. Among those present is a young man named Muhammad \uFDFA. He says nothing. But decades later, as a prophet, he will say: "I witnessed a pact so excellent that I would not exchange my part in it for a herd of red camels; and if I were called to it in Islam, I would answer."',
-    narrativeAr:
-        'تاجر يمني يقف قرب الكعبة وصوته يتكسّر من الإحباط، فقد جاء إلى مكة وباع بضاعته لرجل من قريش ولكنه لم يحصل على حقه. ليس له في هذه المدينة قبيلة تحميه ولا ظهر يسنده ولا أحد يقف بجانبه ويطالب بما هو له.\n\n'
-        'شيء يتحرك في مكة تلك الليلة. أشرف أحياء المدينة يجتمعون في دار عبد الله بن جدعان ويقسمون عهداً: من هذا اليوم سيقفون صفاً واحداً ضد أي ظلم يُرتكب في مكة. بين الحاضرين شاب اسمه محمد \uFDFA. لا يتكلم لكنه يراقب. وبعد عقود وهو نبيّ سيقول: "شهدت في دار ابن جدعان حلفاً ما أُحب أن لي به حُمر النعم ولو دُعيت إليه في الإسلام لأجبت."',
+    narrative: '',
+    narrativeAr: '',
     source: 'Musnad Ahmad | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
     xpReward: 30,
     questions: [
@@ -440,8 +400,8 @@ final List<JourneyEvent> m1Events = [
           'قال إنه كان صغيراً ولم يفهمه حينها لكنه أدرك قيمته لاحقاً',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: The Prophet \uFDFA said he witnessed a pact in the house of Ibn Jud\'an so excellent that he would not exchange his part in it for a herd of red camels. He said if he were called to honor it in Islam, he would answer. This means justice does not belong to one era or one religion. What is right was always right. Islam came to affirm and complete the good that already existed in the world.',
-        explanationAr: 'يتأمّل الراوي: قال النبي \uFDFA إنه شهد في دار ابن جدعان حلفاً لا يحب أن يكون له بدله حُمر النعم ولو دُعي إليه في الإسلام لأجاب. وهذا يعني أن العدل لا يخص حقبة واحدة ولا ديناً واحداً، فما كان صواباً كان صواباً دائماً، والإسلام جاء ليؤكد ما كان حسناً في العالم ويتممه لا ليمحوه.',
+        explanation: 'The Prophet \uFDFA said he witnessed a pact in the house of Ibn Jud\'an so excellent that he would not exchange his part in it for a herd of red camels. He said if he were called to honor it in Islam, he would answer. This means justice does not belong to one era or one religion. What is right was always right. Islam came to affirm and complete the good that already existed in the world.',
+        explanationAr: 'قال النبي \uFDFA إنه شهد في دار ابن جدعان حلفاً لا يحب أن يكون له بدله حُمر النعم ولو دُعي إليه في الإسلام لأجاب. وهذا يعني أن العدل لا يخص حقبة واحدة ولا ديناً واحداً، فما كان صواباً كان صواباً دائماً، والإسلام جاء ليؤكد ما كان حسناً في العالم ويتممه لا ليمحوه.',
         sourceRef: 'Musnad Ahmad | Al-Bayhaqi | Al-Raheeq Al-Makhtum, Ch. 6',
         sourceRefAr: 'مسند أحمد | البيهقي | الرحيق المختوم، الفصل 6',
       ),
@@ -458,12 +418,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'الأمين',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
-    narrative:
-        'No one decided to call him Al-Amin. No tribe voted on it. The name grew on its own because every person who dealt with him found the same thing: he did not lie, he did not cheat, and he did not break a promise. In a city where merchants inflated prices and poets twisted truth for pay, one young man\'s word was worth more than a contract.\n\n'
-        'The people of Mecca began leaving their most precious belongings with him for safekeeping. Even those who would later oppose him left their belongings in his care. His honesty was not an opinion. It was a fact that even his enemies could not deny.',
-    narrativeAr:
-        'لم يقرر أحد أن يسمّيه الأمين ولم تصوّت عليه قبيلة ولم يمنحه إياه زعيم. الاسم نما وحده لأن كل من تعامل معه وجد الشيء نفسه: لا يكذب ولا يغش ولا يخلف وعداً. في مدينة يبالغ فيها التجار بالأسعار ويلوّي الشعراء فيها الحقيقة لقاء أجر، كانت كلمة شاب واحد أثمن من أي عقد.\n\n'
-        'أهل مكة بدأوا يودعون عنده أثمن ما يملكون حفظاً لها. حتى الذين سيعادونه لاحقاً تركوا أماناتهم عنده، فأمانته لم تكن رأياً بل حقيقة لم يستطع حتى أعداؤه إنكارها.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Sahih Bukhari #4971 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
     xpReward: 25,
     questions: [
@@ -482,8 +438,8 @@ final List<JourneyEvent> m1Events = [
           'صمتوا وانتظروا ليسمعوا ما سيقوله',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: The entire crowd answered without hesitation: "Yes, we have never known you to lie." Decades of honesty had built something no argument could break. When he then told them he was a messenger of Allah, some believed and some turned away. But not one person could say he was a liar. His character was his first proof. Allah built the man before He gave him the mission.',
-        explanationAr: 'يتأمّل الراوي: الجمع كله أجاب دون تردد: "نعم لا جرّبنا عليه كذباً قط." عقود من الأمانة بنت شيئاً لا تستطيع أي حجة أن تهدمه. حين أخبرهم بعدها أنه رسول الله آمن بعضهم وأعرض بعضهم، ولم يستطع أحد أن يقول إنه كاذب. شخصيته كانت برهانه الأول. الله بنى الإنسان قبل أن يمنحه الرسالة.',
+        explanation: 'The entire crowd answered without hesitation: "Yes, we have never known you to lie." Decades of honesty had built something no argument could break. When he then told them he was a messenger of Allah, some believed and some turned away. But not one person could say he was a liar. His character was his first proof. Allah built the man before He gave him the mission.',
+        explanationAr: 'الجمع كله أجاب دون تردد: "نعم لا جرّبنا عليه كذباً قط." عقود من الأمانة بنت شيئاً لا تستطيع أي حجة أن تهدمه. حين أخبرهم بعدها أنه رسول الله آمن بعضهم وأعرض بعضهم، ولم يستطع أحد أن يقول إنه كاذب. شخصيته كانت برهانه الأول. الله بنى الإنسان قبل أن يمنحه الرسالة.',
         sourceRef: 'Sahih Bukhari #4971 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 7',
         sourceRefAr: 'صحيح البخاري #4971 | ابن هشام | الرحيق المختوم، الفصل 7',
       ),
@@ -500,12 +456,8 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'الزواج من خديجة رضي الله عنها',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
-    narrative:
-        'Khadijah bint Khuwaylid was one of the noblest women of Quraysh and among the wealthiest merchants in all of Mecca. When she heard of a young man called Al-Amin, she offered him a place leading her trade caravan to Syria. She sent with him her servant Maysarah to observe him closely.\n\n'
-        'The caravan returned with profit far greater than anything Khadijah had seen before. But it was not the wealth that moved her. Maysarah spoke of a man who never raised his voice in anger, who dealt with every merchant with fairness that left them astonished. Khadijah confided in her friend Nafisah, who approached him on her behalf. He was twenty-five. She was forty. From that day forward, she became his closest companion, the first to believe in him, the one who stood beside him when the entire world turned away.',
-    narrativeAr:
-        'كانت خديجة بنت خويلد من أشرف نساء قريش وأكثرهن مالاً في مكة كلها. فلما بلغها خبر شابّ يُدعى الأمين عرضت عليه أن يقود قافلتها التجارية إلى الشام وأرسلت معه خادمها ميسرة ليراقبه عن كثب.\n\n'
-        'عادت القافلة بربح فاق كل ما عرفته خديجة من قبل. لكن المال لم يكن ما حرّك قلبها. فقد تحدث ميسرة عن رجل لم يرفع صوته غضباً قط وتعامل مع كل تاجر بإنصاف أدهشهم. أفضت خديجة بما في نفسها إلى صديقتها نفيسة التي ذهبت إليه نيابةً عنها. كان عمره خمساً وعشرين وكانت في الأربعين. ومنذ ذلك اليوم صارت أقرب صحبه إليه وأول من آمن به والتي وقفت بجانبه حين أدار العالم كله ظهره.',
+    narrative: '',
+    narrativeAr: '',
     source: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6 | Sahih Bukhari #3818',
     xpReward: 30,
     questions: [
@@ -524,8 +476,8 @@ final List<JourneyEvent> m1Events = [
           'فاطمة بنت أسد',
         ],
         correctIndex: 0,
-        explanation: 'The Rawi reflects: Nafisah bint Munyah was the close friend of Khadijah who approached the Prophet \uFDFA on her behalf. She asked him about marriage and mentioned Khadijah\'s name, leading to the proposal that would change the course of history.',
-        explanationAr: 'يتأمّل الراوي: نفيسة بنت منية كانت الصديقة المقربة لخديجة التي ذهبت إلى النبي \uFDFA نيابةً عنها. سألته عن الزواج وذكرت اسم خديجة فكان ذلك بداية الخِطبة التي غيّرت مجرى التاريخ.',
+        explanation: 'Nafisah bint Munyah was the close friend of Khadijah who approached the Prophet \uFDFA on her behalf. She asked him about marriage and mentioned Khadijah\'s name, leading to the proposal that would change the course of history.',
+        explanationAr: 'نفيسة بنت منية كانت الصديقة المقربة لخديجة التي ذهبت إلى النبي \uFDFA نيابةً عنها. سألته عن الزواج وذكرت اسم خديجة فكان ذلك بداية الخِطبة التي غيّرت مجرى التاريخ.',
         sourceRef: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6 | Sahih Bukhari #3818',
         sourceRefAr: 'ابن هشام | الرحيق المختوم، الفصل 6 | صحيح البخاري #3818',
       ),
@@ -585,8 +537,8 @@ final List<JourneyEvent> m1Events = [
           'طلب من أكبر رجال مكة أن يقرر أي قبيلة تستحق الشرف',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: He spread his cloak on the ground, placed the Black Stone upon it, and asked each tribe to lift a corner. Together they carried it to its place. He then set the Stone with his own hands. No tribe was denied and no blood was shed. They had already named him Al-Amin long before prophethood. Allah was preparing His Prophet \uFDFA.',
-        explanationAr: 'يتأمّل الراوي: بسط رداءه على الأرض ووضع الحجر الأسود فوقه، ثم طلب من كل قبيلة أن ترفع طرفًا. معًا حملوه إلى مكانه، ثم وضع الحجر بيديه. لم تُحرم قبيلة ولم يُسفك دم. كانوا قد سمّوه الأمين قبل النبوة بسنين. كان الله يهيّئ نبيّه \uFDFA.',
+        explanation: 'He spread his cloak on the ground, placed the Black Stone upon it, and asked each tribe to lift a corner. Together they carried it to its place. He then set the Stone with his own hands. No tribe was denied and no blood was shed. They had already named him Al-Amin long before prophethood. Allah was preparing His Prophet \uFDFA.',
+        explanationAr: 'بسط رداءه على الأرض ووضع الحجر الأسود فوقه وطلب من كل قبيلة أن ترفع طرفاً. معاً حملوه إلى مكانه ووضع الحجر بيديه الشريفتين فلم تُحرم قبيلة ولم يُسفك دم. كانوا قد سمّوه الأمين قبل النبوة بسنين وكان الله يهيّئ نبيّه \uFDFA.',
         sourceRef: 'Ibn Hisham, Vol. 1 | Al-Raheeq Al-Makhtum, Ch. 6',
         sourceRefAr: 'ابن هشام، المجلد 1 | الرحيق المختوم، الفصل 6',
       ),
@@ -597,40 +549,36 @@ final List<JourneyEvent> m1Events = [
     id: 'j_1_2_6',
     era: JourneyEra.earlyLife,
     globalOrder: 13,
-    latitude: 21.4225, longitude: 39.8262,
-    year: 605,
+    latitude: 21.4578, longitude: 39.8579,
+    year: 610,
     title: 'Solitude in Cave Hira',
     titleAr: 'الخلوة في غار حراء',
     location: 'Cave Hira, Mecca',
     locationAr: 'غار حراء، مكة المكرمة',
-    narrative:
-        'You follow the path up Jabal al-Nour — the Mountain of Light — just outside Mecca. The climb is steep, the rocks sharp. Muhammad ﷺ has gone up again. He has been coming here for months now — sometimes for days at a time. A small cave near the summit, barely large enough to lie down in. From its mouth, you can see the Ka\'bah far below.\n\n'
-        'You wait at the base of the mountain. Khadijah\'s servant passes you on the path, carrying food and water upward. She supports these retreats without question. She understands that something is being prepared in her husband — something even he cannot name yet.\n\n'
-        'The Arabs call it "al-tahannuth" — a withdrawal from the world to seek the truth. Muhammad ﷺ is approaching forty. The idols of Mecca have never satisfied him. The cruelty has never felt normal to him. He sits in that small cave, looking out at the stars, and waits for something he can feel but not yet see. He does not know that the most significant night in human history is drawing near.',
-    narrativeAr:
-        'تتبع الممر صعوداً على جبل النور — خارج مكة. الصعود حاد والصخور حادة. محمد ﷺ صعد مجدداً. يأتي هنا منذ أشهر — أحياناً لأيام كاملة. كهف صغير قرب القمة، بالكاد يتسع للاضطجاع. من فتحته، ترى الكعبة بعيداً في الأسفل.\n\n'
-        'تنتظر عند سفح الجبل. خادم خديجة يمر بك على الممر، يحمل طعاماً وماءً إلى الأعلى. هي تؤيد هذه الخلوات دون سؤال. تدرك أن شيئاً يُعدّ في زوجها — شيئاً حتى هو لا يستطيع تسميته بعد.\n\n'
-        'يسمّيه العرب "التحنث" — انسحاب من العالم للبحث عن الحق. محمد ﷺ يقترب من الأربعين. أصنام مكة لم ترضِه يوماً. القسوة لم تكن طبيعية في نظره. يجلس في ذلك الكهف الصغير، يتأمل النجوم، وينتظر شيئاً يحسّه لكنه لا يراه بعد. لا يعلم أن أهم ليلة في تاريخ البشرية تقترب.',
-    source: 'Sahih Bukhari 3 — opening of Kitab Bada\' al-Wahy',
+    narrative: '',
+    narrativeAr: '',
+    source: 'Sahih Bukhari, Hadith 3 | Sahih Muslim, Hadith 160 | Ibn Hisham, Vol. 1 | Al-Raheeq Al-Makhtum, Ch. 7',
     xpReward: 30,
     questions: [
       JourneyQuestion(
         id: 'q_1_2_6_a',
-        question: 'You follow the path up Jabal al-Nour. Muhammad ﷺ has gone to Cave Hira again. You wait below. Where does your gaze settle?',
-        questionAr: 'تتبع الممر صعوداً على جبل النور. محمد ﷺ صعد إلى غار حراء مجدداً. تنتظر في الأسفل. أين يستقر نظرك؟',
+        question: 'What was the Arabic term for the spiritual retreat that Muhammad \uFDFA practiced in Cave Hira?',
+        questionAr: 'ما المصطلح العربي للخلوة الروحية التي مارسها محمد \uFDFA في غار حراء؟',
         options: [
-          'On the mountain above — the cave opening is barely visible, a thin shadow near the summit',
-          'On Mecca below — the noise and the idols seem distant and small from here',
-          'On the provisions being carried up — someone who loves him keeps him sustained in his search',
+          'Al-Tahannuth (التحنث)',
+          'Al-I\'tikaf (الاعتكاف)',
+          'Al-Tawassul (التوسل)',
         ],
         optionsAr: [
-          'على الجبل أعلاه — فتحة الكهف بالكاد تُرى، ظل رفيع قرب القمة',
-          'على مكة أسفلك — الضجيج والأصنام تبدو بعيدة وصغيرة من هنا',
-          'على الزاد المحمول إلى الأعلى — شخص يحبه يسنده في بحثه',
+          'التحنّث',
+          'الاعتكاف',
+          'التوسّل',
         ],
         correctIndex: 0,
-        explanation: 'The Rawi reflects: For months, sometimes days and nights at a time, he returned to that cave. Something was being prepared in the silence. The word "tahannuth" — withdrawal to seek truth — described what the Arabs could see. What they could not see was that the last night of solitude would be the most significant night in human history.',
-        explanationAr: 'يتأمّل الراوي: لأشهر، أحياناً أياماً ولياليَ كاملة، كان يعود إلى ذلك الكهف. شيء كان يُعدّ في الصمت. كلمة "التحنث" وصفت ما كان العرب يرونه. ما لم يكونوا يرونه هو أن آخر ليلة خلوة ستكون أهم ليلة في تاريخ البشرية.',
+        explanation: 'The Arabs called this practice al-tahannuth, a withdrawal from the world to seek truth and reflect. Muhammad \uFDFA spent months in this solitude before the angel Jibril appeared to him in the cave with the first words of revelation.',
+        explanationAr: 'سمّى العرب هذه الممارسة التحنّث، وهي انسحابٌ من العالم للبحث عن الحقيقة والتأمل. قضى محمد \uFDFA أشهرًا في هذه الخلوة قبل أن يظهر له الملك جبريل في الغار بأولى كلمات الوحي.',
+        sourceRef: 'Sahih Bukhari, Hadith 3 | Al-Raheeq Al-Makhtum, Ch. 7',
+        sourceRefAr: 'صحيح البخاري، حديث 3 | الرحيق المختوم، الفصل 7',
       ),
     ],
   ),
