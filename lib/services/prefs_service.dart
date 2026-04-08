@@ -84,7 +84,8 @@ class PrefsService {
     for (final key in keys) {
       if (key.startsWith(_keyJourneyCompleted) ||
           key.startsWith(_keyHotspotProgress) ||
-          key.startsWith(_keyThresholdCompleted)) {
+          key.startsWith(_keyThresholdCompleted) ||
+          key == _keyDiscoveredCollection) {
         await prefs.remove(key);
       }
     }
@@ -161,6 +162,23 @@ class PrefsService {
   static Future<void> clearHotspotProgress(String eventId) async {
     await _prefs?.remove('$_keyHotspotProgress$eventId');
   }
+
+  // ── COLLECTION ────────────────────────────────────────────────────────
+  static const String _keyDiscoveredCollection = 'discovered_collection';
+
+  static List<String> get discoveredCollectionIds =>
+      _prefs?.getStringList(_keyDiscoveredCollection) ?? [];
+
+  static Future<void> addToCollection(String itemId) async {
+    final current = discoveredCollectionIds;
+    if (!current.contains(itemId)) {
+      current.add(itemId);
+      await _prefs?.setStringList(_keyDiscoveredCollection, current);
+    }
+  }
+
+  static bool isCollectionItemDiscovered(String itemId) =>
+      discoveredCollectionIds.contains(itemId);
 
   // ── THRESHOLDS ────────────────────────────────────────────────────────
   static const String _keyThresholdCompleted = 'threshold_completed_';
