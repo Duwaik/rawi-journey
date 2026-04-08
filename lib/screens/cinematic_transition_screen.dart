@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
-import '../data/scene_configs.dart';
 import '../models/journey_event.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
@@ -107,9 +106,8 @@ class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
     final title = isAr ? event.titleAr : event.title;
     final location = isAr ? event.locationAr : event.location;
 
-    // Get sky gradient from scene config if available
-    final config = sceneConfigs[event.id];
-    final skyColors = config?.skyGradient ?? [const Color(0xFF04060D), const Color(0xFF0B1E2D)];
+    // Always use cinematic navy gradient for transition screen
+    final skyColors = [const Color(0xFF04060D), const Color(0xFF0B1E2D)];
 
     return Scaffold(
       backgroundColor: Colors.transparent,

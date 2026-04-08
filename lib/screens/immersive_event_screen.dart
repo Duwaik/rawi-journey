@@ -60,7 +60,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   List<BadgeDefinition> _newBadges = [];
   BadgeDefinition? _currentBadge;
   final ScrollController _verdictScrollCtrl = ScrollController();
-  final ScrollController _reflectionScrollCtrl = ScrollController(); // badge currently showing in overlay
+  // _reflectionScrollCtrl removed — unified verdict uses _verdictScrollCtrl
 
   late final SceneConfig _scene;
 
@@ -256,7 +256,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _autoWalking = false;
     }
     _verdictScrollCtrl.dispose();
-    _reflectionScrollCtrl.dispose();
+    // _reflectionScrollCtrl removed
     WidgetsBinding.instance.removeObserver(this);
     _gameLoop.removeListener(_onFrame);
     _gameLoop.dispose();
@@ -1311,13 +1311,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               sourceRefAr: _activeHotspot!.sourceRefAr,
               centerMode: true),
 
-          // ── The Reflection (linear events 4+) ─────────────────────
-          if ((_phase == _Phase.choose || _phase == _Phase.complete) && !_isBranching
-              && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
-            _buildChoiceOverlay(bottomPad),
-
-          // ── The Verdict (branching events — at The Gathering) ─────
-          if ((_phase == _Phase.convergenceQuestion || _phase == _Phase.complete) && _isBranching
+          // ── The Verdict (all events — unified gold card UI) ────────
+          if ((_phase == _Phase.choose || _phase == _Phase.convergenceQuestion || _phase == _Phase.complete)
               && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
             _buildConvergenceQuestion(bottomPad),
 
@@ -1789,217 +1784,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   // ── The Reflection (linear events — old Moment of Reflection) ───────────────
 
-  Widget _buildChoiceOverlay(double bottomPad) {
-    final event = widget.event;
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOutCubic,
-      bottom: 0, left: 0, right: 0,
-      top: MediaQuery.of(context).size.height * 0.2,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter, end: Alignment.bottomCenter,
-            colors: [Colors.black.withAlpha(0), Colors.black.withAlpha(230),
-              Colors.black.withAlpha(250)],
-            stops: const [0.0, 0.12, 0.3],
-          ),
-        ),
-        child: ScrollHintWrapper(
-          controller: _reflectionScrollCtrl,
-          child: SingleChildScrollView(
-            controller: _reflectionScrollCtrl,
-            padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPad),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  const Icon(Icons.menu_book_rounded, size: 12, color: AppColors.textMuted),
-                const SizedBox(width: 6),
-                Expanded(child: Text(event.source,
-                    style: GoogleFonts.nunito(
-                        color: AppColors.textMuted.withAlpha(160),
-                        fontSize: 11, height: 1.4))),
-              ]),
-              const SizedBox(height: 20),
-              if (event.questions.isNotEmpty)
-                _buildChoiceCards(),
-              // Continue button — appears after answering (both first time + replay)
-              if (_allAnswered) ...[
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity, height: 50,
-                  child: ElevatedButton(
-                    onPressed: _alreadyCompleted ? _continue : _completeAndPop,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _alreadyCompleted ? AppColors.card : _eraColor,
-                      foregroundColor: _alreadyCompleted ? AppColors.textMuted : AppColors.bg,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0),
-                    child: Text(
-                      _alreadyCompleted
-                          ? (_isAr ? 'العودة للأحداث  ←' : 'Back to Events  →')
-                          : (_isAr ? 'أكمل الرحلة  ←' : 'Continue Journey  →'),
-                      style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5)),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ), // SingleChildScrollView
-        ), // ScrollHintWrapper
-      ),
-    );
-  }
-
-  Widget _buildChoiceCards() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: List.generate(widget.event.questions.length, (qIdx) {
-        final answered = _answers[qIdx] != null;
-        final prevAnswered = qIdx == 0 || _answers[qIdx - 1] != null;
-        if (!prevAnswered) return const SizedBox.shrink();
-
-        final q = widget.event.questions[qIdx];
-        final question = _isAr ? q.questionAr : q.question;
-        final options = _isAr ? q.optionsAr : q.options;
-        final explanation = _isAr ? q.explanationAr : q.explanation;
-        final isCorrect = _answers[qIdx] == q.correctIndex;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  CharacterArt.witnessing(),
-                  width: 40, height: 40, fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(child:
-                Text(_isAr ? 'ماذا يحفظ التاريخ؟' : 'What does history remember?',
-                    style: GoogleFonts.lora(color: _eraColor.withAlpha(200),
-                        fontSize: 14,
-                        fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
-                        fontWeight: FontWeight.w600)),
-              ),
-            ]),
-            const SizedBox(height: 12),
-            Text(question,
-                style: GoogleFonts.cinzelDecorative(
-                    color: AppColors.textPrimary, fontSize: 16, height: 1.45),
-                textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr),
-            const SizedBox(height: 20),
-            ...List.generate(options.length, (i) {
-              final isSelected = _answers[qIdx] == i;
-              final isCorrectOpt = i == q.correctIndex;
-              Color borderColor, bgColor, textColor;
-              if (!answered) {
-                borderColor = AppColors.gold.withAlpha(50);
-                bgColor = AppColors.card.withAlpha(200);
-                textColor = AppColors.textPrimary;
-              } else if (isCorrectOpt) {
-                borderColor = _eraColor;
-                bgColor = _eraColor.withAlpha(22);
-                textColor = AppColors.textPrimary;
-              } else if (isSelected) {
-                borderColor = AppColors.divider.withAlpha(90);
-                bgColor = AppColors.bg;
-                textColor = AppColors.textMuted;
-              } else {
-                borderColor = AppColors.divider.withAlpha(60);
-                bgColor = AppColors.bg;
-                textColor = AppColors.textMuted.withAlpha(140);
-              }
-              return GestureDetector(
-                onTap: () => _selectChoice(qIdx, i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 280),
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: bgColor, borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: borderColor,
-                        width: answered && isCorrectOpt ? 1.5 : 1.0),
-                  ),
-                  child: Row(children: [
-                    Expanded(child: Text(options[i],
-                        style: GoogleFonts.nunito(color: textColor, fontSize: 14,
-                            fontWeight: FontWeight.w600, height: 1.4),
-                        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr)),
-                    if (answered && isCorrectOpt)
-                      Padding(padding: const EdgeInsets.only(left: 8),
-                        child: Icon(Icons.check_circle_rounded,
-                            color: _eraColor, size: 18)),
-                  ]),
-                ),
-              );
-            }),
-            if (answered) ...[
-              const SizedBox(height: 4),
-              FadeTransition(opacity: _revealAnim,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                      begin: const Offset(0, 0.06), end: Offset.zero)
-                      .animate(_revealAnim),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isCorrect ? _eraColor.withAlpha(14) : AppColors.card,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isCorrect
-                          ? _eraColor.withAlpha(80) : AppColors.divider),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(children: [
-                          Icon(isCorrect ? Icons.brightness_3_rounded
-                              : Icons.auto_stories_rounded,
-                              size: 13, color: AppColors.gold),
-                          const SizedBox(width: 7),
-                          Text(_isAr ? 'يتأمّل الراوي...' : 'The Rawi reflects...',
-                              style: GoogleFonts.nunito(color: AppColors.gold,
-                                  fontSize: 11, fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.6)),
-                        ]),
-                        const SizedBox(height: 10),
-                        Text(explanation,
-                            style: GoogleFonts.lora(color: AppColors.textBody,
-                                fontSize: 13,
-                                fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
-                                height: 1.7),
-                            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr),
-                        // Source reference
-                        if (q.sourceRef != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              '📖 ${_isAr ? (q.sourceRefAr ?? q.sourceRef!) : q.sourceRef!}',
-                              style: GoogleFonts.nunito(
-                                color: const Color(0xFF8A9BB0),
-                                fontSize: 11,
-                              ),
-                              textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        );
-      }),
-    );
-  }
-
-  // _buildContinueButton removed — Continue button now inline in both Verdict and Reflection
+  // _buildChoiceOverlay and _buildChoiceCards removed — unified into _buildConvergenceQuestion
 }
 
 // ── Footprint trail painter ──────────────────────────────────────────────────

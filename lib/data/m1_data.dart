@@ -458,7 +458,7 @@ final List<JourneyEvent> m1Events = [
     locationAr: 'مكة المكرمة',
     narrative: '',
     narrativeAr: '',
-    source: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6 | Sahih Bukhari #3818',
+    source: 'Sahih Bukhari #3818 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
     xpReward: 30,
     questions: [
       JourneyQuestion(
@@ -478,8 +478,8 @@ final List<JourneyEvent> m1Events = [
         correctIndex: 0,
         explanation: 'Nafisah bint Munyah was the close friend of Khadijah who approached the Prophet \uFDFA on her behalf. She asked him about marriage and mentioned Khadijah\'s name, leading to the proposal that would change the course of history.',
         explanationAr: 'نفيسة بنت منية كانت الصديقة المقربة لخديجة التي ذهبت إلى النبي \uFDFA نيابةً عنها. سألته عن الزواج وذكرت اسم خديجة فكان ذلك بداية الخِطبة التي غيّرت مجرى التاريخ.',
-        sourceRef: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6 | Sahih Bukhari #3818',
-        sourceRefAr: 'ابن هشام | الرحيق المختوم، الفصل 6 | صحيح البخاري #3818',
+        sourceRef: 'Sahih Bukhari #3818 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'صحيح البخاري #3818 | ابن هشام | الرحيق المختوم، الفصل 6',
       ),
     ],
   ),

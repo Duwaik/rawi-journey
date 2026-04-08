@@ -309,8 +309,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         fragmentAr: 'يطلب رداءً ويبسطه على الأرض ثم يضع الحجر الأسود فوقه ويدعو زعيم كل قبيلة ليمسك بطرف. معاً يرفعون ومعاً يحملونه إلى مكانه ويضع الحجر بيديه الشريفتين فلم تُحرم قبيلة ولم يُسفك دم. حكمة قبل الوحي.\n\nسواء شاهدت السيوف تكاد تُسلّ أو الباب الذي دخل منه الأمين فقد وصلت إلى الحقيقة ذاتها: رجل ائتمنه العالم سلفاً أظهر للتو لماذا والسؤال يبقى.',
         sfxPath: 'assets/audio/sfx_cloak_fabric.wav',
         imagePath: 'assets/scenes/bubble_cloak.jpg',
-        sourceRef: 'Ibn Hisham, Vol. 1 | Al-Raheeq Al-Makhtum, Ch. 6 | Jami\' al-Tirmidhi, Hadith 877',
-        sourceRefAr: 'ابن هشام، المجلد 1 | الرحيق المختوم، الفصل 6 | جامع الترمذي، حديث 877',
+        sourceRef: 'Jami\' al-Tirmidhi, Hadith 877 | Ibn Hisham, Vol. 1 | Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'جامع الترمذي، حديث 877 | ابن هشام، المجلد 1 | الرحيق المختوم، الفصل 6',
         didYouKnow: 'The Black Stone is believed to have originally been white, and to have turned black from absorbing the sins of the children of Adam. It is narrated in a hadith reported by al-Tirmidhi that the Stone descended from Paradise whiter than milk.',
         didYouKnowAr: 'يُعتقد أن الحجر الأسود كان أبيض في الأصل وأنه اسودّ من امتصاص ذنوب بني آدم. وقد جاء في حديث رواه الترمذي أن الحجر نزل من الجنة أشد بياضًا من اللبن.',
       ),
@@ -617,8 +617,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         didYouKnow: 'Every guardian was chosen by Allah to prepare him. The Quran addresses his orphanhood directly: "Did He not find you an orphan and give you shelter?"',
         didYouKnowAr: 'عاش النبي ﷺ وفاة جدّه وهو في الثامنة وكان قد فقد أباه قبل أن يُولد وأمه في السادسة. القرآن يخاطبه مباشرة: "أَلَمْ يَجِدْكَ يَتِيمًا فَآوَىٰ؟" فكل وليّ أمر كان مختاراً من الله ليُعدّه لما هو قادم.'),
     ],
-    // Pattern C — diamond: Start → H1 bottom → H2 left → H3 top → H4 right
-    pathWaypoints: const [Offset(0.50, 0.78), Offset(0.50, 0.70), Offset(0.50, 0.60), Offset(0.36, 0.52), Offset(0.22, 0.42), Offset(0.36, 0.34), Offset(0.50, 0.25), Offset(0.64, 0.34), Offset(0.78, 0.42)],
+    // Pattern C — diamond: Start bottom → H1 bottom → H2 left → H3 top → H4 right
+    pathWaypoints: const [Offset(0.50, 0.78), Offset(0.50, 0.72), Offset(0.50, 0.65), Offset(0.36, 0.54), Offset(0.22, 0.42), Offset(0.28, 0.32), Offset(0.50, 0.25), Offset(0.72, 0.32), Offset(0.78, 0.42)],
     skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     particleType: ParticleType.dust, particleCount: 20, particleColor: const Color(0x40C9A84C), showGrain: true,
   ),
@@ -685,8 +685,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         didYouKnow: 'The Prophet \uFDFA praised this pact even after Islam, calling it "excellent." This is one of the strongest proofs in Islamic jurisprudence that pre-Islamic customs aligned with justice were affirmed, not abolished, by Islam. Scholars use this hadith to this day when discussing universal justice across cultures and religions.',
         didYouKnowAr: 'أثنى النبي \uFDFA على هذا الحلف حتى بعد الإسلام ووصفه بالتميّز، وهذا من أقوى الأدلة في الفقه الإسلامي على أن العادات التي سبقت الإسلام وكانت موافقة للعدل أقرّها الإسلام ولم يلغها، ويستشهد العلماء بهذا الحديث حتى يومنا هذا حين يناقشون العدالة الشاملة عبر الثقافات والأديان.'),
     ],
-    // Pattern D — center outward
-    pathWaypoints: const [Offset(0.50, 0.55), Offset(0.50, 0.60), Offset(0.50, 0.65), Offset(0.38, 0.54), Offset(0.25, 0.42), Offset(0.50, 0.42), Offset(0.75, 0.42), Offset(0.62, 0.34), Offset(0.50, 0.25)],
+    // Pattern D — center outward: Start center → H1 down → H2 left → H3 right → H4 up
+    pathWaypoints: const [Offset(0.50, 0.50), Offset(0.50, 0.58), Offset(0.50, 0.65), Offset(0.38, 0.54), Offset(0.25, 0.42), Offset(0.50, 0.42), Offset(0.75, 0.42), Offset(0.62, 0.34), Offset(0.50, 0.25)],
     skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     showStars: true,
     particleType: ParticleType.dust, particleCount: 15, particleColor: const Color(0x40C9A84C), showGrain: true,
@@ -762,8 +762,8 @@ final Map<String, SceneConfig> sceneConfigs = {
         didYouKnow: 'Khadijah was 40 years old and Muhammad \uFDFA was 25 when they married. She was a successful businesswoman and had been married twice before. She was the one who proposed to him through a friend, not the other way around. Their marriage lasted 25 years until her death.',
         didYouKnowAr: 'كانت خديجة في الأربعين ومحمد \uFDFA في الخامسة والعشرين حين تزوجا. كانت سيدة أعمال ناجحة وقد تزوجت مرتين قبله. هي التي عرضت عليه الزواج عبر صديقة لها وليس العكس. زواجهما استمر خمساً وعشرين سنة حتى وفاتها.'),
     ],
-    // Pattern C — diamond
-    pathWaypoints: const [Offset(0.50, 0.78), Offset(0.50, 0.70), Offset(0.50, 0.60), Offset(0.36, 0.52), Offset(0.22, 0.42), Offset(0.50, 0.42), Offset(0.78, 0.42), Offset(0.64, 0.34), Offset(0.50, 0.25)],
+    // Pattern C — diamond: Start bottom → H1 bottom → H2 left → H3 top → H4 right
+    pathWaypoints: const [Offset(0.50, 0.78), Offset(0.50, 0.72), Offset(0.50, 0.60), Offset(0.36, 0.52), Offset(0.22, 0.42), Offset(0.28, 0.32), Offset(0.50, 0.25), Offset(0.72, 0.32), Offset(0.78, 0.42)],
     skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     particleType: ParticleType.dust, particleCount: 20, particleColor: const Color(0x40C9A84C), showGrain: true,
   ),
