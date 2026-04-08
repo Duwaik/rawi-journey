@@ -363,14 +363,7 @@ final Map<String, SceneConfig> sceneConfigs = {
   // ── Event 3: Birth of the Prophet ﷺ (570 CE) ────────────────────────────
   'j_1_2_1': SceneConfig(
     hubLayers: _meccaHubLayers,
-    groundLayers: const [
-      ParallaxLayer(
-        assetPath: 'assets/scenes/scene_event1_kaabah.jpg', // placeholder — Khaled provides night Mecca BG
-        speed: 0.15,
-        verticalPosition: 0.0,
-        heightFraction: 1.0,
-      ),
-    ],
+    groundLayers: const [],
     hotspots: const [
       SceneHotspot(
         id: 'night_banu_hashim',
@@ -437,18 +430,8 @@ final Map<String, SceneConfig> sceneConfigs = {
       Offset(0.63, 0.36),  // Turn up
       Offset(0.50, 0.28),  // Hotspot 4: The Orphan's First Dawn
     ],
-    // Night sky — deep indigo/navy, stars visible, warm glow on horizon
-    skyGradient: const [
-      Color(0xFF020510),  // very deep night at top
-      Color(0xFF060C1A),
-      Color(0xFF0C1428),
-      Color(0xFF101830),
-      Color(0xFF141E38),
-      Color(0xFF182440),
-      Color(0xFF1C2C4A),
-      Color(0xFF243450),
-      Color(0xFF2E3C48),  // faint warm glow at horizon
-    ],
+    // Static black until batch scene images are generated
+    skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     skyStops: const [0.0, 0.12, 0.24, 0.36, 0.48, 0.58, 0.70, 0.85, 1.0],
     showStars: true,
     showMoon: true,
@@ -462,14 +445,7 @@ final Map<String, SceneConfig> sceneConfigs = {
   // ── Event 4: The Nursing Years — Halimah (570 CE) ────────────────────────
   'j_1_2_2': SceneConfig(
     hubLayers: _meccaHubLayers,
-    groundLayers: const [
-      ParallaxLayer(
-        assetPath: 'assets/scenes/scene_event1_kaabah.jpg', // placeholder — Khaled provides desert morning BG
-        speed: 0.15,
-        verticalPosition: 0.0,
-        heightFraction: 1.0,
-      ),
-    ],
+    groundLayers: const [],
     hotspots: const [
       SceneHotspot(
         id: 'drought_year',
@@ -536,18 +512,8 @@ final Map<String, SceneConfig> sceneConfigs = {
       Offset(0.63, 0.36),
       Offset(0.50, 0.28),  // Hotspot 4
     ],
-    // Early morning desert — pale gold/amber → warm blue
-    skyGradient: const [
-      Color(0xFF0A1420),
-      Color(0xFF142030),
-      Color(0xFF1E2C40),
-      Color(0xFF2A3850),
-      Color(0xFF3A4A58),
-      Color(0xFF5A5A48),
-      Color(0xFF8A7040),
-      Color(0xFFB88838),
-      Color(0xFFD8A840),
-    ],
+    // Static black until batch scene images are generated
+    skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     skyStops: const [0.0, 0.12, 0.24, 0.36, 0.48, 0.58, 0.70, 0.85, 1.0],
     showStars: false,
     showMoon: false,
@@ -560,7 +526,7 @@ final Map<String, SceneConfig> sceneConfigs = {
   // ── Event 5: The Opening of the Chest (j_m1_005) ─────────────────────────
   'j_m1_005': SceneConfig(
     hubLayers: _meccaHubLayers,
-    groundLayers: const [ParallaxLayer(assetPath: 'assets/scenes/scene_event1_kaabah.jpg', speed: 0.15, verticalPosition: 0.0, heightFraction: 1.0)],
+    groundLayers: const [],
     hotspots: const [
       SceneHotspot(id: 'boys_play', x: 0.50, y: 0.62, icon: '☀️', label: 'The Boys at Play', labelAr: 'الصبيان يلعبون',
         fragment: 'He is one of them \u2014 the children of the desert. They chase each other between the tents, throw stones at imaginary targets, and wrestle in the sand. No one in Banu Sa\'d treats him differently. He is the boy Halimah brought from Mecca, the orphan who changed their fortune. He laughs like them, runs like them. But he has never bowed to an idol. He has never lied. Even at this age, there is something about him the other children cannot name \u2014 a seriousness behind the smile, a stillness when the others shout. Today feels like any other day. It is not.',
@@ -584,7 +550,7 @@ final Map<String, SceneConfig> sceneConfigs = {
         didYouKnowAr: 'شقّ الصدر حدث أكثر من مرة. حدث مجدداً ليلة الإسراء والمعراج \u2014 حين كان النبي \uFDFA على وشك الصعود عبر السماوات.'),
     ],
     pathWaypoints: const [Offset(0.50, 0.80), Offset(0.51, 0.72), Offset(0.50, 0.62), Offset(0.38, 0.54), Offset(0.25, 0.44), Offset(0.45, 0.42), Offset(0.72, 0.42), Offset(0.63, 0.36), Offset(0.50, 0.28)],
-    skyGradient: const [Color(0xFF2A4060), Color(0xFF3A5878), Color(0xFF4A6888), Color(0xFF5A7898), Color(0xFF6A88A0), Color(0xFF8A9CA8), Color(0xFFAAB8B8), Color(0xFFD0C8A8), Color(0xFFE8D8A0)],
+    skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     skyStops: const [0.0, 0.12, 0.24, 0.36, 0.48, 0.58, 0.70, 0.85, 1.0],
     particleType: ParticleType.dust, particleCount: 15, particleColor: const Color(0x30B8986E), showGrain: true,
   ),
@@ -592,7 +558,7 @@ final Map<String, SceneConfig> sceneConfigs = {
   // ── Event 6: Death of Aminah (j_m1_006) ───────────────────────────────────
   'j_m1_006': SceneConfig(
     hubLayers: _meccaHubLayers,
-    groundLayers: const [ParallaxLayer(assetPath: 'assets/scenes/scene_event1_kaabah.jpg', speed: 0.15, verticalPosition: 0.0, heightFraction: 1.0)],
+    groundLayers: const [],
     hotspots: const [
       SceneHotspot(id: 'journey_medina', x: 0.50, y: 0.62, icon: '🐪', label: 'The Journey', labelAr: 'الرحلة',
         fragment: 'Aminah takes her son and sets out for Medina. With them travels Umm Ayman, the faithful servant of the family. The boy is six years old. His mother wants him to see the place where his father Abdullah is buried, and to meet his uncles from Banu al-Najjar. It is a long journey across the desert for a small child.',
@@ -616,7 +582,7 @@ final Map<String, SceneConfig> sceneConfigs = {
         didYouKnowAr: 'حين زار النبي \uFDFA قبر أمه في الأبواء، استأذن الله أن يستغفر لها فلم يُؤذن له. أُذن له بالزيارة فقط. بكى بكاءً شديداً حتى بكى كل من حوله.'),
     ],
     pathWaypoints: const [Offset(0.50, 0.80), Offset(0.51, 0.72), Offset(0.50, 0.62), Offset(0.38, 0.54), Offset(0.25, 0.44), Offset(0.45, 0.42), Offset(0.72, 0.42), Offset(0.63, 0.36), Offset(0.50, 0.28)],
-    skyGradient: const [Color(0xFF0A0C18), Color(0xFF141828), Color(0xFF1E2438), Color(0xFF2A3048), Color(0xFF3A3A50), Color(0xFF5A4548), Color(0xFF8A5840), Color(0xFFB87038), Color(0xFFD88830)],
+    skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     skyStops: const [0.0, 0.12, 0.24, 0.36, 0.48, 0.58, 0.70, 0.85, 1.0],
     particleType: ParticleType.dust, particleCount: 15, particleColor: const Color(0x30B8986E), showGrain: true,
   ),
@@ -624,7 +590,7 @@ final Map<String, SceneConfig> sceneConfigs = {
   // ── Event 7: Under the Care of Abd al-Muttalib (j_m1_007) ────────────────
   'j_m1_007': SceneConfig(
     hubLayers: _meccaHubLayers,
-    groundLayers: const [ParallaxLayer(assetPath: 'assets/scenes/scene_event1_kaabah.jpg', speed: 0.15, verticalPosition: 0.0, heightFraction: 1.0)],
+    groundLayers: const [],
     hotspots: const [
       SceneHotspot(id: 'seat_kaabah', x: 0.50, y: 0.62, icon: '👑', label: 'The Seat by the Ka\'bah', labelAr: 'المقعد عند الكعبة',
         fragment: 'Abd al-Muttalib has a seat in the shade of the Ka\'bah that belongs to him alone. But the orphan boy climbs onto it without hesitation. His uncles reach to pull him away. Abd al-Muttalib stops them: "Leave my son alone. By Allah, he has a great destiny."',
@@ -648,7 +614,7 @@ final Map<String, SceneConfig> sceneConfigs = {
         didYouKnowAr: 'كل وليّ أمر كان مختاراً من الله ليُعدّه. القرآن يخاطب يُتمه مباشرة: "أَلَمْ يَجِدْكَ يَتِيمًا فَآوَىٰ؟"'),
     ],
     pathWaypoints: const [Offset(0.50, 0.80), Offset(0.51, 0.72), Offset(0.50, 0.62), Offset(0.38, 0.54), Offset(0.25, 0.44), Offset(0.45, 0.42), Offset(0.72, 0.42), Offset(0.63, 0.36), Offset(0.50, 0.28)],
-    skyGradient: const [Color(0xFF0C1420), Color(0xFF142030), Color(0xFF1E2C40), Color(0xFF2A3850), Color(0xFF3A4858), Color(0xFF5A5848), Color(0xFF886840), Color(0xFFB08038), Color(0xFFD09830)],
+    skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     skyStops: const [0.0, 0.12, 0.24, 0.36, 0.48, 0.58, 0.70, 0.85, 1.0],
     particleType: ParticleType.dust, particleCount: 20, particleColor: const Color(0x40C9A84C), showGrain: true,
   ),
@@ -656,7 +622,7 @@ final Map<String, SceneConfig> sceneConfigs = {
   // ── Event 8: The Guardian: Abu Talib (j_1_2_3, globalOrder 8) ─────────────
   'j_1_2_3': SceneConfig(
     hubLayers: _meccaHubLayers,
-    groundLayers: const [ParallaxLayer(assetPath: 'assets/scenes/scene_event1_kaabah.jpg', speed: 0.15, verticalPosition: 0.0, heightFraction: 1.0)],
+    groundLayers: const [],
     hotspots: const [
       SceneHotspot(id: 'table', x: 0.50, y: 0.62, icon: '🏠', label: 'A Place at His Table', labelAr: 'مكان على مائدته',
         fragment: 'Abu Talib is not a wealthy man. He has children of his own and barely enough to feed them. But he takes the orphan in without hesitation. The people notice: when his children eat separately, they do not get full. But when Muhammad \uFDFA sits down to eat with them, everyone is satisfied. The blessing that followed this child from Halimah\'s tent has followed him here.',
@@ -680,7 +646,7 @@ final Map<String, SceneConfig> sceneConfigs = {
         didYouKnowAr: 'حين مات أبو طالب سنة 619م، اشتد الاضطهاد حتى اضطر النبي \uFDFA لطلب النصرة خارج مكة. سمّى ذلك العام "عام الحزن" لأنه فقد خديجة أيضاً في الفترة نفسها.'),
     ],
     pathWaypoints: const [Offset(0.50, 0.80), Offset(0.51, 0.72), Offset(0.50, 0.62), Offset(0.38, 0.54), Offset(0.25, 0.44), Offset(0.45, 0.42), Offset(0.72, 0.42), Offset(0.63, 0.36), Offset(0.50, 0.28)],
-    skyGradient: const [Color(0xFF0A1420), Color(0xFF142030), Color(0xFF1E2C40), Color(0xFF2A3850), Color(0xFF3A4A58), Color(0xFF5A5A48), Color(0xFF8A7040), Color(0xFFB88838), Color(0xFFD8A840)],
+    skyGradient: const [Color(0xFF000000), Color(0xFF000000)],
     skyStops: const [0.0, 0.12, 0.24, 0.36, 0.48, 0.58, 0.70, 0.85, 1.0],
     particleType: ParticleType.dust, particleCount: 20, particleColor: const Color(0x40B8986E), showGrain: true,
   ),

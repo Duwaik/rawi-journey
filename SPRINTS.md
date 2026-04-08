@@ -1,7 +1,7 @@
 # Rawi — Sprint Index
 
-> 52 sprints + post-audit across 6 days (April 1–6, 2026)
-> All sprints complete. R4–R9 testing rounds fixed (70+ items). MVP Events 1-2 flawless.
+> 54 sprints + post-audit across 7 days (April 1–7, 2026)
+> All sprints complete. R4–R12 testing rounds fixed (85+ items). 9 playable events. 155-event structure locked.
 
 ---
 
@@ -106,12 +106,22 @@
 
 ---
 
+## Day 7 — April 7, 2026 (Sprints 53–54)
+**Focus:** R10-R12 fixes, Events 3-8 content, 155-event restructure
+
+| # | Sprint | Key Deliverable |
+|---|--------|----------------|
+| 53 | R10-R12 + Events 3-4 | R10 auto-move fix + verdict wording + global audio lifecycle. R11 DYK feature + source refs + new questions. R12 label wrapping + auto-move failsafe. Events 3 (Birth) + 4 (Halimah) playable. Green screen 3-layer fix. |
+| 54 | 155-Event Restructure + Events 5-8 | Major data restructure to 155-event sequence. New ID convention (`j_m1_NNN`). 3 new events (5-7) + Event 8 new content. All globalOrders renumbered. 9 playable events total. Claude Desktop audit passed. |
+
+---
+
 ## Planned
 
 | # | Sprint | Scope |
 |---|--------|-------|
-| 53+ | Content writing | Events 3-36 data + scene configs. One event per day. Follow RAWI_ROAD_TO_LAUNCH.md. |
-| — | Pending Khaled | Remaining 7 ambient clips, Jordanian VO regen, badge painterly artwork |
+| 55+ | Content writing | Events 9-15 (completing Early Life chapter). Al-Amin, Hilf al-Fudul scenes, Khadijah scene, Cave Hira, First Revelation, First Believers. |
+| — | Pending Khaled | Remaining ambient clips, Jordanian VO regen, badge painterly artwork, scene BG images |
 | — | Post-Launch | Young Rawi Mode (age-adaptive content — see `doc/RAWI_YOUNG_RAWI_MODE.md`) |
 
 ---
@@ -120,12 +130,14 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sprints | 52 + post-audit |
-| Total days | 6 |
-| Bugs fixed | 120+ across 9 testing rounds + audit |
+| Total sprints | 54 + post-audit |
+| Total days | 7 |
+| Bugs fixed | 130+ across 12 testing rounds + audit |
 | Dart files | 44 |
-| Dart lines | ~12,250 |
+| Dart lines | ~12,500 |
+| Total events | 39 in m1_data (155-event structure, 47 for M1) |
+| Playable events | 9 (Events 1-8 + Black Stone at 12) |
 | Audio files | 159 (84 VO + 52 companion + 14 SFX + 8 ambient + 1 video) |
 | Video files | 1 (event2_intro.mp4, 18MB) |
-| Git commits | 55 |
+| Git commits | 60+ |
 | Tests | 6 (5 branching + 1 smoke, all passing) |

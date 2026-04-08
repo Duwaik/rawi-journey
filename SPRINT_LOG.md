@@ -1031,3 +1031,75 @@ Race-safe: `fadeOut`'s internal `if (_ambient != player) return;` guard exits th
 - `flutter analyze` — **0 issues** (cleanest ever)
 - `flutter test` — 6/6 passing
 - APK builds successfully
+
+---
+
+## Sprint 53 — R10-R12 Fixes + Events 3-4
+**Date:** 2026-04-07
+**Status:** COMPLETE
+
+| Change | Details |
+|--------|---------|
+| R10-01 | Figure auto-movement: zeroed joystick in `_activateHotspot` + `_dismissPanel` |
+| R10-02 | Verdict wording: "History records" → "The Rawi reflects" across all files |
+| R10-03 | Global audio lifecycle: `RawiApp` now observes lifecycle, fades all audio on background |
+| R11-01 | "Did You Know?" feature: model fields + UI in discovery panel + response buttons |
+| R11-02 | Linear verdict prompt unified: "What does history remember?" |
+| R11-03 | New direct questions for Events 1 + 8 (factual, not action-based) |
+| R11-04/05 | DYK + sourceRef wired to all 16 hotspots across Events 1, 2, 3, 8 |
+| R11-06 | Source refs on verdict explanations |
+| R12-01 | Hotspot labels wrap to 2 lines (width 90→120px) |
+| R12-03 | Figure auto-move nuclear failsafe in `_onIdle` + `_showBubble` |
+| R12-05 | Event 2 question: direct factual (camels + "Ka'bah has a Lord") |
+| Event 3 | Birth of the Prophet ﷺ — full scene config + data (j_1_2_1) |
+| Event 4 | Halimah nursing years — full scene config + data (j_1_2_2) |
+| Green screen | 3-layer defense: MainActivity.kt navy bg + SplashScreenDrawable + windowIsTranslucent=false |
+
+---
+
+## Sprint 54 — 155-Event Restructure + Events 5-8
+**Date:** 2026-04-07
+**Status:** COMPLETE
+
+### Major data restructure
+The old 36-event structure was replaced with the 155-event sequence.
+
+**New ID convention:**
+- Existing events keep old IDs (e.g., `j_1_1_1`, `j_1_2_3`)
+- New events use `j_m1_NNN` format (e.g., `j_m1_005`, `j_m1_006`, `j_m1_007`)
+- Full renumbering deferred until all 47 M1 events are written
+
+**GlobalOrder mapping (first 15):**
+| New # | Event | ID | Status |
+|-------|-------|----|--------|
+| 1 | Arabia Before the Light | j_1_1_1 | ✅ Playable |
+| 2 | Year of the Elephant | j_1_1_2 | ✅ Playable |
+| 3 | Birth of the Prophet ﷺ | j_1_2_1 | ✅ Playable |
+| 4 | Nursing Years — Halimah | j_1_2_2 | ✅ Playable |
+| 5 | Opening of the Chest | j_m1_005 | ✅ Playable |
+| 6 | Death of Aminah | j_m1_006 | ✅ Playable |
+| 7 | Under the Care of Abd al-Muttalib | j_m1_007 | ✅ Playable |
+| 8 | The Guardian: Abu Talib | j_1_2_3 | ✅ Playable |
+| 9 | Hilf al-Fudul | j_1_2_4 | Linear only |
+| 10 | Al-Amin (reserved) | — | Not yet written |
+| 11 | Marriage to Khadijah | j_1_2_5 | Linear only |
+| 12 | The Black Stone | j_1_1_3 | ✅ Playable |
+| 13-40 | Events 13-40 | Various | Linear only |
+
+**Files modified:**
+- `m1_data.dart`: 39 events (was 36), all globalOrders renumbered
+- `scene_configs.dart`: 9 scene configs (Events 1-8 + Black Stone at 12)
+- R11 DYK/sourceRef data verified intact on Events 1-3 + Black Stone
+- R12 Event 2 question re-applied
+
+### Lessons learned
+- **Never overwrite existing event IDs with different content.** Add new IDs instead.
+- **Renumber globalOrders explicitly** when inserting events. Don't shift implicitly.
+- **Audit before pushing:** check DYK, sourceRef, questions, Hindi numerals, italic, verdict wording.
+- **Single source of truth:** `RAWI_UPDATED_EVENT_SEQUENCE.md` defines the canonical order.
+
+### Quality
+- `flutter analyze` — 0 issues
+- `flutter test` — 6/6 passing
+- Full audit: no Hindi numerals, no stale wording, no bare Arabic italic
+- APK builds successfully

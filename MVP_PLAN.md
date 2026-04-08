@@ -2,13 +2,13 @@
 # 3 Playable Events + Complete Gaming UX
 
 > Created: 2026-04-01
-> Updated: 2026-04-06 (52 sprints + post-audit complete)
+> Updated: 2026-04-07 (54 sprints + post-audit complete)
 > Goal: A demo-ready app that feels like a real game from first tap to last hotspot
-> **Status: MVP COMPLETE — R9 FINAL POLISH** — 52 sprints across 6 days. R4–R9 testing rounds fixed 120+ items. Events 1-2 flawless. Video intro integrated. Cinematic continuity end-to-end. LOCKED: no hard audio cuts.
+> **Status: 155-EVENT STRUCTURE LOCKED** — 54 sprints across 7 days. R4–R12 testing rounds fixed 130+ items. 9 playable events (1-8 + Black Stone). "Did You Know?" + source refs live. Claude Desktop audit passed.
 >
-> **Done:** All 52 sprints. Sound fully integrated (8 ElevenLabs clips + 1 video). Completion flow clean. Visual continuity splash→events list. Registration redesigned. Settings reordered. Reset fully resets.
-> **Remaining:** Firebase Crashlytics (needs google-services.json), font bundling (deferred), remaining 7 ambient clips (e1_poet, e1_verdict, e2 x5), Jordanian VO regen, badge painterly artwork.
-> **Next:** Content writing for Events 3-36 (one event per day). Follow RAWI_ROAD_TO_LAUNCH.md.
+> **Done:** 39/47 M1 events in data. 9 have full scene configs. DYK + sourceRef on Events 1-8 + 12. Video intro (Event 2). Sound, audio isolation, cinematic continuity all working.
+> **Next:** Content writing for Events 9-15 (completing Early Life + start of Mecca). Then batch art + VO generation.
+> **Remaining:** Scene BG images (batch), ambient clips (batch), Jordanian VO (batch), badge artwork, Firebase analytics.
 > **Pre-Launch (required):** Firebase Crashlytics + Analytics (~4 sprints). See `doc/RAWI_ANALYTICS_ARCHITECTURE.md`.
 > **Launch:** Hasanat Layer 1 — single contextual dhikr per event (~3.5 sprints). See `doc/RAWI_HASANAT_ARCHITECTURE.md`.
 > **Post-Launch:** Young Rawi Mode (`doc/RAWI_YOUNG_RAWI_MODE.md`), Hasanat Layer 2 ("Dhikr Garden").

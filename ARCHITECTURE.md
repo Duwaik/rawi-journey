@@ -1,6 +1,6 @@
 # Rawi — Architecture Document
 
-> Last updated: 2026-04-06
+> Last updated: 2026-04-07
 > Package: `com.rawi.journey`
 > Flutter 3.41.4 | Dart 3.11.1+
 
@@ -11,7 +11,7 @@
 | Metric | Count |
 |--------|-------|
 | Dart files | 43 |
-| Dart lines | ~12,250 |
+| Dart lines | ~12,500 |
 | Asset files | 203 (84 VO + 52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + 1 video + others) |
 | Playable immersive events | 3 (branching) |
 | Flat narrative events | 33 (linear, Events 4-36) |
@@ -369,6 +369,18 @@ Jahiliyyah position 3 to Early Life position 8. Ta'if (619 CE) moved
 to position 17 (after Year of Grief). Event order in m1_data now
 follows strict chronological sequence.
 
+**155-event restructure (Sprint 54):** Expanded from 36 to 155-event
+structure across 4 modules (M1: 47, M2: 35, M3: 38, M4: 35). M1 currently
+has 39 events in code. GlobalOrders renumbered to match canonical sequence
+in `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`.
+
+**Event ID convention (LOCKED):**
+- Existing events keep legacy IDs: `j_1_1_1`, `j_1_2_3`, etc.
+- New events use module-based IDs: `j_m1_005`, `j_m1_006`, `j_m1_007`
+- NEVER overwrite an existing ID with different content — add a new ID instead
+- Full ID renumbering deferred until all 47 M1 events are written
+- Canonical sequence: `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`
+
 ---
 
 ## Sprint History
@@ -409,3 +421,5 @@ follows strict chronological sequence.
 | 50 | R8 completion flow (pushAndRemoveUntil, event list layout: gold glow, dots, teasers, lock hints) |
 | 51 | Video integration (video_player, Event 2 cinematic intro, blurred BG extension) |
 | 52 | R9 final polish (splash BG, reset onboarding, overlay, scroll clickable, tutorial glow, video blur) |
+| 53 | R10-R12 fixes + Events 3-4 (DYK feature, source refs, direct questions, auto-move failsafe) |
+| 54 | **155-event restructure** + Events 5-8 (new ID convention j_m1_NNN, 39 events, 9 playable) |

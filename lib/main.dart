@@ -72,7 +72,7 @@ class _RawiAppState extends State<RawiApp> with WidgetsBindingObserver {
       title: 'Rawi',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.bg,
+        scaffoldBackgroundColor: Colors.black,
         textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
         colorScheme: ColorScheme.dark(
           primary: AppColors.gold,
