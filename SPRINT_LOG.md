@@ -1103,3 +1103,31 @@ The old 36-event structure was replaced with the 155-event sequence.
 - `flutter test` — 6/6 passing
 - Full audit: no Hindi numerals, no stale wording, no bare Arabic italic
 - APK builds successfully
+
+---
+
+## Sprint 55 — Content Review: Events 9-12
+**Date:** 2026-04-08
+**Status:** COMPLETE
+
+### Content updates from spec docs
+Applied content from Khaled's reviewed spec files:
+- `RAWI_EVENT_011_KHADIJAH.md` — Event 11 question fix
+- `RAWI_EVENT_012_BLACKSTONE.md` — Event 12 full content rewrite
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `m1_data.dart` | **Event 11 (j_m1_011):** Removed 4th question option (Barakah/بركة أم أيمن). Now 3 options, correctIndex 0. |
+| `m1_data.dart` | **Event 12 (j_1_1_3):** Full content rewrite from spec. New title AR (حُكم with damma). Narrative set to empty strings. Branch prompt rewritten. Branch options rewritten. Question rewritten. Explanation rewritten (EN+AR). Sources updated (added Al-Bayhaqi). |
+| `scene_configs.dart` | **Event 12 (j_1_1_3):** All 4 hotspot fragments replaced (EN+AR). All 4 DYK sections replaced — dispute hotspot now has DYK (Abu Umayyah bio, was missing). Cloak hotspot DYK changed to Black Stone origin hadith (Tirmidhi 877). All sourceRef updated (Ibn Hisham Vol. 1 format, added Al-Bayhaqi on alamin, added Tirmidhi on cloak). Scene structure (paths, sky, particles) unchanged. |
+
+### Key details
+- Event 12 hotspot IDs unchanged: flood, dispute, alamin, cloak
+- Event 12 branching structure unchanged: anchor=flood, convergence=cloak
+- All 4 hotspots now have DYK content (dispute was previously missing)
+- Source order follows convention: Ibn Hisham → Al-Bayhaqi → Al-Raheeq → Tirmidhi
+
+### Quality
+- `flutter analyze` — 0 issues

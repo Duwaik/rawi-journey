@@ -33,10 +33,10 @@ the sequence below for new events.
 | 6 | Return to Mecca — Death of Aminah | العودة إلى مكة — وفاة آمنة | NEW — no old equivalent |
 | 7 | Under the Care of Abd al-Muttalib | في كنف عبد المطلب | NEW — old content was replaced by Event 4 |
 | 8 | The Guardian: Abu Talib | في كنف أبي طالب | Exists as j_1_2_3 (old position 5) |
-| 9 | Hilf al-Fudul — The Pact of the Virtuous | حلف الفضول | Exists as j_1_2_4 (old position 6) |
-| 10 | Al-Amin — The Trustworthy | الأمين | NEW — no old equivalent |
-| 11 | Marriage to Khadijah | الزواج من خديجة رضي الله عنها | Exists as j_1_2_5 (old position 7) |
-| 12 | The Black Stone — A Wise Arbitration | الحجر الأسود — حكمة التحكيم | ✅ Playable | j_1_1_3 (old position 8) |
+| 9 | Hilf al-Fudul — The Pact of the Virtuous | حلف الفضول | ✅ Content ready | j_1_2_4 (needs scene config) |
+| 10 | Al-Amin — The Trustworthy | الأمين | ✅ Content ready | j_m1_010 (needs scene config) |
+| 11 | Marriage to Khadijah | الزواج من خديجة رضي الله عنها | ✅ Content ready | j_m1_011 (needs scene config) |
+| 12 | The Black Stone: A Wise Arbitration | الحجر الأسود: حُكم الأمين | ✅ Playable (rewritten Sprint 55) | j_1_1_3 |
 | 13 | Solitude in Cave Hira | الخلوة في غار حراء | Exists as j_1_2_6 (old position 9) |
 | 14 | The First Revelation | نزول الوحي الأول | Exists as j_1_2_7 (old position 10) |
 | 15 | The First Believers | أوائل المؤمنين | Exists as j_1_2_8 (old position 11) |

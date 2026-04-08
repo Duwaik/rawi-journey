@@ -517,13 +517,11 @@ final List<JourneyEvent> m1Events = [
           'Nafisah bint Munyah',
           'Halimah al-Sa\'diyah',
           'Fatimah bint Asad',
-          'Barakah (Umm Ayman)',
         ],
         optionsAr: [
           'نفيسة بنت منية',
           'حليمة السعدية',
           'فاطمة بنت أسد',
-          'بركة (أم أيمن)',
         ],
         correctIndex: 0,
         explanation: 'The Rawi reflects: Nafisah bint Munyah was the close friend of Khadijah who approached the Prophet \uFDFA on her behalf. She asked him about marriage and mentioned Khadijah\'s name, leading to the proposal that would change the course of history.',
@@ -541,62 +539,56 @@ final List<JourneyEvent> m1Events = [
     latitude: 21.4225, longitude: 39.8262,
     year: 605,
     title: 'The Black Stone: A Wise Arbitration',
-    titleAr: 'الحجر الأسود: حكم الأمين',
+    titleAr: 'الحجر الأسود: حُكم الأمين',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
-    narrative:
-        'You are inside the sanctuary. The Ka\'bah has been damaged by flood, and the tribes of Mecca have spent weeks rebuilding it. The walls are nearly complete. But now, a crisis. The Black Stone must be placed back in its corner, and every tribe demands the honor. Hands are reaching for weapons. You hear men swearing oaths. Blood is about to be spilled in the sacred precinct.\n\n'
-        'A respected elder proposes a way out: let the first man to enter the sanctuary at dawn decide. The crowd agrees, anything to avoid war in this place. You wait through the night.\n\n'
-        'At dawn, a figure enters. It is Muhammad ﷺ, a young man, perhaps thirty-five, known to every tribe but belonging to no faction. The crowd relaxes. "Al-Amin," they murmur. The Trustworthy. He listens to the dispute quietly. Then he removes his cloak, places the Black Stone on it, and asks the leader of every tribe to lift a corner of the cloak together.',
-    narrativeAr:
-        'أنت داخل الحرم. الكعبة تضررت من السيل، وقبائل مكة أمضت أسابيع تعيد بناءها. الجدران شبه مكتملة. لكن الآن، أزمة. الحجر الأسود يجب أن يعود إلى ركنه، وكل قبيلة تطالب بالشرف. أيدٍ تمتد نحو الأسلحة. تسمع رجالاً يقسمون. الدم على وشك أن يُسفك في البقعة المقدسة.\n\n'
-        'يقترح شيخ مُوقّر مخرجاً: ليكن أول من يدخل الحرم عند الفجر هو الحَكَم. يوافق الجمع، أيّ شيء لتجنب الحرب في هذا المكان. تنتظر طوال الليل.\n\n'
-        'عند الفجر، يدخل شخص. إنه محمد ﷺ، شاب في نحو الخامسة والثلاثين، تعرفه كل القبائل لكنه لا ينتمي لأي فريق. يرتاح الجمع. "الأمين"، يهمسون. يستمع إلى النزاع بهدوء. ثم يخلع رداءه، ويضع الحجر الأسود عليه، ويطلب من زعيم كل قبيلة أن يرفع طرفاً من الرداء معاً.',
-    source: 'Seerah Ibn Hisham, authenticated account of the Black Stone arbitration',
+    narrative: '',
+    narrativeAr: '',
+    source: 'Ibn Hisham, Vol. 1 | Al-Bayhaqi, Dala\'il al-Nubuwwah | Al-Raheeq Al-Makhtum, Ch. 6',
     xpReward: 30,
     anchorHotspotId: 'flood',
     convergenceHotspotId: 'cloak',
     branchPoint: BranchPoint(
       id: 'bp_1_1_3',
       prompt:
-          'The walls are nearly complete. But a crisis has erupted. The Black Stone must return to its sacred corner, and every tribe demands the honor. You hear the clash of voices rising near the Ka\'bah. Hands are gripping sword hilts.\n\n'
-          'At the same time, an elder has proposed a way out: let the first man to enter the sanctuary at dawn decide. The crowd has reluctantly agreed. Dawn is approaching.\n\n'
+          'The walls are nearly complete, but a crisis has erupted. The Black Stone must return to its sacred corner, and every tribe demands the honor of placing it. You hear voices clashing near the Ka\'bah and see hands gripping sword hilts.\n\n'
+          'At the same time, an elder has proposed a way out. Let the first man to enter the sanctuary at dawn be the judge. The crowd has reluctantly agreed, and dawn is approaching.\n\n'
           'Where do you go?',
       promptAr:
-          'الجدران شبه مكتملة. لكن أزمة اندلعت. الحجر الأسود يجب أن يعود إلى ركنه المقدس، وكل قبيلة تطالب بالشرف. تسمع تصادم الأصوات يتصاعد قرب الكعبة. أيدٍ تقبض على مقابض السيوف.\n\n'
-          'وفي الوقت ذاته، اقترح شيخ مخرجاً: ليكن أول من يدخل الحرم عند الفجر هو الحَكَم. وافق الجمع على مضض. الفجر يقترب.\n\n'
+          'الجدران شبه مكتملة، لكنّ أزمةً اندلعت. الحجر الأسود يجب أن يعود إلى ركنه المقدس، وكل قبيلة تطالب بشرف وضعه. تسمع الأصوات تتصادم قرب الكعبة وترى الأيدي تقبض على مقابض السيوف.\n\n'
+          'وفي الوقت ذاته، اقترح أحد الشيوخ مخرجاً: ليكن أول من يدخل الحرم عند الفجر هو الحَكَم. وافق الجمع على مضض، والفجر يقترب.\n\n'
           'إلى أين تذهب؟',
       optionA: BranchOption(
-        label: 'Stay near the dispute. You need to see how close this comes to bloodshed',
-        labelAr: 'ابقَ قرب النزاع. تحتاج أن ترى كم اقتربوا من سفك الدماء',
+        label: 'Stay near the dispute to see how close this comes to bloodshed',
+        labelAr: 'ابقَ قرب النزاع لترى كم اقتربوا من سفك الدماء',
         targetHotspotId: 'dispute',
       ),
       optionB: BranchOption(
-        label: 'Move toward the sanctuary gate. You want to see who enters at dawn',
-        labelAr: 'تحرّك نحو باب الحرم. تريد أن ترى من يدخل عند الفجر',
+        label: 'Move toward the sanctuary gate to see who enters at dawn',
+        labelAr: 'تحرّك نحو باب الحرم لترى من يدخل عند الفجر',
         targetHotspotId: 'alamin',
       ),
     ),
     questions: [
       JourneyQuestion(
         id: 'q_1_1_3_a',
-        question: 'The tribes were about to fight over who would place the Black Stone. How did Muhammad \uFDFA resolve the dispute?',
-        questionAr: 'كادت القبائل تقتتل على من يضع الحجر الأسود. كيف حلّ محمد \uFDFA النزاع؟',
+        question: 'How did Muhammad \uFDFA resolve the dispute over placing the Black Stone?',
+        questionAr: 'كيف حلّ محمد \uFDFA النزاع حول وضع الحجر الأسود؟',
         options: [
-          'He placed the Stone himself as the leader of Banu Hashim',
-          'He put the Stone on a cloak and asked each tribe\'s leader to lift a corner together',
+          'He placed the Stone himself as leader of Banu Hashim',
+          'He placed it on a cloak and asked each tribe\'s leader to lift a corner together',
           'He asked the eldest man in Mecca to decide which tribe deserved the honor',
         ],
         optionsAr: [
           'وضع الحجر بنفسه بصفته زعيم بني هاشم',
-          'وضع الحجر على رداء وطلب من زعيم كل قبيلة أن يرفع طرفاً معاً',
-          'طلب من أكبر رجل في مكة أن يقرر أي قبيلة تستحق الشرف',
+          'وضعه على رداء وطلب من زعيم كل قبيلة أن يرفع طرفًا معًا',
+          'طلب من أكبر رجال مكة أن يقرر أي قبيلة تستحق الشرف',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: He spread his cloak on the ground, placed the Black Stone upon it, and asked each tribe to lift a corner. Together they carried it to its place. He set the Stone with his own hands. No tribe was denied. No blood was shed. They had already named him Al-Amin, The Trustworthy, long before prophethood. Allah was preparing His Prophet \uFDFA.',
-        explanationAr: 'يتأمّل الراوي: بسط رداءه على الأرض ووضع الحجر الأسود فوقه وطلب من كل قبيلة أن ترفع طرفاً. معاً حملوه إلى مكانه ووضع الحجر بيديه الشريفتين فلم تُحرم قبيلة ولم يُسفك دم. كانوا قد سمّوه الأمين قبل النبوة بسنين وكان الله يهيّئ نبيّه \uFDFA.',
-        sourceRef: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
-        sourceRefAr: 'ابن هشام | الرحيق المختوم، الفصل 6',
+        explanation: 'The Rawi reflects: He spread his cloak on the ground, placed the Black Stone upon it, and asked each tribe to lift a corner. Together they carried it to its place. He then set the Stone with his own hands. No tribe was denied and no blood was shed. They had already named him Al-Amin long before prophethood. Allah was preparing His Prophet \uFDFA.',
+        explanationAr: 'يتأمّل الراوي: بسط رداءه على الأرض ووضع الحجر الأسود فوقه، ثم طلب من كل قبيلة أن ترفع طرفًا. معًا حملوه إلى مكانه، ثم وضع الحجر بيديه. لم تُحرم قبيلة ولم يُسفك دم. كانوا قد سمّوه الأمين قبل النبوة بسنين. كان الله يهيّئ نبيّه \uFDFA.',
+        sourceRef: 'Ibn Hisham, Vol. 1 | Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'ابن هشام، المجلد 1 | الرحيق المختوم، الفصل 6',
       ),
     ],
   ),

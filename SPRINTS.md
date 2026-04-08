@@ -1,7 +1,7 @@
 # Rawi — Sprint Index
 
-> 54 sprints + post-audit across 7 days (April 1–7, 2026)
-> All sprints complete. R4–R12 testing rounds fixed (85+ items). 9 playable events. 155-event structure locked.
+> 55 sprints + post-audit across 8 days (April 1–8, 2026)
+> All sprints complete. R4–R12 testing rounds fixed (85+ items). 12 events with content (9 playable). 155-event structure locked.
 
 ---
 
@@ -116,11 +116,20 @@
 
 ---
 
+## Day 8 — April 8, 2026 (Sprint 55)
+**Focus:** Content review — Events 9-12 from spec docs
+
+| # | Sprint | Key Deliverable |
+|---|--------|----------------|
+| 55 | Content Review: Events 9-12 | Event 11 question fix (4→3 options). Event 12 full content rewrite from spec (all fragments, DYK, sources, branch prompt, question). All 4 hotspots now have DYK. |
+
+---
+
 ## Planned
 
 | # | Sprint | Scope |
 |---|--------|-------|
-| 55+ | Content writing | Events 9-15 (completing Early Life chapter). Al-Amin, Hilf al-Fudul scenes, Khadijah scene, Cave Hira, First Revelation, First Believers. |
+| 56+ | Content writing | Events 9-10 scene configs (Hilf al-Fudul, Al-Amin). Events 13-15 (Cave Hira, First Revelation, First Believers). |
 | — | Pending Khaled | Remaining ambient clips, Jordanian VO regen, badge painterly artwork, scene BG images |
 | — | Post-Launch | Young Rawi Mode (age-adaptive content — see `doc/RAWI_YOUNG_RAWI_MODE.md`) |
 
@@ -130,13 +139,14 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sprints | 54 + post-audit |
-| Total days | 7 |
+| Total sprints | 55 + post-audit |
+| Total days | 8 |
 | Bugs fixed | 130+ across 12 testing rounds + audit |
 | Dart files | 44 |
 | Dart lines | ~12,500 |
-| Total events | 39 in m1_data (155-event structure, 47 for M1) |
+| Total events | 40 in m1_data (155-event structure, 47 for M1) |
 | Playable events | 9 (Events 1-8 + Black Stone at 12) |
+| Events with full content | 12 (Events 1-12, 9-11 need scene configs) |
 | Audio files | 159 (84 VO + 52 companion + 14 SFX + 8 ambient + 1 video) |
 | Video files | 1 (event2_intro.mp4, 18MB) |
 | Git commits | 60+ |

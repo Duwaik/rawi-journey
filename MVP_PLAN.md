@@ -4,10 +4,10 @@
 > Created: 2026-04-01
 > Updated: 2026-04-07 (54 sprints + post-audit complete)
 > Goal: A demo-ready app that feels like a real game from first tap to last hotspot
-> **Status: 155-EVENT STRUCTURE LOCKED** — 54 sprints across 7 days. R4–R12 testing rounds fixed 130+ items. 9 playable events (1-8 + Black Stone). "Did You Know?" + source refs live. Claude Desktop audit passed.
+> **Status: 155-EVENT STRUCTURE LOCKED** — 55 sprints across 8 days. R4–R12 testing rounds fixed 130+ items. 9 playable events (1-8 + Black Stone). 12 events with full content. "Did You Know?" + source refs live. Claude Desktop audit passed.
 >
-> **Done:** 39/47 M1 events in data. 9 have full scene configs. DYK + sourceRef on Events 1-8 + 12. Video intro (Event 2). Sound, audio isolation, cinematic continuity all working.
-> **Next:** Content writing for Events 9-15 (completing Early Life + start of Mecca). Then batch art + VO generation.
+> **Done:** 40/47 M1 events in data. 9 have full scene configs. 12 have full content (Events 1-12). DYK + sourceRef on all 12. Event 11 question trimmed to 3 options. Event 12 fully rewritten from spec. Video intro (Event 2). Sound, audio isolation, cinematic continuity all working.
+> **Next:** Scene configs for Events 9-11 (Hilf al-Fudul, Al-Amin, Khadijah). Content writing for Events 13-15. Then batch art + VO generation.
 > **Remaining:** Scene BG images (batch), ambient clips (batch), Jordanian VO (batch), badge artwork, Firebase analytics.
 > **Pre-Launch (required):** Firebase Crashlytics + Analytics (~4 sprints). See `doc/RAWI_ANALYTICS_ARCHITECTURE.md`.
 > **Launch:** Hasanat Layer 1 — single contextual dhikr per event (~3.5 sprints). See `doc/RAWI_HASANAT_ARCHITECTURE.md`.

@@ -1,6 +1,6 @@
 # Rawi — Architecture Document
 
-> Last updated: 2026-04-07
+> Last updated: 2026-04-08
 > Package: `com.rawi.journey`
 > Flutter 3.41.4 | Dart 3.11.1+
 
@@ -13,9 +13,9 @@
 | Dart files | 43 |
 | Dart lines | ~12,500 |
 | Asset files | 203 (84 VO + 52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + 1 video + others) |
-| Playable immersive events | 3 (branching) |
-| Flat narrative events | 33 (linear, Events 4-36) |
-| Total events in data | 36 |
+| Playable immersive events | 9 (2 branching + 7 linear with scene configs) |
+| Content-ready events | 12 (9 playable + 3 need scene configs) |
+| Total events in data | 40 |
 | Era distribution | Jahiliyyah 2, Early Life 9, Mecca 11, Medina 14 |
 | Git commits | 7+ |
 
@@ -58,10 +58,10 @@ d:\Rawi_Journey\
 │   │                                             Scholar@30, Guardian@36, Rawi@36)
 │   │
 │   ├── data\
-│   │   ├── m1_data.dart                       # 36 events (Milestone 1) with branching
-│   │   │                                        data for Events 1-3
-│   │   ├── scene_configs.dart                 # 3 scene configs (E1-E3) with alt paths,
-│   │   │                                        hotspot positions, sky gradients, particles
+│   │   ├── m1_data.dart                       # 40 events (Milestone 1) with branching
+│   │   │                                        data for Events 1-2 + 12 (Black Stone)
+│   │   ├── scene_configs.dart                 # 12 scene configs (E1-8 + Black Stone + 3 placeholders)
+│   │   │                                        with alt paths, hotspot positions, sky gradients, particles
 │   │   └── companion_dialogue.dart            # Speech bubble dialogue bank (7 triggers,
 │   │                                            EN+AR, ~25 lines each)
 │   │
@@ -423,3 +423,4 @@ in `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`.
 | 52 | R9 final polish (splash BG, reset onboarding, overlay, scroll clickable, tutorial glow, video blur) |
 | 53 | R10-R12 fixes + Events 3-4 (DYK feature, source refs, direct questions, auto-move failsafe) |
 | 54 | **155-event restructure** + Events 5-8 (new ID convention j_m1_NNN, 39 events, 9 playable) |
+| 55 | Content review: Event 11 question fix (4→3 options), Event 12 full rewrite from spec (all DYK, sources, fragments) |
