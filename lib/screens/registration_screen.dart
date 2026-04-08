@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
-import 'event_list_screen.dart';
+import 'rawi_call_screen.dart';
 
 /// 2-step registration flow shown on first launch after intro cinematic.
 /// Screen 1: Identity (name + companion)
@@ -69,7 +69,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const EventListScreen(),
+            const RawiCallScreen(),
         transitionsBuilder: (context, anim, secondaryAnimation, child) =>
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 800),

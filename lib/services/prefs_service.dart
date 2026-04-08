@@ -100,6 +100,7 @@ class PrefsService {
     await prefs.setBool(_keyChoiceTutSeen, false);
     // R9-02: Reset onboarding so user sees intro cinematic + registration again
     await prefs.setBool(_keyOnboardingDone, false);
+    await prefs.setBool(_keyRawiCallShown, false);
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────
@@ -162,6 +163,15 @@ class PrefsService {
   static Future<void> clearHotspotProgress(String eventId) async {
     await _prefs?.remove('$_keyHotspotProgress$eventId');
   }
+
+  // ── RAWI CALL (one-time story screen) ──────────────────────────────────
+  static const String _keyRawiCallShown = 'rawi_call_shown';
+
+  static bool get isRawiCallShown =>
+      _prefs?.getBool(_keyRawiCallShown) ?? false;
+
+  static Future<void> setRawiCallShown() async =>
+      await _prefs?.setBool(_keyRawiCallShown, true);
 
   // ── COLLECTION ────────────────────────────────────────────────────────
   static const String _keyDiscoveredCollection = 'discovered_collection';
