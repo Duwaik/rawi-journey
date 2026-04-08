@@ -1,4 +1,5 @@
 import 'branch_point.dart';
+import 'witness_intro.dart';
 
 // ── Era ───────────────────────────────────────────────────────────────────────
 
@@ -175,6 +176,9 @@ class JourneyEvent {
   /// The Gathering — final hotspot where all Paths meet before The Verdict.
   final String? convergenceHotspotId;
 
+  /// Optional cinematic text crawl before the scene (major events only).
+  final WitnessIntro? witnessIntro;
+
   /// Whether this event uses branching flow.
   bool get isBranching => branchPoint != null;
 
@@ -198,5 +202,6 @@ class JourneyEvent {
     this.anchorHotspotId,
     this.branchPoint,
     this.convergenceHotspotId,
+    this.witnessIntro,
   });
 }

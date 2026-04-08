@@ -15,6 +15,7 @@ import 'journey_event_screen.dart';
 import 'settings_screen.dart';
 import 'threshold_screen.dart';
 import 'video_intro_screen.dart';
+import 'witness_moment_screen.dart';
 import '../widgets/cinematic/fly_transition.dart';
 import '../widgets/rawi_dialog.dart';
 
@@ -199,7 +200,30 @@ class _EventListScreenState extends State<EventListScreen>
                 CinematicTransitionScreen(
               event: event,
               onComplete: () {
-                if (ctx.mounted) {
+                if (!ctx.mounted) return;
+                // Check for Witness Moment before entering scene
+                if (event.witnessIntro != null) {
+                  Navigator.pushReplacement(
+                    ctx,
+                    PageRouteBuilder(
+                      transitionDuration: const Duration(milliseconds: 500),
+                      pageBuilder: (ctx2, a, s) => FadeTransition(
+                        opacity: a,
+                        child: WitnessMomentScreen(
+                          intro: event.witnessIntro!,
+                          onComplete: () {
+                            if (ctx2.mounted) {
+                              Navigator.pushReplacement(
+                                ctx2,
+                                flyDownRoute(ImmersiveEventScreen(event: event)),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                } else {
                   Navigator.pushReplacement(
                     ctx,
                     flyDownRoute(ImmersiveEventScreen(event: event)),
