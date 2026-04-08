@@ -412,80 +412,124 @@ final List<JourneyEvent> m1Events = [
     globalOrder: 9,
     latitude: 21.4225, longitude: 39.8262,
     year: 590,
-    title: 'Hilf al-Fudul — The Pact of the Virtuous',
+    title: 'Hilf al-Fudul',
     titleAr: 'حلف الفضول',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
     narrative:
-        'You are near the Ka\'bah when you hear it — a Yemeni merchant standing in the open, his voice cracking with frustration. He came to Mecca, sold his goods to a man of Quraysh, and was never paid. He has no tribe here. No protection. No one to fight for him. So he does the only thing he can: he stands in the most public place in Mecca and calls out to anyone who still believes in honor.\n\n'
-        'Something shifts. You watch as the noblest clans of Mecca stir — not all of them, but enough. They gather in the house of Abdullah ibn Jud\'an and swear a covenant: from this day forward, they will stand together against any injustice in Mecca. No victim — whether local or foreigner — will be denied their rights while they draw breath.\n\n'
-        'Among those present is a young man named Muhammad ﷺ. He says nothing during the gathering. But decades later — as a Prophet — he will say of this night: "I was present at a pact so excellent that I would not exchange my part in it for a herd of red camels; and if I were called to it in Islam, I would respond."',
+        'A Yemeni merchant stands near the Ka\'bah, his voice breaking. He came to Mecca to trade, sold his goods to a man of Quraysh, and was never paid. He has no tribe in this city. No one to demand his rights. So he cries out to anyone who still believes that honor means something.\n\n'
+        'Something stirs. The noblest clans gather in the house of Abdullah ibn Jud\'an and swear a covenant: from this day forward, they will stand as one against any injustice in Mecca. Among those present is a young man named Muhammad \uFDFA. He says nothing. But decades later, as a prophet, he will say: "I witnessed a pact so excellent that I would not exchange my part in it for a herd of red camels; and if I were called to it in Islam, I would answer."',
     narrativeAr:
-        'أنت قرب الكعبة حين تسمعه — تاجر يمني يقف في العراء، صوته يتكسّر من الإحباط. جاء مكة وباع بضاعته لرجل من قريش ولم يُدفع حقه. ليس له هنا قبيلة. لا حماية. لا أحد يقاتل عنه. فيفعل الشيء الوحيد الذي يستطيعه: يقف في أكثر أماكن مكة علنية ويصرخ مناشداً كل من يؤمن بالشرف.\n\n'
-        'شيء يتحرك. تشاهد أشرف أحياء مكة تنتفض — ليس كلهم، لكن ما يكفي. يجتمعون في دار عبد الله بن جدعان ويقسمون عهداً: من هذا اليوم، سيقفون معاً ضد أي ظلم في مكة. لن يُحرم مظلوم — سواء أكان محلياً أم غريباً — من حقه ما داموا أحياء.\n\n'
-        'بين الحاضرين شاب اسمه محمد ﷺ. لا يتكلم خلال الاجتماع. لكن بعد عقود — وهو نبيّ — سيقول عن هذه الليلة: "شهدت في دار ابن جدعان حلفاً ما أُحب أن لي به حُمر النعم، ولو دُعيت إليه في الإسلام لأجبت."',
-    source: 'Seerah Ibn Hisham — Hilf al-Fudul; referenced by Prophet ﷺ in Sahih narrations',
+        'تاجر يمني يقف قرب الكعبة وصوته يتكسّر من الإحباط، فقد جاء إلى مكة وباع بضاعته لرجل من قريش ولكنه لم يحصل على حقه. ليس له في هذه المدينة قبيلة تحميه ولا ظهر يسنده ولا أحد يقف بجانبه ويطالب بما هو له.\n\n'
+        'شيء يتحرك في مكة تلك الليلة. أشرف أحياء المدينة يجتمعون في دار عبد الله بن جدعان ويقسمون عهداً: من هذا اليوم سيقفون صفاً واحداً ضد أي ظلم يُرتكب في مكة. بين الحاضرين شاب اسمه محمد \uFDFA. لا يتكلم لكنه يراقب. وبعد عقود وهو نبيّ سيقول: "شهدت في دار ابن جدعان حلفاً ما أُحب أن لي به حُمر النعم ولو دُعيت إليه في الإسلام لأجبت."',
+    source: 'Musnad Ahmad | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
     xpReward: 30,
     questions: [
       JourneyQuestion(
         id: 'q_1_2_4_a',
-        question: 'A Yemeni merchant stands at the Ka\'bah, cheated and unheard. The tribes gather. You are there. What do you do?',
-        questionAr: 'تاجر يمني يقف عند الكعبة، مغبون ومهمَل. القبائل تتجمع. أنت هناك. ماذا تفعل؟',
+        question: 'What did the Prophet \uFDFA say about Hilf al-Fudul after he became a prophet?',
+        questionAr: 'ماذا قال النبي \uFDFA عن حلف الفضول بعد أن صار نبياً؟',
         options: [
-          'Stay silent — this is between the merchant and the Quraysh, it is not your concern',
-          'Stand beside the merchant and add your voice to his call',
-          'Watch to see how the nobles of Mecca respond — this will reveal what kind of people they are',
+          'He said it was a pact of ignorance and Islam replaced it with something better',
+          'He said it was so excellent he would not trade his part in it for a herd of red camels, and he would answer its call even in Islam',
+          'He said he was too young to understand it at the time but later recognized its value',
         ],
         optionsAr: [
-          'تلزم الصمت — هذا بين التاجر وقريش، ليس شأنك',
-          'تقف بجانب التاجر وتضم صوتك إلى ندائه',
-          'تراقب كيف يستجيب أشراف مكة — هذا سيكشف أي نوع من الناس هم',
+          'قال إنه حلف جاهلي وقد أتى الإسلام بما هو أفضل منه',
+          'قال إنه حلف لا يحب أن يكون له بدله حُمر النعم ولو دُعي إليه في الإسلام لأجاب',
+          'قال إنه كان صغيراً ولم يفهمه حينها لكنه أدرك قيمته لاحقاً',
         ],
-        correctIndex: 2,
-        explanation: 'The Rawi reflects: The noblest clans gathered and swore a covenant to defend any victim of injustice in Mecca. Muhammad ﷺ was present — and would later say he would honor this pact even in Islam. Allah had planted justice in His final Prophet ﷺ from youth — values that would define the civilization of Islam itself.',
-        explanationAr: 'يتأمّل الراوي: اجتمع أشرف الأحياء وأقسموا عهداً بالدفاع عن كل مظلوم في مكة. كان محمد ﷺ حاضراً — وسيقول لاحقاً إنه سيفي بهذا الحلف حتى في الإسلام. زرع الله العدل في نبيّه الخاتم ﷺ منذ الصغر — قيم ستحدد حضارة الإسلام ذاتها.',
+        correctIndex: 1,
+        explanation: 'The Rawi reflects: The Prophet \uFDFA said he witnessed a pact in the house of Ibn Jud\'an so excellent that he would not exchange his part in it for a herd of red camels. He said if he were called to honor it in Islam, he would answer. This means justice does not belong to one era or one religion. What is right was always right. Islam came to affirm and complete the good that already existed in the world.',
+        explanationAr: 'يتأمّل الراوي: قال النبي \uFDFA إنه شهد في دار ابن جدعان حلفاً لا يحب أن يكون له بدله حُمر النعم ولو دُعي إليه في الإسلام لأجاب. وهذا يعني أن العدل لا يخص حقبة واحدة ولا ديناً واحداً، فما كان صواباً كان صواباً دائماً، والإسلام جاء ليؤكد ما كان حسناً في العالم ويتممه لا ليمحوه.',
+        sourceRef: 'Musnad Ahmad | Al-Bayhaqi | Al-Raheeq Al-Makhtum, Ch. 6',
+        sourceRefAr: 'مسند أحمد | البيهقي | الرحيق المختوم، الفصل 6',
       ),
     ],
   ),
 
   JourneyEvent(
-    id: 'j_1_2_5',
+    id: 'j_m1_010',
+    era: JourneyEra.earlyLife,
+    globalOrder: 10,
+    latitude: 21.4225, longitude: 39.8262,
+    year: 588,
+    title: 'Al-Amin: The Trustworthy',
+    titleAr: 'الأمين',
+    location: 'Mecca',
+    locationAr: 'مكة المكرمة',
+    narrative:
+        'No one decided to call him Al-Amin. No tribe voted on it. The name grew on its own because every person who dealt with him found the same thing: he did not lie, he did not cheat, and he did not break a promise. In a city where merchants inflated prices and poets twisted truth for pay, one young man\'s word was worth more than a contract.\n\n'
+        'The people of Mecca began leaving their most precious belongings with him for safekeeping. Even those who would later oppose him left their belongings in his care. His honesty was not an opinion. It was a fact that even his enemies could not deny.',
+    narrativeAr:
+        'لم يقرر أحد أن يسمّيه الأمين ولم تصوّت عليه قبيلة ولم يمنحه إياه زعيم. الاسم نما وحده لأن كل من تعامل معه وجد الشيء نفسه: لا يكذب ولا يغش ولا يخلف وعداً. في مدينة يبالغ فيها التجار بالأسعار ويلوّي الشعراء فيها الحقيقة لقاء أجر، كانت كلمة شاب واحد أثمن من أي عقد.\n\n'
+        'أهل مكة بدأوا يودعون عنده أثمن ما يملكون حفظاً لها. حتى الذين سيعادونه لاحقاً تركوا أماناتهم عنده، فأمانته لم تكن رأياً بل حقيقة لم يستطع حتى أعداؤه إنكارها.',
+    source: 'Sahih Bukhari #4971 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6',
+    xpReward: 25,
+    questions: [
+      JourneyQuestion(
+        id: 'q_m1_010_a',
+        question: 'When the Prophet \uFDFA stood on Mount Safa and asked the people of Mecca if they would believe him, what did they answer?',
+        questionAr: 'حين وقف النبي \uFDFA على جبل الصفا وسأل أهل مكة إن كانوا سيصدقونه، ماذا أجابوا؟',
+        options: [
+          'They were divided, some believed him and some did not',
+          'They said yes, they had never known him to lie',
+          'They remained silent and waited to hear what he had to say',
+        ],
+        optionsAr: [
+          'انقسموا وبعضهم صدقه وبعضهم لم يصدقه',
+          'قالوا نعم ولم نجرّبا عليه كذباً قط',
+          'صمتوا وانتظروا ليسمعوا ما سيقوله',
+        ],
+        correctIndex: 1,
+        explanation: 'The Rawi reflects: The entire crowd answered without hesitation: "Yes, we have never known you to lie." Decades of honesty had built something no argument could break. When he then told them he was a messenger of Allah, some believed and some turned away. But not one person could say he was a liar. His character was his first proof. Allah built the man before He gave him the mission.',
+        explanationAr: 'يتأمّل الراوي: الجمع كله أجاب دون تردد: "نعم لا جرّبنا عليه كذباً قط." عقود من الأمانة بنت شيئاً لا تستطيع أي حجة أن تهدمه. حين أخبرهم بعدها أنه رسول الله آمن بعضهم وأعرض بعضهم، ولم يستطع أحد أن يقول إنه كاذب. شخصيته كانت برهانه الأول. الله بنى الإنسان قبل أن يمنحه الرسالة.',
+        sourceRef: 'Sahih Bukhari #4971 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 7',
+        sourceRefAr: 'صحيح البخاري #4971 | ابن هشام | الرحيق المختوم، الفصل 7',
+      ),
+    ],
+  ),
+
+  JourneyEvent(
+    id: 'j_m1_011',
     era: JourneyEra.earlyLife,
     globalOrder: 11,
     latitude: 21.4225, longitude: 39.8262,
     year: 595,
-    title: 'Marriage to Khadijah RA',
+    title: 'Marriage to Khadijah',
     titleAr: 'الزواج من خديجة رضي الله عنها',
     location: 'Mecca',
     locationAr: 'مكة المكرمة',
     narrative:
-        'You see Muhammad ﷺ returning from Syria at the head of Khadijah\'s trade caravan. He is twenty-five years old. The journey was successful — more successful than any caravan she has sent before. Her servant Maysara walks beside him, and you can hear Maysara talking — not about the profits, but about the man. His honesty. His kindness. The way people were drawn to him at every stop.\n\n'
-        'Khadijah bint Khuwaylid is one of the most respected women in Mecca — a successful merchant of noble lineage, widowed twice, approximately forty years old. She has heard everything Maysara has to say. And she has made her decision.\n\n'
-        'She proposes marriage. In the culture of that time, for a woman of her standing to propose — extraordinary. Muhammad ﷺ accepts. You witness the beginning of the greatest partnership in human history. She will be his wife, his first believer, his anchor, the mother of his children, and his closest companion for twenty-five years. When the weight of revelation comes — and it will shake him to the core — she will be the first to steady him.',
+        'Khadijah bint Khuwaylid was one of the noblest women of Quraysh and among the wealthiest merchants in all of Mecca. When she heard of a young man called Al-Amin, she offered him a place leading her trade caravan to Syria. She sent with him her servant Maysarah to observe him closely.\n\n'
+        'The caravan returned with profit far greater than anything Khadijah had seen before. But it was not the wealth that moved her. Maysarah spoke of a man who never raised his voice in anger, who dealt with every merchant with fairness that left them astonished. Khadijah confided in her friend Nafisah, who approached him on her behalf. He was twenty-five. She was forty. From that day forward, she became his closest companion, the first to believe in him, the one who stood beside him when the entire world turned away.',
     narrativeAr:
-        'ترى محمداً ﷺ عائداً من الشام على رأس قافلة خديجة التجارية. عمره خمسة وعشرون عاماً. الرحلة كانت ناجحة — أنجح من أي قافلة أرسلتها من قبل. خادمها ميسرة يمشي بجانبه، وتسمع ميسرة يتحدث — لا عن الأرباح، بل عن الرجل. أمانته. لطفه. الطريقة التي انجذب إليه بها الناس في كل محطة.\n\n'
-        'خديجة بنت خويلد من أكثر نساء مكة احتراماً — تاجرة ناجحة ذات حسب ونسب، أُرملت مرتين، في نحو الأربعين من عمرها. سمعت كل ما قاله ميسرة. واتخذت قرارها.\n\n'
-        'تعرض الزواج. في ثقافة ذلك الزمان، أن تعرض امرأة في مكانتها الزواج — أمر استثنائي. محمد ﷺ يقبل. تشهد بداية أعظم شراكة في تاريخ البشرية. ستكون زوجته وأول من يؤمن به وسنده وأم أبنائه وأقرب مؤنسيه لخمسة وعشرين عاماً. وحين يأتي ثقل الوحي — وسيهزّه حتى الأعماق — ستكون أول من يثبّته.',
-    source: 'Sahih Bukhari 3820 — on Khadijah RA and her merits',
-    xpReward: 35,
+        'كانت خديجة بنت خويلد من أشرف نساء قريش وأكثرهن مالاً في مكة كلها. فلما بلغها خبر شابّ يُدعى الأمين عرضت عليه أن يقود قافلتها التجارية إلى الشام وأرسلت معه خادمها ميسرة ليراقبه عن كثب.\n\n'
+        'عادت القافلة بربح فاق كل ما عرفته خديجة من قبل. لكن المال لم يكن ما حرّك قلبها. فقد تحدث ميسرة عن رجل لم يرفع صوته غضباً قط وتعامل مع كل تاجر بإنصاف أدهشهم. أفضت خديجة بما في نفسها إلى صديقتها نفيسة التي ذهبت إليه نيابةً عنها. كان عمره خمساً وعشرين وكانت في الأربعين. ومنذ ذلك اليوم صارت أقرب صحبه إليه وأول من آمن به والتي وقفت بجانبه حين أدار العالم كله ظهره.',
+    source: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6 | Sahih Bukhari #3818',
+    xpReward: 30,
     questions: [
       JourneyQuestion(
-        id: 'q_1_2_5_a',
-        question: 'Muhammad ﷺ returns from the Syria trade. Maysara cannot stop describing what he witnessed. Khadijah listens. Where does your gaze settle?',
-        questionAr: 'يعود محمد ﷺ من تجارة الشام. ميسرة لا يتوقف عن وصف ما شاهده. خديجة تصغي. أين يستقر نظرك؟',
+        id: 'q_m1_011_a',
+        question: 'Who acted as the intermediary between Khadijah and the Prophet \uFDFA to propose marriage?',
+        questionAr: 'من التي توسطت بين خديجة والنبي \uFDFA لعرض الزواج؟',
         options: [
-          'On the caravan\'s goods — the wealth he has earned is unprecedented',
-          'On Muhammad\'s ﷺ face — something has shifted in how he carries himself',
-          'On Khadijah — whose expression says she has already made her decision',
+          'Nafisah bint Munyah',
+          'Halimah al-Sa\'diyah',
+          'Fatimah bint Asad',
+          'Barakah (Umm Ayman)',
         ],
         optionsAr: [
-          'على بضائع القافلة — الثروة التي جلبها لم يُسبق إليها',
-          'على وجه محمد ﷺ — شيء ما تغيّر في طريقة حضوره',
-          'على خديجة — التي يقول تعبير وجهها إنها اتخذت قرارها بالفعل',
+          'نفيسة بنت منية',
+          'حليمة السعدية',
+          'فاطمة بنت أسد',
+          'بركة (أم أيمن)',
         ],
-        correctIndex: 2,
-        explanation: 'The Rawi reflects: Khadijah proposed marriage to Muhammad ﷺ. At twenty-five and forty, they became husband and wife — the partnership that would anchor the most important mission in history. She would be the first to believe, the first to comfort, and the last person he would forget.',
-        explanationAr: 'يتأمّل الراوي: خديجة هي من عرضت الزواج على محمد ﷺ. في الخامسة والعشرين والأربعين، صارا زوجين — الشراكة التي ستُرسي أهم رسالة في التاريخ. ستكون أول من يؤمن، وأول من يواسي، وآخر من يُنسى.',
+        correctIndex: 0,
+        explanation: 'The Rawi reflects: Nafisah bint Munyah was the close friend of Khadijah who approached the Prophet \uFDFA on her behalf. She asked him about marriage and mentioned Khadijah\'s name, leading to the proposal that would change the course of history.',
+        explanationAr: 'يتأمّل الراوي: نفيسة بنت منية كانت الصديقة المقربة لخديجة التي ذهبت إلى النبي \uFDFA نيابةً عنها. سألته عن الزواج وذكرت اسم خديجة فكان ذلك بداية الخِطبة التي غيّرت مجرى التاريخ.',
+        sourceRef: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 6 | Sahih Bukhari #3818',
+        sourceRefAr: 'ابن هشام | الرحيق المختوم، الفصل 6 | صحيح البخاري #3818',
       ),
     ],
   ),
