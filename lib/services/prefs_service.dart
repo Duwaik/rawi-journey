@@ -83,7 +83,8 @@ class PrefsService {
     final keys = prefs.getKeys().toList();
     for (final key in keys) {
       if (key.startsWith(_keyJourneyCompleted) ||
-          key.startsWith(_keyHotspotProgress)) {
+          key.startsWith(_keyHotspotProgress) ||
+          key.startsWith(_keyThresholdCompleted)) {
         await prefs.remove(key);
       }
     }
@@ -160,6 +161,15 @@ class PrefsService {
   static Future<void> clearHotspotProgress(String eventId) async {
     await _prefs?.remove('$_keyHotspotProgress$eventId');
   }
+
+  // ── THRESHOLDS ────────────────────────────────────────────────────────
+  static const String _keyThresholdCompleted = 'threshold_completed_';
+
+  static bool isThresholdCompleted(int beforeEventOrder) =>
+      _prefs?.getBool('$_keyThresholdCompleted$beforeEventOrder') ?? false;
+
+  static Future<void> setThresholdCompleted(int beforeEventOrder) async =>
+      await _prefs?.setBool('$_keyThresholdCompleted$beforeEventOrder', true);
 
   // ── TUTORIAL ──────────────────────────────────────────────────────────
   static bool get isTutorialSeen =>

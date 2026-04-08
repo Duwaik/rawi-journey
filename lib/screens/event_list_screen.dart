@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../data/m1_data.dart';
 import '../data/scene_configs.dart';
+import '../data/threshold_challenges.dart';
 import '../models/journey_event.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
@@ -12,6 +13,7 @@ import 'cinematic_transition_screen.dart';
 import 'immersive_event_screen.dart';
 import 'journey_event_screen.dart';
 import 'settings_screen.dart';
+import 'threshold_screen.dart';
 import 'video_intro_screen.dart';
 import '../widgets/cinematic/fly_transition.dart';
 import '../widgets/rawi_dialog.dart';
@@ -128,8 +130,31 @@ class _EventListScreenState extends State<EventListScreen>
   }
 
   Future<void> _openEvent(JourneyEvent event) async {
+    // Check for Threshold challenge before this event
+    final threshold = getThresholdBefore(event.globalOrder);
+    if (threshold != null && !PrefsService.isThresholdCompleted(event.globalOrder)) {
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 400),
+          pageBuilder: (ctx, a, s) => FadeTransition(
+            opacity: a,
+            child: ThresholdScreen(
+              challenge: threshold,
+              onUnlocked: () {
+                PrefsService.setThresholdCompleted(event.globalOrder);
+                Navigator.pop(ctx);
+              },
+            ),
+          ),
+        ),
+      );
+      if (!mounted) return;
+    }
+
     final config = sceneConfigs[event.id];
-    final hasScene = config != null && config.groundLayers.isNotEmpty;
+    final hasScene = config != null;
 
     if (hasScene) {
       // Check for video intro (first play only)
