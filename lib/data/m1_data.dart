@@ -1,5 +1,6 @@
 import '../models/branch_point.dart';
 import '../models/journey_event.dart';
+import '../models/witness_intro.dart';
 
 // ── M1: The Prophetic Journey ──────────────────────────────────────────────
 // 39 events across 4 chapters. All content sourced from the Quran,
@@ -593,34 +594,42 @@ final List<JourneyEvent> m1Events = [
     titleAr: 'نزول الوحي الأول',
     location: 'Cave Hira, Mecca',
     locationAr: 'غار حراء، مكة المكرمة',
-    narrative:
-        'It is the month of Ramadan. You are at the foot of Jabal al-Nour in the dead of night. The mountain is silent. Muhammad ﷺ is alone in Cave Hira, as he has been for days.\n\n'
-        'Then something changes. You cannot see it from below, but you feel it — the air itself seems to shift. Inside the cave, the Angel Jibreel has come. He seizes Muhammad ﷺ with a force that is overwhelming, presses him until he can barely breathe, and commands: "Iqra\'" — Read. Muhammad ﷺ replies: "I cannot read." Three times this happens. Then the words come: "Read, in the name of your Lord who created — created man from a clinging substance. Read, and your Lord is the Most Generous, who taught by the pen, taught man what he did not know."\n\n'
-        'Muhammad ﷺ descends the mountain. You see him — trembling, his face white, his hands shaking. He goes straight to Khadijah. "Cover me, cover me," he says. She wraps him in a cloak. When his fear passes, he tells her everything. Her response is immediate: "Never. By Allah, He will never humiliate you. You maintain the ties of kinship, you bear the burden of others, you earn what the destitute have lost, you welcome guests, and you support those in need." The first believer has already believed.',
-    narrativeAr:
-        'إنه شهر رمضان. أنت عند سفح جبل النور في جوف الليل. الجبل صامت. محمد ﷺ وحيد في غار حراء، كما كان منذ أيام.\n\n'
-        'ثم يتغيّر شيء. لا تراه من الأسفل، لكنك تحسّه — الهواء ذاته يبدو مختلفاً. داخل الكهف، جاء جبريل عليه السلام. يضمّ محمداً ﷺ بقوة ساحقة، يضغط عليه حتى يكاد لا يتنفس، ويأمر: "اقرأ." يجيب محمد ﷺ: "ما أنا بقارئ." يتكرر ثلاث مرات. ثم تنزل الكلمات: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ، خَلَقَ الْإِنسَانَ مِنْ عَلَقٍ، اقْرَأْ وَرَبُّكَ الْأَكْرَمُ، الَّذِي عَلَّمَ بِالْقَلَمِ، عَلَّمَ الْإِنسَانَ مَا لَمْ يَعْلَمْ."\n\n'
-        'محمد ﷺ ينزل الجبل. تراه — يرتجف، وجهه شاحب، يداه ترتعشان. يذهب مباشرة إلى خديجة. "زمّلوني، زمّلوني"، يقول. تلفّه بثوب. حين يهدأ خوفه، يخبرها بكل شيء. ردّها فوري: "كلا، والله لن يُخزيك الله أبداً. إنك لتصل الرحم، وتحمل الكَلّ، وتكسب المعدوم، وتقري الضيف، وتُعين على نوائب الحق." أول مؤمنة آمنت بالفعل.',
-    source: 'Sahih Bukhari 3 — Bab Kayfa Kana Bada\' al-Wahy; Quran 96:1-5',
-    xpReward: 50,
+    narrative: '',
+    narrativeAr: '',
+    source: 'Sahih Bukhari 3 | Sahih Muslim 160 | Al-Raheeq Al-Makhtum, Ch. 7',
+    xpReward: 30,
+    witnessIntro: const WitnessIntro(
+      lines: [
+        'You have witnessed the night the heavens spoke to the earth.',
+        'The first word was "Read."',
+        'Everything that follows begins here.',
+      ],
+      linesAr: [
+        'لقد شهدتَ الليلة التي خاطبت فيها السماء الأرض.',
+        'الكلمة الأولى كانت "اقرأ."',
+        'وكل ما سيأتي بعدها يبدأ من هنا.',
+      ],
+    ),
     questions: [
       JourneyQuestion(
         id: 'q_1_2_7_a',
-        question: 'Muhammad ﷺ has descended the mountain trembling. He is in his home. Khadijah wraps him in a cloak. He says: "I feared for myself." What do you do?',
-        questionAr: 'نزل محمد ﷺ من الجبل يرتجف. هو في بيته. خديجة تلفّه بثوب. يقول: "خشيت على نفسي." ماذا تفعل؟',
+        question: 'What were the first words of the Quran revealed to the Prophet \uFDFA?',
+        questionAr: 'ما أول كلمات القرآن التي أُنزلت على النبي \uFDFA؟',
         options: [
-          'Lean closer — you need to hear every word of what happened in that cave',
-          'Watch Khadijah — her face shows no doubt, not for a single moment',
-          'Step outside — this moment belongs to them alone',
+          '"Say: He is Allah, the One" from Surah Al-Ikhlas',
+          '"Read! In the name of your Lord who created" from Surah Al-Alaq',
+          '"O you who covers himself, arise and warn" from Surah Al-Muddathir',
         ],
         optionsAr: [
-          'تقترب أكثر — تحتاج أن تسمع كل كلمة مما حدث في ذلك الكهف',
-          'تراقب خديجة — وجهها لا يُظهر أي شك، ولو للحظة واحدة',
-          'تخرج — هذه اللحظة لهما وحدهما',
+          '"قُلْ هُوَ اللَّهُ أَحَدٌ" من سورة الإخلاص',
+          '"اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ" من سورة العلق',
+          '"يَا أَيُّهَا الْمُدَّثِّرُ قُمْ فَأَنذِرْ" من سورة المدثر',
         ],
         correctIndex: 1,
-        explanation: 'The Rawi reflects: Khadijah held him, steadied him, and spoke without a moment of hesitation: "Never. By Allah, He will never humiliate you." She then took him to her wise cousin Waraqah, who confirmed: this was the same angel sent to Musa. The first believer did not need proof. She knew the man.',
-        explanationAr: 'يتأمّل الراوي: خديجة ضمّته وثبّتته وتكلّمت دون لحظة تردد: "كلا، والله لن يُخزيك الله أبداً." ثم أخذته إلى ابن عمها الحكيم ورقة، الذي أكّد: هذا هو الناموس الذي أُنزل على موسى. أول مؤمنة لم تحتج إلى برهان. كانت تعرف الرجل.',
+        explanation: 'The first five verses of Surah Al-Alaq were the very first revelation. They began not with a command to worship or wage war, but with a command to read and seek knowledge. Surah Al-Muddathir came later as the second revelation, commanding him to rise and warn. Surah Al-Ikhlas, though central to Islamic belief, was revealed in Mecca during the later period.',
+        explanationAr: 'أول خمس آيات من سورة العلق كانت أول ما نزل من الوحي. لم تبدأ بأمر بالعبادة أو الحرب بل بدأت بأمر بالقراءة وطلب العلم. أما سورة المدثر فنزلت لاحقاً كثاني ما نزل من الوحي آمرةً إياه أن يقوم وينذر. وسورة الإخلاص رغم مكانتها المركزية في العقيدة الإسلامية نزلت في مكة في فترة لاحقة.',
+        sourceRef: 'Quran 96:1-5 | Sahih Bukhari 3 | Al-Raheeq Al-Makhtum, Ch. 7',
+        sourceRefAr: 'القرآن 96:1-5 | صحيح البخاري 3 | الرحيق المختوم، الفصل 7',
       ),
     ],
   ),

@@ -283,4 +283,21 @@ const Map<String, DhikrCard> dhikrCards = {
     sourceRef: 'Sahih Muslim 2698',
     sourceRefAr: '\u0635\u062D\u064A\u062D \u0645\u0633\u0644\u0645 \u0662\u0666\u0669\u0668',
   ),
+
+  // ── Event 14: The First Revelation ──────────────────────────────────────
+  'j_1_2_7': DhikrCard(
+    id: 'subhanallah_khalq',
+    arabicText: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ وَرِضَا نَفْسِهِ وَزِنَةَ عَرْشِهِ وَمِدَادَ كَلِمَاتِهِ',
+    transliteration: 'Subhanallahi wa bihamdihi \'adada khalqihi wa rida nafsihi wa zinata \'arshihi wa midada kalimatihi',
+    meaningEn: 'Glory be to Allah and praise Him, by the number of His creation, by His pleasure, by the weight of His Throne, and by the extent of His Words.',
+    meaningAr: 'سبحان الله وبحمده بعدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته.',
+    count: '3 times',
+    countAr: '٣ مرات',
+    whenToSay: 'Every morning',
+    whenToSayAr: 'كل صباح',
+    promiseEn: 'The Prophet \uFDFA left Juwayriyah in the morning after Fajr while she was making dhikr, and returned after the sun was well up to find her still sitting. He said: \'I have said three phrases three times since I left you, and if weighed against all you have said since morning, they would outweigh them.\'',
+    promiseAr: 'لقد قلتُ بعدكِ ثلاث كلمات ثلاث مرات، لو وُزِنت بما قلتِ منذ الغداة لوزنتهنّ: سبحان الله وبحمده عدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته.',
+    sourceRef: 'Sahih Muslim 2726',
+    sourceRefAr: 'صحيح مسلم ٢٧٢٦',
+  ),
 };
