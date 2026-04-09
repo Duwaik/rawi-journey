@@ -88,7 +88,7 @@ class _CrossroadsCardState extends State<CrossroadsCard>
                 controller: _scrollCtrl,
                 child: SingleChildScrollView(
                 controller: _scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

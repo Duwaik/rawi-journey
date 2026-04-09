@@ -113,11 +113,14 @@ class _RawiAppState extends State<RawiApp> with WidgetsBindingObserver {
         // Small=0.85, Normal=1.0, Large=1.2
         final scale = PrefsService.textScale;
         final data = MediaQuery.of(context);
-        return MediaQuery(
-          data: data.copyWith(
-            textScaler: TextScaler.linear(scale),
+        return Directionality(
+          textDirection: PrefsService.isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: MediaQuery(
+            data: data.copyWith(
+              textScaler: TextScaler.linear(scale),
+            ),
+            child: child!,
           ),
-          child: child!,
         );
       },
       home: const SplashScreen(),

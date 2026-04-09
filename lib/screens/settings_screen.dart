@@ -3,13 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../character_art.dart';
+import '../data/m1_data.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
 import 'splash_screen.dart';
 
 /// Full-page settings accessible from the hub gear icon.
-/// Audio toggles, language, profile editing, reset journey, about.
+/// Cinematic card-based layout with desert BG, matching event list style.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -22,9 +23,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _vo = PrefsService.voEnabled;
   bool _sfx = PrefsService.sfxEnabled;
   String _lang = PrefsService.language;
-  String _gender = PrefsService.userGender;
+  final String _gender = PrefsService.userGender;
 
   bool get _isAr => _lang == 'ar';
+
+  // ── Card styling constants ────────────────────────────────────────────────
+  static final Color _cardBg = const Color(0xFF0A0E14).withAlpha(200);
+  static final BorderSide _cardBorder =
+      BorderSide(color: AppColors.gold.withAlpha(40));
+  static final BorderRadius _cardRadius = BorderRadius.circular(16);
+
+  BoxDecoration get _sectionDecoration => BoxDecoration(
+        color: _cardBg,
+        borderRadius: _cardRadius,
+        border: Border.fromBorderSide(_cardBorder),
+      );
 
   void _toggleMusic(bool v) {
     setState(() => _music = v);
@@ -47,17 +60,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
     PrefsService.setLanguage(next);
   }
 
-  void _cycleGender() {
-    final next = _gender == 'male' ? 'female' : 'male';
-    setState(() => _gender = next);
-    PrefsService.setUserGender(next);
+  void _cycleTextSize() {
+    final current = PrefsService.textScale;
+    final next = current < 0.9
+        ? 1.0
+        : current > 1.1
+            ? 0.85
+            : 1.2;
+    PrefsService.setTextScale(next);
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (c, a, s) => const EventListScreen(),
+        transitionsBuilder: (c, a, s, child) =>
+            FadeTransition(opacity: a, child: child),
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+      (route) => false,
+    );
+  }
+
+  String get _textSizeLabel {
+    final s = PrefsService.textScale;
+    if (s < 0.9) return _isAr ? 'ص' : 'S';
+    if (s > 1.1) return _isAr ? 'ك' : 'L';
+    return _isAr ? 'م' : 'M';
   }
 
   Future<void> _resetJourney() async {
     final confirmed = await showRawiDialog(
       context: context,
       title: _isAr ? 'إعادة الرحلة' : 'Reset Journey',
-      body: _isAr ? 'سيتم مسح كل تقدمك. هل أنت متأكد؟' : 'All your progress will be erased. Are you sure?',
+      body: _isAr
+          ? 'سيتم مسح كل تقدمك. هل أنت متأكد؟'
+          : 'All your progress will be erased. Are you sure?',
       cancelLabel: _isAr ? 'إلغاء' : 'Cancel',
       confirmLabel: _isAr ? 'إعادة' : 'Reset',
       isAr: _isAr,
@@ -67,7 +102,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed == true) {
       await PrefsService.resetJourney();
       if (!mounted) return;
-      // Restart app from splash — clear entire navigation stack
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (c, a, s) => const SplashScreen(),
@@ -86,432 +120,454 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Top bar ──────────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(8, topPad > 0 ? 4 : 12, 16, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        size: 20, color: AppColors.textMuted),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── Cinematic desert BG (same as event list) ────────────────────
+          Image.asset(
+            'assets/scenes/scene_welcome.jpg',
+            fit: BoxFit.cover,
+          ),
+          // Heavy dark overlay (~92% opacity)
+          Container(color: AppColors.bg.withAlpha(235)),
+
+          // ── Content ─────────────────────────────────────────────────────
+          SafeArea(
+            child: Column(
+              children: [
+                // ── Top bar ──────────────────────────────────────────────
+                Padding(
+                  padding:
+                      EdgeInsetsDirectional.fromSTEB(8, topPad > 0 ? 4 : 12, 16, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 20, color: AppColors.textMuted),
+                      ),
+                      const Spacer(),
+                      Text(
+                        _isAr ? 'الإعدادات' : 'Settings',
+                        style: GoogleFonts.cinzelDecorative(
+                          fontSize: 20,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                      const Spacer(),
+                      const SizedBox(width: 48),
+                    ],
                   ),
-                  const Spacer(),
-                  Text(
-                    _isAr ? 'الإعدادات' : 'Settings',
-                    style: GoogleFonts.cinzelDecorative(
-                      fontSize: 20,
-                      color: AppColors.gold,
-                    ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // ── Scrollable sections ──────────────────────────────────
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    children: [
+                      // ── 1. Profile ─────────────────────────────────────
+                      _buildSectionHeader(
+                          _isAr ? 'الملف الشخصي' : 'Profile'),
+                      const SizedBox(height: 8),
+                      _buildProfileCard(),
+
+                      const SizedBox(height: 16),
+
+                      // ── 2. Journey Stats ───────────────────────────────
+                      _buildSectionHeader(
+                          _isAr ? 'إحصائيات الرحلة' : 'Journey Stats'),
+                      const SizedBox(height: 8),
+                      _buildJourneyStatsCard(),
+
+                      const SizedBox(height: 16),
+
+                      // ── 3. Preferences ─────────────────────────────────
+                      _buildSectionHeader(
+                          _isAr ? 'التفضيلات' : 'Preferences'),
+                      const SizedBox(height: 8),
+                      _buildPreferencesCard(),
+
+                      const SizedBox(height: 16),
+
+                      // ── 4. About ───────────────────────────────────────
+                      _buildSectionHeader(_isAr ? 'حول' : 'About'),
+                      const SizedBox(height: 8),
+                      _buildAboutCard(),
+
+                      const SizedBox(height: 16),
+
+                      // ── 5. Reset Journey ───────────────────────────────
+                      _buildSectionHeader(
+                          _isAr ? 'إعادة الرحلة' : 'Reset Journey'),
+                      const SizedBox(height: 8),
+                      _buildResetCard(),
+
+                      const SizedBox(height: 40),
+                    ],
                   ),
-                  const Spacer(),
-                  const SizedBox(width: 48),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 16),
-
-            // ── Content ──────────────────────────────────────────────
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  // ── Profile ──────────────────────────────────────
-                  _SectionHeader(
-                      label: _isAr ? 'الملف الشخصي' : 'Profile', isAr: _isAr),
-                  const SizedBox(height: 8),
-                  // Profile card with portrait
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.textMuted.withAlpha(30)),
-                    ),
-                    child: Row(
-                      children: [
-                        ClipOval(
-                          child: Image.asset(
-                            CharacterArt.portrait(),
-                            width: 48,
-                            height: 48,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                PrefsService.userName.isNotEmpty
-                                    ? PrefsService.userName
-                                    : (_isAr ? 'رحّال' : 'Traveler'),
-                                style: GoogleFonts.nunito(
-                                  fontSize: 15,
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                _gender == 'female'
-                                    ? (_isAr ? 'الراوية' : 'Rawiah')
-                                    : (_isAr ? 'الراوي' : 'Rawi'),
-                                style: GoogleFonts.nunito(
-                                  fontSize: 12,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _TapRow(
-                    icon: Icons.auto_stories_rounded,
-                    label: _isAr ? 'الرفيق' : 'Companion',
-                    value: _gender == 'male'
-                        ? (_isAr ? 'راوي' : 'Rawi')
-                        : (_isAr ? 'راوية' : 'Rawiah'),
-                    onTap: _cycleGender,
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoRow(
-                    icon: Icons.calendar_today_rounded,
-                    label: _isAr ? 'راوي منذ' : 'Rawi since',
-                    value: PrefsService.firstLaunchDate,
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── Journey ──────────────────────────────────────
-                  _SectionHeader(
-                      label: _isAr ? 'الرحلة' : 'Journey', isAr: _isAr),
-                  const SizedBox(height: 8),
-                  _InfoRow(
-                    icon: Icons.star_rounded,
-                    label: _isAr ? 'النقاط' : 'XP',
-                    value: '${PrefsService.xp}',
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoRow(
-                    icon: Icons.local_fire_department_rounded,
-                    label: _isAr ? 'أيام متتالية' : 'Streak',
-                    value: '${PrefsService.streak}',
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoRow(
-                    icon: Icons.auto_awesome_rounded,
-                    label: _isAr ? 'جلسات الذكر' : 'Dhikr sessions',
-                    value: '${PrefsService.dhikrCompletedCount}',
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── Preferences ──────────────────────────────────
-                  _SectionHeader(
-                      label: _isAr ? 'التفضيلات' : 'Preferences', isAr: _isAr),
-                  const SizedBox(height: 8),
-                  _TapRow(
-                    icon: Icons.language_rounded,
-                    label: _isAr ? 'اللغة' : 'Language',
-                    value: _lang == 'en' ? 'English' : 'العربية',
-                    onTap: _cycleLang,
-                  ),
-                  const SizedBox(height: 8),
-                  _TapRow(
-                    icon: Icons.text_fields_rounded,
-                    label: _isAr ? 'حجم الخط' : 'Text Size',
-                    value: PrefsService.textScale < 0.9
-                        ? (_isAr ? 'صغير' : 'Small')
-                        : PrefsService.textScale > 1.1
-                            ? (_isAr ? 'كبير' : 'Large')
-                            : (_isAr ? 'عادي' : 'Normal'),
-                    onTap: () {
-                      final current = PrefsService.textScale;
-                      final next = current < 0.9 ? 1.0 : current > 1.1 ? 0.85 : 1.2;
-                      PrefsService.setTextScale(next);
-                      Navigator.of(context).pushAndRemoveUntil(
-                        PageRouteBuilder(
-                          pageBuilder: (c, a, s) => const EventListScreen(),
-                          transitionsBuilder: (c, a, s, child) =>
-                              FadeTransition(opacity: a, child: child),
-                          transitionDuration: const Duration(milliseconds: 300),
-                        ),
-                        (route) => false,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _ToggleRow(
-                    icon: Icons.music_note_rounded,
-                    label: _isAr ? 'الموسيقى' : 'Music',
-                    value: _music,
-                    onChanged: _toggleMusic,
-                  ),
-                  const SizedBox(height: 8),
-                  _ToggleRow(
-                    icon: Icons.mic_rounded,
-                    label: _isAr ? 'الراوي الصوتي' : 'Voice Over',
-                    value: _vo,
-                    onChanged: _toggleVo,
-                  ),
-                  const SizedBox(height: 8),
-                  _ToggleRow(
-                    icon: Icons.volume_up_rounded,
-                    label: _isAr ? 'المؤثرات' : 'Sound Effects',
-                    value: _sfx,
-                    onChanged: _toggleSfx,
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── About ────────────────────────────────────────
-                  _SectionHeader(
-                      label: _isAr ? 'حول' : 'About', isAr: _isAr),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: AppColors.textMuted.withAlpha(30)),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'RAWI',
-                          style: GoogleFonts.cinzelDecorative(
-                            fontSize: 18,
-                            color: AppColors.gold,
-                            letterSpacing: 3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'v1.0.0',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _isAr
-                              ? 'كن شاهداً. احمل الرواية.'
-                              : 'Witness history. Carry the story.',
-                          style: GoogleFonts.lora(
-                            fontSize: 13,
-                            fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
-                            color: AppColors.gold.withAlpha(140),
-                          ),
-                          textDirection:
-                              _isAr ? TextDirection.rtl : TextDirection.ltr,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // ── Reset Journey (destructive — always last) ───
-                  _buildResetButton(),
-
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildResetButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 46,
-      child: OutlinedButton.icon(
-        onPressed: _resetJourney,
-        icon: const Icon(Icons.restart_alt_rounded,
-            size: 18, color: Colors.redAccent),
-        label: Text(
-          _isAr ? 'إعادة الرحلة من البداية' : 'Reset Journey',
-          style: GoogleFonts.nunito(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Colors.redAccent,
-          ),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.redAccent, width: 0.8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-    );
-  }
-}
+  // ── Section header ──────────────────────────────────────────────────────
 
-// ── Reusable rows ─────────────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  final String label;
-  final bool isAr;
-  const _SectionHeader({required this.label, required this.isAr});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSectionHeader(String label) {
     return Align(
-      alignment: isAr ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: AlignmentDirectional.centerStart,
       child: Text(
         label,
-        style: GoogleFonts.nunito(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textMuted,
-          letterSpacing: 1,
+        style: GoogleFonts.lora(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.gold,
         ),
-        textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
       ),
     );
   }
-}
 
-class _ToggleRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  // ── 1. Profile card ─────────────────────────────────────────────────────
 
-  const _ToggleRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
+  Widget _buildProfileCard() {
+    final name = PrefsService.userName.isNotEmpty
+        ? PrefsService.userName
+        : (_isAr ? 'رحّال' : 'Traveler');
+    final roleLabel = _gender == 'female'
+        ? (_isAr ? 'الراوية' : 'Rawiah')
+        : (_isAr ? 'الراوي' : 'Rawi');
 
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.textMuted.withAlpha(30)),
-      ),
+      padding: const EdgeInsets.all(20),
+      decoration: _sectionDecoration,
       child: Row(
+        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
         children: [
-          Icon(icon, size: 20, color: AppColors.gold.withAlpha(180)),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(label,
-                style: GoogleFonts.nunito(
-                    fontSize: 15, color: AppColors.textPrimary)),
+          // Gold-bordered portrait (carrying pose)
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.gold, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.gold.withAlpha(40),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                CharacterArt.carrying(),
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.gold,
-            inactiveTrackColor: AppColors.textMuted.withAlpha(40),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: _isAr
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.nunito(
+                    fontSize: 18,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  roleLabel,
+                  style: GoogleFonts.lora(
+                    fontSize: 13,
+                    color: AppColors.gold.withAlpha(180),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
-}
 
-class _TapRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final VoidCallback onTap;
+  // ── 2. Journey Stats card ───────────────────────────────────────────────
 
-  const _TapRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.onTap,
-  });
+  Widget _buildJourneyStatsCard() {
+    final completed = (PrefsService.currentOrder - 1).clamp(0, m1EventCount);
 
-  @override
-  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: _sectionDecoration,
+      child: Column(
+        children: [
+          _statRow(
+            Icons.auto_stories_rounded,
+            _isAr ? 'الأحداث المكتملة' : 'Events completed',
+            '$completed / $m1EventCount',
+          ),
+          Divider(color: AppColors.gold.withAlpha(20), height: 24),
+          _statRow(
+            Icons.star_rounded,
+            _isAr ? 'النقاط' : 'XP',
+            '${PrefsService.xp}',
+          ),
+          Divider(color: AppColors.gold.withAlpha(20), height: 24),
+          _statRow(
+            Icons.auto_awesome_rounded,
+            _isAr ? 'جلسات الذكر' : 'Dhikr',
+            '${PrefsService.dhikrCompletedCount}',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statRow(IconData icon, String label, String value) {
+    return Row(
+      textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+      children: [
+        Icon(icon, size: 20, color: AppColors.gold.withAlpha(180)),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(
+                fontSize: 15, color: AppColors.textPrimary),
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.nunito(
+            fontSize: 14,
+            color: AppColors.textBody,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── 3. Preferences card ─────────────────────────────────────────────────
+
+  Widget _buildPreferencesCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: _sectionDecoration,
+      child: Column(
+        children: [
+          // Language toggle
+          _tapPrefRow(
+            Icons.language_rounded,
+            _isAr ? 'اللغة' : 'Language',
+            _lang == 'en' ? 'EN' : 'AR',
+            _cycleLang,
+          ),
+          Divider(color: AppColors.gold.withAlpha(20), height: 24),
+          // Text size toggle
+          _tapPrefRow(
+            Icons.text_fields_rounded,
+            _isAr ? 'حجم الخط' : 'Text Size',
+            _textSizeLabel,
+            _cycleTextSize,
+          ),
+          Divider(color: AppColors.gold.withAlpha(20), height: 24),
+          // Music
+          _togglePrefRow(
+            Icons.music_note_rounded,
+            _isAr ? 'الموسيقى' : 'Music',
+            _music,
+            _toggleMusic,
+          ),
+          Divider(color: AppColors.gold.withAlpha(20), height: 24),
+          // Voice Over
+          _togglePrefRow(
+            Icons.mic_rounded,
+            _isAr ? 'الراوي الصوتي' : 'Voice Over',
+            _vo,
+            _toggleVo,
+          ),
+          Divider(color: AppColors.gold.withAlpha(20), height: 24),
+          // SFX
+          _togglePrefRow(
+            Icons.volume_up_rounded,
+            _isAr ? 'المؤثرات' : 'Sound Effects',
+            _sfx,
+            _toggleSfx,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tapPrefRow(
+      IconData icon, String label, String value, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.textMuted.withAlpha(30)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: AppColors.gold.withAlpha(180)),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(label,
-                  style: GoogleFonts.nunito(
-                      fontSize: 15, color: AppColors.textPrimary)),
-            ),
-            Text(value,
-                style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    color: AppColors.gold,
-                    fontWeight: FontWeight.w700)),
-            const SizedBox(width: 6),
-            Icon(Icons.chevron_right_rounded,
-                size: 18, color: AppColors.textMuted.withAlpha(100)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.textMuted.withAlpha(30)),
-      ),
+      behavior: HitTestBehavior.opaque,
       child: Row(
+        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
         children: [
           Icon(icon, size: 20, color: AppColors.gold.withAlpha(180)),
           const SizedBox(width: 14),
           Expanded(
-            child: Text(label,
-                style: GoogleFonts.nunito(
-                    fontSize: 15, color: AppColors.textPrimary)),
-          ),
-          Text(value,
+            child: Text(
+              label,
               style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  color: AppColors.textBody,
-                  fontWeight: FontWeight.w600)),
+                  fontSize: 15, color: AppColors.textPrimary),
+              textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withAlpha(25),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.gold.withAlpha(60)),
+            ),
+            child: Text(
+              value,
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                color: AppColors.gold,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Icon(Icons.chevron_right_rounded,
+              size: 18, color: AppColors.textMuted.withAlpha(100)),
         ],
+      ),
+    );
+  }
+
+  Widget _togglePrefRow(
+      IconData icon, String label, bool value, ValueChanged<bool> onChanged) {
+    return Row(
+      textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+      children: [
+        Icon(icon, size: 20, color: AppColors.gold.withAlpha(180)),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Text(
+            label,
+            style:
+                GoogleFonts.nunito(fontSize: 15, color: AppColors.textPrimary),
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: AppColors.gold,
+          activeTrackColor: AppColors.gold.withAlpha(80),
+          inactiveThumbColor: AppColors.textMuted,
+          inactiveTrackColor: AppColors.textMuted.withAlpha(40),
+        ),
+      ],
+    );
+  }
+
+  // ── 4. About card ───────────────────────────────────────────────────────
+
+  Widget _buildAboutCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: _sectionDecoration,
+      child: Column(
+        children: [
+          Text(
+            'RAWI',
+            style: GoogleFonts.cinzelDecorative(
+              fontSize: 18,
+              color: AppColors.gold,
+              letterSpacing: 3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'v1.0.0',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _isAr ? 'صُنع بحب في عمّان' : 'Made with love in Amman',
+            style: GoogleFonts.lora(
+              fontSize: 13,
+              fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+              color: AppColors.gold.withAlpha(140),
+            ),
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _isAr
+                ? 'كن شاهداً. احمل الرواية.'
+                : 'Witness history. Carry the story.',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              color: AppColors.textMuted,
+            ),
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 5. Reset Journey card ───────────────────────────────────────────────
+
+  Widget _buildResetCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.red.withAlpha(15),
+        borderRadius: _cardRadius,
+        border: Border.all(color: Colors.redAccent.withAlpha(50)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: _cardRadius,
+        child: InkWell(
+          onTap: _resetJourney,
+          borderRadius: _cardRadius,
+          splashColor: Colors.redAccent.withAlpha(30),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.restart_alt_rounded,
+                    size: 20, color: Colors.redAccent),
+                const SizedBox(width: 10),
+                Text(
+                  _isAr ? 'إعادة الرحلة من البداية' : 'Reset Journey',
+                  style: GoogleFonts.nunito(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

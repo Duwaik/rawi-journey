@@ -127,7 +127,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 children: [
                   // Top bar: back arrow + dots
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                    padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 0),
                     child: Row(
                       children: [
                         if (_currentPage > 0)

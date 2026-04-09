@@ -9,6 +9,11 @@ class PrefsService {
     _prefs = await SharedPreferences.getInstance();
   }
 
+  /// Force reload from disk (ensures writes from other screens are visible).
+  static Future<void> reload() async {
+    await _prefs?.reload();
+  }
+
   // ── KEYS ─────────────────────────────────────────────────────────────────
   static const String _keyLanguage        = 'user_language';
   static const String _keyXp             = 'user_xp';

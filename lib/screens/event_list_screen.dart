@@ -105,9 +105,13 @@ class _EventListScreenState extends State<EventListScreen>
     }
   }
 
-  void _refresh() {
+  Future<void> _refresh() async {
+    // Force SharedPreferences to re-read from disk (ensures back-press saves are visible)
+    await PrefsService.reload();
+    if (!mounted) return;
     setState(() {
       _currentOrder = PrefsService.currentOrder;
+      _showAllCompletedInEra.clear();
       // Auto-collapse all, then expand only the active era
       _expandedEras.clear();
       final active = _activeEra();
@@ -363,7 +367,7 @@ class _EventListScreenState extends State<EventListScreen>
       },
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.only(top: 12, bottom: 8, left: 4, right: 4),
+        padding: const EdgeInsetsDirectional.only(top: 12, bottom: 8, start: 4, end: 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -404,7 +408,7 @@ class _EventListScreenState extends State<EventListScreen>
             if (!expanded && teaser != null) ...[
               const SizedBox(height: 4),
               Padding(
-                padding: const EdgeInsets.only(left: 32),
+                padding: const EdgeInsetsDirectional.only(start: 32),
                 child: Text(
                   '$eventCount events · $teaser',
                   textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
@@ -736,7 +740,7 @@ class _EventListScreenState extends State<EventListScreen>
       children: List.generate(count, (i) {
         final filled = i < discoveredCount;
         return Container(
-          margin: const EdgeInsets.only(right: 5),
+          margin: const EdgeInsetsDirectional.only(end: 5),
           width: 10,
           height: 10,
           decoration: BoxDecoration(
@@ -805,7 +809,7 @@ class _EventListScreenState extends State<EventListScreen>
           children: [
             // ── Header ────────────────────────────────────────────────
             Container(
-              padding: EdgeInsets.fromLTRB(20, topPad + 12, 16, 16),
+              padding: EdgeInsetsDirectional.fromSTEB(20, topPad + 12, 16, 16),
               decoration: BoxDecoration(
                 color: AppColors.bg,
                 border: Border(
@@ -837,6 +841,14 @@ class _EventListScreenState extends State<EventListScreen>
                     icon: Icons.star_rounded,
                   ),
                   const SizedBox(width: 8),
+                  if (PrefsService.dhikrCompletedCount > 0)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      child: _HeaderBadge(
+                        label: '${PrefsService.dhikrCompletedCount}',
+                        emoji: '\uD83D\uDCFF',
+                      ),
+                    ),
                   GestureDetector(
                     onTap: () async {
                       // R7-01: ambient carries into Settings — it's still "home"
@@ -875,7 +887,7 @@ class _EventListScreenState extends State<EventListScreen>
             // ── Timeline list ─────────────────────────────────────────
             Expanded(
               child: ListView(
-                padding: EdgeInsets.fromLTRB(12, 4, 16, bottomPad + 16),
+                padding: EdgeInsetsDirectional.fromSTEB(12, 4, 16, bottomPad + 16),
                 children: _buildListItems(),
               ),
             ),
@@ -893,7 +905,8 @@ class _EventListScreenState extends State<EventListScreen>
 class _HeaderBadge extends StatelessWidget {
   final String label;
   final IconData? icon;
-  const _HeaderBadge({required this.label, this.icon});
+  final String? emoji;
+  const _HeaderBadge({required this.label, this.icon, this.emoji});
 
   @override
   Widget build(BuildContext context) {
@@ -909,6 +922,10 @@ class _HeaderBadge extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 13, color: AppColors.gold),
+            const SizedBox(width: 4),
+          ],
+          if (emoji != null) ...[
+            Text(emoji!, style: const TextStyle(fontSize: 13)),
             const SizedBox(width: 4),
           ],
           Text(label,

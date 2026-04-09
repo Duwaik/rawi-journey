@@ -85,7 +85,7 @@ class _SettingsOverlayState extends State<SettingsOverlay>
         child: Center(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 32),
-            padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+            padding: const EdgeInsetsDirectional.fromSTEB(24, 28, 24, 24),
             decoration: BoxDecoration(
               color: AppColors.bg,
               borderRadius: BorderRadius.circular(20),

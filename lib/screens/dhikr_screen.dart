@@ -106,13 +106,8 @@ class _DhikrScreenState extends State<DhikrScreen>
 
                 const SizedBox(height: 24),
 
-                // ── Main dhikr card ─────────────────────────────────
-                _buildDhikrCard(),
-
-                const SizedBox(height: 20),
-
-                // ── Promise card ────────────────────────────────────
-                _buildPromiseCard(),
+                // ── Standalone dhikr card (elevated, centered) ─────
+                _buildStandaloneCard(),
 
                 const SizedBox(height: 32),
 
@@ -147,22 +142,43 @@ class _DhikrScreenState extends State<DhikrScreen>
     );
   }
 
-  Widget _buildDhikrCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.gold.withAlpha(80), width: 1),
-      ),
+  Widget _buildStandaloneCard() {
+    return AnimatedBuilder(
+      animation: _shimmerAnim,
+      builder: (context, child) {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A0E14).withAlpha(240),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: _celebrating
+                  ? AppColors.gold.withAlpha(
+                      (80 + (175 * _shimmerAnim.value)).toInt().clamp(0, 255))
+                  : AppColors.gold.withAlpha(80),
+              width: _celebrating ? 2 : 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gold.withAlpha(_celebrating
+                    ? (60 * _shimmerAnim.value).toInt()
+                    : 15),
+                blurRadius: _celebrating ? 24 : 12,
+                spreadRadius: _celebrating ? 2 : 0,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
       child: Column(
         children: [
-          // Arabic dhikr text — always shown
+          // Arabic dhikr text — hero element, always shown
           Text(
             _card.arabicText,
             style: GoogleFonts.amiri(
-              fontSize: 20,
+              fontSize: 22,
               color: AppColors.gold,
               height: 1.8,
             ),
@@ -170,7 +186,7 @@ class _DhikrScreenState extends State<DhikrScreen>
             textDirection: TextDirection.rtl,
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           // Transliteration
           Text(
@@ -184,7 +200,7 @@ class _DhikrScreenState extends State<DhikrScreen>
 
           const SizedBox(height: 12),
 
-          // English meaning
+          // Meaning
           Text(
             _isAr ? _card.meaningAr : _card.meaningEn,
             style: GoogleFonts.lora(
@@ -196,19 +212,16 @@ class _DhikrScreenState extends State<DhikrScreen>
             textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
           // Divider
-          Container(
-            height: 1,
-            color: AppColors.gold.withAlpha(40),
-          ),
+          Container(height: 1, color: AppColors.gold.withAlpha(40)),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          // Count
+          // Count + When
           _buildInfoLine(
-            '\uD83D\uDCFF', // 📿
+            '\uD83D\uDCFF',
             _card.count != null
                 ? (_isAr
                     ? 'قلها: ${_card.countAr ?? _card.count}'
@@ -217,15 +230,57 @@ class _DhikrScreenState extends State<DhikrScreen>
                     ? 'قلها مرة بحضور قلب'
                     : 'Say it once with presence of heart'),
           ),
-
           const SizedBox(height: 8),
-
-          // When
           _buildInfoLine(
-            '\uD83D\uDD50', // 🕐
+            '\uD83D\uDD50',
             _isAr
                 ? 'متى: ${_card.whenToSayAr}'
                 : 'When: ${_card.whenToSay}',
+          ),
+
+          const SizedBox(height: 20),
+
+          // ── Promise sub-card (nested inside main card) ──────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withAlpha(8),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.gold.withAlpha(50)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  _isAr ? '\u2728 الوعد' : '\u2728 The Promise',
+                  style: GoogleFonts.cinzelDecorative(
+                    fontSize: 14,
+                    color: AppColors.gold,
+                  ),
+                  textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _isAr ? _card.promiseAr : _card.promiseEn,
+                  style: GoogleFonts.lora(
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                    height: 1.6,
+                  ),
+                  textAlign: TextAlign.center,
+                  textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _isAr ? _card.sourceRefAr : _card.sourceRef,
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                  ),
+                  textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -249,79 +304,6 @@ class _DhikrScreenState extends State<DhikrScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildPromiseCard() {
-    return AnimatedBuilder(
-      animation: _shimmerAnim,
-      builder: (context, child) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _celebrating
-                  ? AppColors.gold.withAlpha(
-                      (80 + (175 * _shimmerAnim.value)).toInt().clamp(0, 255))
-                  : AppColors.gold.withAlpha(80),
-              width: _celebrating ? 2 : 1,
-            ),
-            boxShadow: _celebrating
-                ? [
-                    BoxShadow(
-                      color: AppColors.gold
-                          .withAlpha((60 * _shimmerAnim.value).toInt()),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : null,
-          ),
-          child: child,
-        );
-      },
-      child: Column(
-        children: [
-          // Header
-          Text(
-            _isAr ? '\u2728 الوعد' : '\u2728 The Promise',
-            style: GoogleFonts.cinzelDecorative(
-              fontSize: 15,
-              color: AppColors.gold,
-            ),
-            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-          ),
-
-          const SizedBox(height: 12),
-
-          // Promise text
-          Text(
-            _isAr ? _card.promiseAr : _card.promiseEn,
-            style: GoogleFonts.lora(
-              fontSize: 14,
-              color: AppColors.textPrimary,
-              height: 1.6,
-            ),
-            textAlign: TextAlign.center,
-            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-          ),
-
-          const SizedBox(height: 12),
-
-          // Source
-          Text(
-            _isAr ? _card.sourceRefAr : _card.sourceRef,
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              color: AppColors.textMuted,
-            ),
-            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-          ),
-        ],
-      ),
     );
   }
 

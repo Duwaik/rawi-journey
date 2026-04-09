@@ -535,7 +535,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   Future<void> _exitScene() async {
     // Block during unanswered Verdict or completion writes
     if (_phase == _Phase.verdict && !_allAnswered) return;
-    if (_phase == _Phase.verdict && !_allAnswered) return;
     if (_isCompleting && !_alreadyCompleted) return;
     // Save hotspot progress before leaving (await to ensure persistence)
     if (!_alreadyCompleted && !_isCompleting) {
@@ -1191,7 +1190,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           Positioned(
             top: 0, left: 0, right: 0,
             child: Container(
-              padding: EdgeInsets.fromLTRB(4, topPad + 4, 16, 10),
+              padding: EdgeInsetsDirectional.fromSTEB(4, topPad + 4, 16, 10),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
@@ -1488,7 +1487,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         color: Colors.black.withAlpha(180), // Deeper dim — scene holds its breath
         child: Center(
           child: Container(
-            margin: EdgeInsets.fromLTRB(16, 60, 16, bottomPad + 16),
+            margin: EdgeInsetsDirectional.fromSTEB(16, 60, 16, bottomPad + 16),
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.8,
             ),
@@ -1511,7 +1510,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               controller: _verdictScrollCtrl,
               child: SingleChildScrollView(
                 controller: _verdictScrollCtrl,
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1654,7 +1653,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                             ),
                             if (answered && isCorrectOpt)
                               Padding(
-                                padding: const EdgeInsets.only(left: 8),
+                                padding: const EdgeInsetsDirectional.only(start: 8),
                                 child: Icon(Icons.check_circle_rounded,
                                     color: AppColors.gold, size: 18),
                               ),

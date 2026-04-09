@@ -124,8 +124,8 @@ class _LegacyEventScreenState extends State<LegacyEventScreen>
       backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          Positioned(
-            top: -80, left: -80,
+          PositionedDirectional(
+            top: -80, start: -80,
             child: Container(
               width: 320, height: 320,
               decoration: BoxDecoration(
@@ -140,7 +140,7 @@ class _LegacyEventScreenState extends State<LegacyEventScreen>
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 8, 16, 0),
+                  padding: const EdgeInsetsDirectional.fromSTEB(4, 8, 16, 0),
                   child: Row(
                     children: [
                       IconButton(
@@ -186,7 +186,7 @@ class _LegacyEventScreenState extends State<LegacyEventScreen>
                 Expanded(
                   child: SingleChildScrollView(
                     controller: _scroll,
-                    padding: const EdgeInsets.fromLTRB(26, 22, 26, 40),
+                    padding: const EdgeInsetsDirectional.fromSTEB(26, 22, 26, 40),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

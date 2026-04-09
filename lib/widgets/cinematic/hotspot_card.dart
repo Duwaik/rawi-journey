@@ -292,7 +292,7 @@ class _HotspotCardState extends State<HotspotCard>
                             },
                             child: Container(
                               padding: const EdgeInsets.all(7),
-                              margin: const EdgeInsets.only(right: 6),
+                              margin: const EdgeInsetsDirectional.only(end: 6),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: AppColors.gold.withAlpha(25),
@@ -317,7 +317,7 @@ class _HotspotCardState extends State<HotspotCard>
                             },
                             child: Container(
                               padding: const EdgeInsets.all(7),
-                              margin: const EdgeInsets.only(right: 10),
+                              margin: const EdgeInsetsDirectional.only(end: 10),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: AppColors.gold.withAlpha(15),
@@ -387,7 +387,7 @@ class _HotspotCardState extends State<HotspotCard>
           child: FadeTransition(
             opacity: _fadeAnim,
             child: Container(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 16 + bottomPad),
+              padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, 16 + bottomPad),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,

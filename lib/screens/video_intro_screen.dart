@@ -58,11 +58,7 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
     widget.onComplete();
   }
 
-  void _onTap() {
-    if (_controller.value.position.inSeconds >= 3) {
-      _onVideoEnd();
-    }
-  }
+  // Tap-to-skip removed — cinematic videos play to completion
 
   @override
   void dispose() {
@@ -75,13 +71,12 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: _controller.value.isInitialized
-          ? GestureDetector(
-              onTap: _onTap,
-              behavior: HitTestBehavior.opaque,
-              child: Stack(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: _controller.value.isInitialized
+            ? Stack(
                 fit: StackFit.expand,
                 children: [
                   // Layer 1: Blurred scaled-up video fills entire screen
@@ -104,13 +99,13 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
                     ),
                   ),
                 ],
+              )
+            : const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.gold,
+                ),
               ),
-            )
-          : const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.gold,
-              ),
-            ),
+      ),
     );
   }
 }
