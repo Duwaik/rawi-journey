@@ -1,6 +1,6 @@
 # Rawi — Architecture Document
 
-> Last updated: 2026-04-08
+> Last updated: 2026-04-10
 > Package: `com.rawi.journey`
 > Flutter 3.41.4 | Dart 3.11.1+
 
@@ -10,11 +10,12 @@
 
 | Metric | Count |
 |--------|-------|
-| Dart files | 43 |
-| Dart lines | ~12,500 |
-| Asset files | 203 (84 VO + 52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + 1 video + others) |
-| Playable immersive events | 9 (2 branching + 7 linear with scene configs) |
-| Content-ready events | 12 (9 playable + 3 need scene configs) |
+| Dart files | 46 |
+| Dart lines | ~13,500 |
+| Asset files | 119 (52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + 1 video + others) |
+| Playable immersive events | 10 (2 branching + 8 linear with scene configs) |
+| Content-ready events | 13 (10 playable + 3 need scene configs) |
+| Dhikr cards | 13 (Sahih Bukhari/Muslim sourced, 1 per event) |
 | Total events in data | 40 |
 | Era distribution | Jahiliyyah 2, Early Life 9, Mecca 11, Medina 14 |
 | Git commits | 7+ |
@@ -424,3 +425,7 @@ in `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`.
 | 53 | R10-R12 fixes + Events 3-4 (DYK feature, source refs, direct questions, auto-move failsafe) |
 | 54 | **155-event restructure** + Events 5-8 (new ID convention j_m1_NNN, 39 events, 9 playable) |
 | 55 | Content review: Event 11 question fix (4→3 options), Event 12 full rewrite from spec (all DYK, sources, fragments) |
+| 56 | R13 action plan: Event 13 scene config, 6 DYK, AR rewrites, prefix removal, narrative clearing |
+| 57 | R14+R15 device testing: 15 fixes (paths, verdict UI, VO cleanup, DYK audit, hotspot order, progress, auto-collapse) |
+| 58 | Terminology rename: 7 file renames, phase enum merge, comment cleanup |
+| 59 | **Hasanat system**: DhikrCard model, 13 dhikr cards, cinematic dhikr screen, flow integration, profile counter |

@@ -85,6 +85,7 @@ class PrefsService {
       if (key.startsWith(_keyJourneyCompleted) ||
           key.startsWith(_keyHotspotProgress) ||
           key.startsWith(_keyThresholdCompleted) ||
+          key.startsWith(_keyDhikrCompleted) ||
           key == _keyDiscoveredCollection) {
         await prefs.remove(key);
       }
@@ -101,6 +102,7 @@ class PrefsService {
     // R9-02: Reset onboarding so user sees intro cinematic + registration again
     await prefs.setBool(_keyOnboardingDone, false);
     await prefs.setBool(_keyRawiCallShown, false);
+    await prefs.setInt(_keyDhikrCount, 0);
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────
@@ -265,6 +267,22 @@ class PrefsService {
 
     return newBadges;
   }
+
+  // ── DHIKR (Hasanat) ───────────────────────────────────────────────────────
+  static const String _keyDhikrCount = 'dhikr_completed_count';
+  static const String _keyDhikrCompleted = 'dhikr_completed_';
+
+  static int get dhikrCompletedCount =>
+      _prefs?.getInt(_keyDhikrCount) ?? 0;
+
+  static Future<void> incrementDhikrCount() async =>
+      await _prefs?.setInt(_keyDhikrCount, dhikrCompletedCount + 1);
+
+  static Future<void> setDhikrCompleted(String eventId) async =>
+      await _prefs?.setBool('$_keyDhikrCompleted$eventId', true);
+
+  static bool isDhikrCompleted(String eventId) =>
+      _prefs?.getBool('$_keyDhikrCompleted$eventId') ?? false;
 
   // ── HELPERS ───────────────────────────────────────────────────────────────
   static String _todayStr() {

@@ -1131,3 +1131,36 @@ Applied content from Khaled's reviewed spec files:
 
 ### Quality
 - `flutter analyze` — 0 issues
+
+---
+
+## Sprint 56 — R13 Action Plan
+**Date:** 2026-04-09
+**Status:** COMPLETE
+
+Event 13 (Cave Hira) scene config + 6 DYK entries (Events 9-11) + AR prose rewrites (Events 1-8 + Black Stone) + prefix removal + narrative clearing.
+
+---
+
+## Sprint 57 — R14 + R15 Device Testing (15 fixes)
+**Date:** 2026-04-09
+**Status:** COMPLETE
+
+R14: paths, verdict UI unification, VO cleanup, transition gradient, source order.
+R15: DYK audit (8 rewrites), verdict labels, chapter overlay, progress persist, button states, threshold markers, auto-collapse, hotspot order, threshold BG, chevron fix.
+
+---
+
+## Sprint 58 — Terminology Rename
+**Date:** 2026-04-10
+**Status:** COMPLETE
+
+7 file renames, 1 delete, 1 legacy rename. Phase enum merged. Comments cleaned. -521 lines.
+
+---
+
+## Sprint 59 — Hasanat System
+**Date:** 2026-04-10
+**Status:** COMPLETE
+
+DhikrCard model + 13 dhikr cards (Sahih Bukhari/Muslim). Cinematic dhikr screen. Flow: Verdict → XP → Dhikr → Event List. Profile counter. Honor-based design.

@@ -33,6 +33,8 @@ import '../widgets/cinematic/starfield_layer.dart';
 import '../widgets/cinematic/virtual_joystick.dart';
 import '../widgets/settings_overlay.dart';
 import '../widgets/tutorial_overlay.dart';
+import '../data/dhikr_data.dart';
+import 'dhikr_screen.dart';
 import 'event_list_screen.dart';
 
 enum _Phase { explore, verdict, complete }
@@ -1008,14 +1010,25 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       await Future.delayed(const Duration(milliseconds: 2500));
     }
 
-    // Step 4: Navigate to fresh event list (next event unlocked)
+    // Step 4: Dhikr screen (if card exists for this event), then event list
     if (!mounted) return;
     AudioService.stopSfx();
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const EventListScreen()),
-      (route) => false,
-    );
+
+    final hasDhikr = dhikrCards.containsKey(widget.event.id);
+    if (hasDhikr) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => DhikrScreen(eventId: widget.event.id),
+        ),
+        (route) => false,
+      );
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const EventListScreen()),
+        (route) => false,
+      );
+    }
   }
 
   /// Back to events for replays.

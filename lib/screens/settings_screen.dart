@@ -205,6 +205,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     label: _isAr ? 'أيام متتالية' : 'Streak',
                     value: '${PrefsService.streak}',
                   ),
+                  const SizedBox(height: 8),
+                  _InfoRow(
+                    icon: Icons.auto_awesome_rounded,
+                    label: _isAr ? 'جلسات الذكر' : 'Dhikr sessions',
+                    value: '${PrefsService.dhikrCompletedCount}',
+                  ),
 
                   const SizedBox(height: 28),
 

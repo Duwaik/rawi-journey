@@ -1,7 +1,7 @@
 # Rawi — Sprint Index
 
-> 55 sprints + post-audit across 8 days (April 1–8, 2026)
-> All sprints complete. R4–R12 testing rounds fixed (85+ items). 12 events with content (9 playable). 155-event structure locked.
+> 59 sprints + post-audit across 10 days (April 1–10, 2026)
+> All sprints complete. R4–R15 testing rounds fixed (140+ items). 13 events with content (10 playable). Hasanat system live. 155-event structure locked.
 
 ---
 
@@ -125,11 +125,31 @@
 
 ---
 
+## Day 9 — April 9, 2026 (Sprints 56–58)
+**Focus:** R13 action plan, R14/R15 device testing, terminology rename
+
+| # | Sprint | Key Deliverable |
+|---|--------|----------------|
+| 56 | R13 Action Plan | Event 13 (Cave Hira) scene config. 6 DYK entries (Events 9-11). AR prose rewrites (Events 1-8 + Black Stone). Prefix removal. Narrative clearing. |
+| 57 | R14 + R15 Device Testing | R14: paths, verdict UI unification, VO cleanup, transition gradient. R15: 10 fixes (progress persist, button states, verdict labels, DYK audit, hotspot unlock order, chapter overlay, threshold BG, rhythm breakers on list, auto-collapse). |
+| 58 | Terminology Rename | 7 file renames, 2 deletes, 1 legacy rename. Phase enum merge (choose+convergenceQuestion→verdict). Comment cleanup. -521 lines net. |
+
+---
+
+## Day 10 — April 10, 2026 (Sprint 59)
+**Focus:** Hasanat system (dhikr after every event)
+
+| # | Sprint | Key Deliverable |
+|---|--------|----------------|
+| 59 | Hasanat System | DhikrCard model + 13 dhikr cards (Sahih sources only). Full-screen cinematic dhikr screen (navy gradient, gold cards, promise section). Flow integration after XP overlay. Profile counter. Honor-based "I've said it" / "Not now" design. |
+
+---
+
 ## Planned
 
 | # | Sprint | Scope |
 |---|--------|-------|
-| 56+ | Content writing | Events 9-10 scene configs (Hilf al-Fudul, Al-Amin). Events 13-15 (Cave Hira, First Revelation, First Believers). |
+| 60+ | Content writing | Events 9-10 scene configs (Hilf al-Fudul, Al-Amin). Events 14-15 (First Revelation, First Believers). |
 | — | Pending Khaled | Remaining ambient clips, Jordanian VO regen, badge painterly artwork, scene BG images |
 | — | Post-Launch | Young Rawi Mode (age-adaptive content — see `doc/RAWI_YOUNG_RAWI_MODE.md`) |
 
@@ -139,15 +159,16 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sprints | 55 + post-audit |
-| Total days | 8 |
-| Bugs fixed | 130+ across 12 testing rounds + audit |
-| Dart files | 44 |
-| Dart lines | ~12,500 |
+| Total sprints | 59 + post-audit |
+| Total days | 10 |
+| Bugs fixed | 140+ across 15 testing rounds + audit |
+| Dart files | 46 |
+| Dart lines | ~13,500 |
 | Total events | 40 in m1_data (155-event structure, 47 for M1) |
-| Playable events | 9 (Events 1-8 + Black Stone at 12) |
-| Events with full content | 12 (Events 1-12, 9-11 need scene configs) |
-| Audio files | 159 (84 VO + 52 companion + 14 SFX + 8 ambient + 1 video) |
+| Playable events | 10 (Events 1-8, 12 Black Stone, 13 Cave Hira) |
+| Events with full content | 13 (Events 1-13) |
+| Dhikr cards | 13 (Sahih Bukhari/Muslim sourced) |
+| Audio files | 75 (52 companion + 14 SFX + 8 ambient + 1 video) |
 | Video files | 1 (event2_intro.mp4, 18MB) |
-| Git commits | 60+ |
+| Git commits | 70+ |
 | Tests | 6 (5 branching + 1 smoke, all passing) |
