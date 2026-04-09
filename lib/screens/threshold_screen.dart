@@ -80,7 +80,14 @@ class _ThresholdScreenState extends State<ThresholdScreen>
       body: FadeTransition(
         opacity: CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut),
         child: Container(
-          color: AppColors.bg.withAlpha(216),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF04060D), Color(0xFF0B1E2D), Color(0xFF04060D)],
+              stops: [0.0, 0.5, 1.0],
+            ),
+          ),
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 28),

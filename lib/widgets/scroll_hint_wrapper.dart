@@ -74,7 +74,7 @@ class _ScrollHintWrapperState extends State<ScrollHintWrapper>
         widget.child,
         if (_showHint)
           Positioned(
-            bottom: 6,
+            bottom: 64,
             left: 0,
             right: 0,
             child: GestureDetector(

@@ -51,6 +51,7 @@ class _EventListScreenState extends State<EventListScreen>
   late List<JourneyEvent> _events;
   late int _currentOrder;
   final Set<JourneyEra> _expandedEras = {};
+  final Set<JourneyEra> _showAllCompletedInEra = {};
 
   JourneyEra? _activeEra() {
     final activeEvent = _events.firstWhere(
@@ -260,6 +261,12 @@ class _EventListScreenState extends State<EventListScreen>
     final items = <Widget>[];
     JourneyEra? lastEra;
 
+    // Group events by era for smart collapse
+    final Map<JourneyEra, List<int>> eraEventIndices = {};
+    for (int i = 0; i < _events.length; i++) {
+      eraEventIndices.putIfAbsent(_events[i].era, () => []).add(i);
+    }
+
     for (int i = 0; i < _events.length; i++) {
       final event = _events[i];
       final isLast = i == _events.length - 1;
@@ -275,6 +282,33 @@ class _EventListScreenState extends State<EventListScreen>
 
       // Only show events if era is expanded
       if (_expandedEras.contains(event.era)) {
+        final completed = PrefsService.isEventCompleted(event.globalOrder);
+        final eraIndices = eraEventIndices[event.era]!;
+        final completedInEra = eraIndices
+            .where((idx) => PrefsService.isEventCompleted(_events[idx].globalOrder))
+            .toList();
+        final showAll = _showAllCompletedInEra.contains(event.era);
+        final hiddenCount = completedInEra.length > 3
+            ? completedInEra.length - 2
+            : 0;
+
+        // Smart collapse: hide old completed events (keep last 2 completed)
+        if (!showAll && hiddenCount > 0 && completed) {
+          final posInCompleted = completedInEra.indexOf(i);
+          if (posInCompleted >= 0 && posInCompleted < hiddenCount) {
+            // Show collapse indicator at the first hidden event
+            if (posInCompleted == 0) {
+              items.add(_buildCollapsedIndicator(event.era, hiddenCount, isAr));
+            }
+            continue; // Skip this event (collapsed)
+          }
+        }
+
+        // Insert threshold marker before events that have one
+        final threshold = getThresholdBefore(event.globalOrder);
+        if (threshold != null) {
+          items.add(_buildThresholdMarker(event.globalOrder, isAr));
+        }
         items.add(_buildEventRow(event, isLast, isAr));
       }
     }
@@ -561,16 +595,7 @@ class _EventListScreenState extends State<EventListScreen>
                         const SizedBox(width: 12),
 
                         // Right side: status
-                        if (completed && hotspotCount > 0)
-                          Text(
-                            '$hotspotCount/$hotspotCount',
-                            style: GoogleFonts.nunito(
-                              color: AppColors.gold.withAlpha(180),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          )
-                        else if (completed && hotspotCount == 0)
+                        if (completed)
                           Icon(Icons.check_rounded,
                               size: 16, color: AppColors.gold.withAlpha(140))
                         else if (isNext)
@@ -587,7 +612,7 @@ class _EventListScreenState extends State<EventListScreen>
                               child: Text(
                                 hasProgress
                                     ? (isAr ? 'أكمل' : 'Continue')
-                                    : (isAr ? 'ابدأ' : 'Play'),
+                                    : (isAr ? 'ابدأ' : 'Start'),
                                 style: GoogleFonts.nunito(
                                   color: AppColors.bg,
                                   fontSize: 12,
@@ -620,6 +645,84 @@ class _EventListScreenState extends State<EventListScreen>
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollapsedIndicator(JourneyEra era, int hiddenCount, bool isAr) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+      child: GestureDetector(
+        onTap: () => setState(() => _showAllCompletedInEra.add(era)),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: AppColors.card.withAlpha(80),
+            border: Border.all(color: AppColors.divider.withAlpha(40)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.expand_more_rounded,
+                  size: 16, color: AppColors.textMuted.withAlpha(140)),
+              const SizedBox(width: 8),
+              Text(
+                isAr
+                    ? '$hiddenCount أحداث مكتملة'
+                    : '$hiddenCount completed events',
+                style: GoogleFonts.nunito(
+                  color: AppColors.textMuted.withAlpha(160),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThresholdMarker(int beforeOrder, bool isAr) {
+    final completed = PrefsService.currentOrder >= beforeOrder;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(child: Container(height: 1, color: AppColors.gold.withAlpha(completed ? 60 : 30))),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.gold.withAlpha(completed ? 80 : 40)),
+              color: AppColors.gold.withAlpha(completed ? 12 : 6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  completed ? Icons.check_rounded : Icons.vpn_key_rounded,
+                  size: 14,
+                  color: AppColors.gold.withAlpha(completed ? 180 : 100),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isAr ? 'العَتَبة' : 'The Threshold',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.gold.withAlpha(completed ? 180 : 100),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Container(height: 1, color: AppColors.gold.withAlpha(completed ? 60 : 30))),
         ],
       ),
     );

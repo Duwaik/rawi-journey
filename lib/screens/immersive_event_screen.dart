@@ -530,30 +530,30 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   /// Header back button — saves progress and exits with audio cleanup.
   /// Mirrors the PopScope logic so there's only one exit path.
-  void _exitScene() {
+  Future<void> _exitScene() async {
     // Block during unanswered Verdict or completion writes
     if (_phase == _Phase.convergenceQuestion && !_allAnswered) return;
     if (_phase == _Phase.choose && !_allAnswered) return;
     if (_isCompleting && !_alreadyCompleted) return;
-    // Save hotspot progress before leaving
+    // Save hotspot progress before leaving (await to ensure persistence)
     if (!_alreadyCompleted && !_isCompleting) {
       final allFound = _discovered.union(_pendingDiscovery);
       if (allFound.isNotEmpty) {
-        PrefsService.saveHotspotProgress(widget.event.id, allFound);
+        await PrefsService.saveHotspotProgress(widget.event.id, allFound);
       }
     }
     AudioService.stopSfx();
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
-    Navigator.of(context).pop();
+    if (mounted) Navigator.of(context).pop();
   }
 
-  void _saveAndExit() {
-    // Save hotspot progress before leaving
+  Future<void> _saveAndExit() async {
+    // Save hotspot progress before leaving (await to ensure persistence)
     if (!_alreadyCompleted && !_isCompleting) {
       final allFound = _discovered.union(_pendingDiscovery);
       if (allFound.isNotEmpty) {
-        PrefsService.saveHotspotProgress(widget.event.id, allFound);
+        await PrefsService.saveHotspotProgress(widget.event.id, allFound);
       }
     }
     // Fade everything for smooth exit
@@ -561,7 +561,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     setState(() => _showSettings = false);
-    Navigator.of(context).pop();
+    if (mounted) Navigator.of(context).pop();
   }
 
   void _checkHotspotProximity() {
@@ -1046,23 +1046,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        // Block back during unanswered Verdict — user must answer + tap Continue
-        if (_phase == _Phase.convergenceQuestion && !_allAnswered) return;
-        if (_phase == _Phase.choose && !_allAnswered) return;
-        // Block back during completion writes
-        if (_isCompleting && !_alreadyCompleted) return;
-        // Save hotspot progress before leaving
-        if (!_alreadyCompleted && !_isCompleting) {
-          final allFound = _discovered.union(_pendingDiscovery);
-          if (allFound.isNotEmpty) {
-            PrefsService.saveHotspotProgress(widget.event.id, allFound);
-          }
-        }
-        // LOCKED RULE: fade all audio on exit (no cuts)
-        AudioService.stopSfx();
-        AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
-        AudioService.fadeOut(duration: const Duration(milliseconds: 250));
-        Navigator.of(context).pop();
+        _exitScene();
       },
       child: Scaffold(
       backgroundColor: Colors.black,
@@ -1371,31 +1355,38 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 child: Container(
                   color: Colors.black.withAlpha(245),
                   child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 32),
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(18),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.gold.withAlpha(40)),
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Carrying portrait — chapter celebration
-                          ClipOval(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.gold, width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.gold.withAlpha(40),
-                                    blurRadius: 16,
-                                  ),
-                                ],
-                              ),
+                          // Carrying portrait with gold border
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.gold, width: 2.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.gold.withAlpha(50),
+                                  blurRadius: 20,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
                               child: Image.asset(
                                 CharacterArt.carrying(),
-                                width: 72, height: 72, fit: BoxFit.cover,
+                                width: 80, height: 80, fit: BoxFit.cover,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
                           Text(
                             widget.event.era.emoji,
                             style: const TextStyle(fontSize: 48),
@@ -1426,17 +1417,18 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                                 : TextDirection.ltr,
                             style: GoogleFonts.lora(
                               color: const Color(0xFFE8D8B8),
-                              fontSize: 16,
+                              fontSize: 17,
                               fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+                              fontWeight: FontWeight.w500,
                               height: 1.7,
                             ),
                           ),
                           const SizedBox(height: 28),
                           Text(
-                            _isAr ? 'انقر للمتابعة' : 'Tap to continue',
+                            _isAr ? 'اضغط للمتابعة' : 'Tap to continue',
                             style: GoogleFonts.nunito(
-                              color: AppColors.textMuted.withAlpha(140),
-                              fontSize: 12,
+                              color: AppColors.textMuted.withAlpha(180),
+                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -1524,7 +1516,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          _isAr ? 'ماذا يحفظ التاريخ؟' : 'What does history remember?',
+                          _isAr ? 'هل تذكر؟' : 'Do You Remember?',
                     style: GoogleFonts.lora(
                       color: _eraColor.withAlpha(200),
                       fontSize: 14,
@@ -1682,7 +1674,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                                     size: 13, color: AppColors.gold),
                                 const SizedBox(width: 7),
                                 Text(
-                                  _isAr ? 'يتأمّل الراوي...' : 'The Rawi reflects...',
+                                  _isAr ? 'يسجّل التاريخ' : 'History Records',
                                   style: GoogleFonts.nunito(
                                     color: AppColors.gold,
                                     fontSize: 11,
