@@ -8,7 +8,7 @@ import '../../services/prefs_service.dart';
 /// Image-based avatar in a gold-bordered circle.
 /// Supports pose parameter for context-specific images (when art is ready).
 /// Retains walking bob, breathing, and golden aura animations.
-class CompanionFigure extends StatefulWidget {
+class RawiFigure extends StatefulWidget {
   final bool isWalking;
   final double facingDirection;
   final bool isAr;
@@ -16,7 +16,7 @@ class CompanionFigure extends StatefulWidget {
   /// Currently all map to the same in-scene image until pose art is generated.
   final String pose;
 
-  const CompanionFigure({
+  const RawiFigure({
     super.key,
     this.isWalking = false,
     this.facingDirection = 0.0,
@@ -25,10 +25,10 @@ class CompanionFigure extends StatefulWidget {
   });
 
   @override
-  State<CompanionFigure> createState() => _CompanionFigureState();
+  State<RawiFigure> createState() => _RawiFigureState();
 }
 
-class _CompanionFigureState extends State<CompanionFigure>
+class _RawiFigureState extends State<RawiFigure>
     with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
 

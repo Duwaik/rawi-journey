@@ -8,12 +8,12 @@ import '../scroll_hint_wrapper.dart';
 /// The Crossroads — gold-bordered card overlay after The Gate.
 /// Two tappable options — each leads to a different Path visit order.
 /// Styled like a discovery panel but with animated gold border to signal "choice."
-class BranchDecisionCard extends StatefulWidget {
+class CrossroadsCard extends StatefulWidget {
   final BranchPoint branchPoint;
   final bool isAr;
   final void Function(BranchOption selected) onOptionSelected;
 
-  const BranchDecisionCard({
+  const CrossroadsCard({
     super.key,
     required this.branchPoint,
     required this.isAr,
@@ -21,10 +21,10 @@ class BranchDecisionCard extends StatefulWidget {
   });
 
   @override
-  State<BranchDecisionCard> createState() => _BranchDecisionCardState();
+  State<CrossroadsCard> createState() => _CrossroadsCardState();
 }
 
-class _BranchDecisionCardState extends State<BranchDecisionCard>
+class _CrossroadsCardState extends State<CrossroadsCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulseAnim;

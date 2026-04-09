@@ -9,9 +9,9 @@ import '../data/threshold_challenges.dart';
 import '../models/journey_event.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
-import 'cinematic_transition_screen.dart';
+import 'event_intro_screen.dart';
 import 'immersive_event_screen.dart';
-import 'journey_event_screen.dart';
+import 'legacy_event_screen.dart';
 import 'settings_screen.dart';
 import 'threshold_screen.dart';
 import 'video_intro_screen.dart';
@@ -198,7 +198,7 @@ class _EventListScreenState extends State<EventListScreen>
             opaque: false,
             transitionDuration: Duration.zero,
             pageBuilder: (ctx, animation, secondaryAnimation) =>
-                CinematicTransitionScreen(
+                EventIntroScreen(
               event: event,
               onComplete: () {
                 if (!ctx.mounted) return;
@@ -241,7 +241,7 @@ class _EventListScreenState extends State<EventListScreen>
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 400),
           reverseTransitionDuration: const Duration(milliseconds: 300),
-          pageBuilder: (c, a1, a2) => JourneyEventScreen(event: event),
+          pageBuilder: (c, a1, a2) => LegacyEventScreen(event: event),
           transitionsBuilder: (c, a, a2, child) {
             final curved =
                 CurvedAnimation(parent: a, curve: Curves.easeOutCubic);

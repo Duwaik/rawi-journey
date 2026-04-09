@@ -10,22 +10,22 @@ import '../services/prefs_service.dart';
 /// Cinematic fade-to-black transition with title card between events.
 /// Flow: fade to black (400ms) → title card (year + location + title, hold 2s)
 /// → fade out (600ms) → callback to push destination.
-class CinematicTransitionScreen extends StatefulWidget {
+class EventIntroScreen extends StatefulWidget {
   final JourneyEvent event;
   final VoidCallback onComplete;
 
-  const CinematicTransitionScreen({
+  const EventIntroScreen({
     super.key,
     required this.event,
     required this.onComplete,
   });
 
   @override
-  State<CinematicTransitionScreen> createState() =>
-      _CinematicTransitionScreenState();
+  State<EventIntroScreen> createState() =>
+      _EventIntroScreenState();
 }
 
-class _CinematicTransitionScreenState extends State<CinematicTransitionScreen>
+class _EventIntroScreenState extends State<EventIntroScreen>
     with SingleTickerProviderStateMixin {
   double _blackOpacity = 0.0;
   double _cardOpacity = 0.0;

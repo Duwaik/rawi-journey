@@ -9,7 +9,7 @@ import 'go_deeper_section.dart';
 
 /// Slide-up panel showing a discovery fragment when a hotspot is tapped.
 /// When [centerMode] is true, shows as a centered card instead of bottom panel.
-class DiscoveryPanel extends StatefulWidget {
+class HotspotCard extends StatefulWidget {
   final String label;
   final String fragment;
   final String icon;
@@ -24,7 +24,7 @@ class DiscoveryPanel extends StatefulWidget {
   final String? sourceRef;
   final String? sourceRefAr;
 
-  const DiscoveryPanel({
+  const HotspotCard({
     super.key,
     required this.label,
     required this.fragment,
@@ -42,10 +42,10 @@ class DiscoveryPanel extends StatefulWidget {
   });
 
   @override
-  State<DiscoveryPanel> createState() => _DiscoveryPanelState();
+  State<HotspotCard> createState() => _HotspotCardState();
 }
 
-class _DiscoveryPanelState extends State<DiscoveryPanel>
+class _HotspotCardState extends State<HotspotCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
   late final Animation<double> _scaleAnim;

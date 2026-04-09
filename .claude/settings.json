@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -v \"^[0-9]*:\\\\s*//\")",
+      "Bash(python -c ':*)",
+      "Bash(mv lib/widgets/cinematic/companion_figure.dart lib/widgets/cinematic/rawi_figure.dart)",
+      "Bash(mv lib/widgets/cinematic/companion_speech_bubble.dart lib/widgets/cinematic/rawi_speech_bubble.dart)",
+      "Bash(mv lib/widgets/cinematic/discovery_panel.dart lib/widgets/cinematic/hotspot_card.dart)",
+      "Bash(mv lib/widgets/cinematic/discovery_progress.dart lib/widgets/cinematic/hotspot_progress.dart)",
+      "Bash(mv lib/widgets/cinematic/branch_decision_card.dart lib/widgets/cinematic/crossroads_card.dart)"
+    ],
+    "additionalDirectories": [
+      "d:\\Rawi_Journey\\assets\\audio\\vo"
+    ]
+  }
+}

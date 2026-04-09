@@ -1,7 +1,7 @@
 /// Pre-scripted companion dialogue lines organized by trigger type.
 /// Each trigger has a list of lines in EN and AR, cycled through sequentially.
-class CompanionDialogue {
-  CompanionDialogue._();
+class RawiDialogue {
+  RawiDialogue._();
 
   /// Idle — no hotspots discovered yet, player hasn't moved.
   static const idleStart = <DialogueLine>[

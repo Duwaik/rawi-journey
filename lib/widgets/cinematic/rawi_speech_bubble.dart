@@ -5,12 +5,12 @@ import '../../app_colors.dart';
 /// Gold-bordered speech pill above the companion figure.
 /// Fades in (400ms) → holds → fades out (400ms).
 /// Parent controls visibility via [visible] and [text].
-class CompanionSpeechBubble extends StatefulWidget {
+class RawiSpeechBubble extends StatefulWidget {
   final String text;
   final bool visible;
   final bool isAr;
 
-  const CompanionSpeechBubble({
+  const RawiSpeechBubble({
     super.key,
     required this.text,
     this.visible = false,
@@ -18,10 +18,10 @@ class CompanionSpeechBubble extends StatefulWidget {
   });
 
   @override
-  State<CompanionSpeechBubble> createState() => _CompanionSpeechBubbleState();
+  State<RawiSpeechBubble> createState() => _RawiSpeechBubbleState();
 }
 
-class _CompanionSpeechBubbleState extends State<CompanionSpeechBubble>
+class _RawiSpeechBubbleState extends State<RawiSpeechBubble>
     with SingleTickerProviderStateMixin {
   late final AnimationController _fadeCtrl;
 
@@ -36,7 +36,7 @@ class _CompanionSpeechBubbleState extends State<CompanionSpeechBubble>
   }
 
   @override
-  void didUpdateWidget(CompanionSpeechBubble old) {
+  void didUpdateWidget(RawiSpeechBubble old) {
     super.didUpdateWidget(old);
     if (widget.visible && !old.visible) {
       _fadeCtrl.forward();

@@ -10,15 +10,15 @@ import 'era_complete_screen.dart';
 // Used for events WITHOUT a panorama/scene config.
 // The immersive 360° experience is in immersive_event_screen.dart.
 
-class JourneyEventScreen extends StatefulWidget {
+class LegacyEventScreen extends StatefulWidget {
   final JourneyEvent event;
-  const JourneyEventScreen({super.key, required this.event});
+  const LegacyEventScreen({super.key, required this.event});
 
   @override
-  State<JourneyEventScreen> createState() => _JourneyEventScreenState();
+  State<LegacyEventScreen> createState() => _LegacyEventScreenState();
 }
 
-class _JourneyEventScreenState extends State<JourneyEventScreen>
+class _LegacyEventScreenState extends State<LegacyEventScreen>
     with SingleTickerProviderStateMixin {
   bool _isAr = false;
   bool _alreadyCompleted = false;

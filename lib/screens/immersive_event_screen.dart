@@ -10,19 +10,19 @@ import '../models/journey_event.dart';
 import '../models/scene_config.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
-import '../data/companion_dialogue.dart';
+import '../data/rawi_dialogue.dart';
 import '../models/branch_point.dart';
-import '../widgets/cinematic/branch_decision_card.dart';
-import '../widgets/cinematic/companion_figure.dart';
+import '../widgets/cinematic/crossroads_card.dart';
+import '../widgets/cinematic/rawi_figure.dart';
 import '../models/badge_definition.dart';
 import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
 import '../widgets/scroll_hint_wrapper.dart';
 import '../widgets/cinematic/xp_reward_animation.dart';
-import '../widgets/cinematic/companion_speech_bubble.dart';
+import '../widgets/cinematic/rawi_speech_bubble.dart';
 import '../widgets/cinematic/crescent_moon.dart';
-import '../widgets/cinematic/discovery_panel.dart';
-import '../widgets/cinematic/discovery_progress.dart';
+import '../widgets/cinematic/hotspot_card.dart';
+import '../widgets/cinematic/hotspot_progress.dart';
 import '../widgets/cinematic/grain_overlay.dart';
 import '../widgets/cinematic/parallax_scene.dart';
 import '../widgets/cinematic/particle_painter.dart';
@@ -35,7 +35,7 @@ import '../widgets/settings_overlay.dart';
 import '../widgets/tutorial_overlay.dart';
 import 'event_list_screen.dart';
 
-enum _Phase { explore, choose, convergenceQuestion, complete }
+enum _Phase { explore, verdict, complete }
 
 class ImmersiveEventScreen extends StatefulWidget {
   final JourneyEvent event;
@@ -301,7 +301,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (_activeHotspot != null || _showBranchCard || _showSettings ||
         _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
         _showTutorial ||
-        _phase == _Phase.convergenceQuestion || _phase == _Phase.choose ||
+        _phase == _Phase.verdict || _phase == _Phase.verdict ||
         _phase == _Phase.complete) {
       return;
     }
@@ -360,7 +360,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // 3. Branch card VO: starts 600ms after card shows, stops on option select
   // 4. Verdict question VO: starts 600ms after phase change
   // 5. Verdict explanation VO: starts 500ms after answer reveal animation
-  // 6. Companion bubbles: use SFX layer (short clips, don't duck ambient)
+  // 6. Rawi bubbles: use SFX layer (short clips, don't duck ambient)
   // 7. App pause/settings: stop ALL VO immediately
 
   void _showBubble(String text, {String? voPath}) {
@@ -377,7 +377,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _isWalking = false;
     });
     if (voPath != null) {
-      // Companion bubbles are short — use SFX layer, don't duck ambient
+      // Rawi bubbles are short — use SFX layer, don't duck ambient
       AudioService.playSfx(voPath, volume: 0.5);
     }
     Future.delayed(const Duration(seconds: 3), () {
@@ -410,15 +410,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     final total = _discovered.length + _pendingDiscovery.length;
     final List<DialogueLine> lines;
     if (total == 0) {
-      lines = CompanionDialogue.idleStart;
+      lines = RawiDialogue.idleStart;
     } else if (_isNearUndiscoveredHotspot()) {
-      lines = CompanionDialogue.idleNearHotspot;
+      lines = RawiDialogue.idleNearHotspot;
     } else {
-      lines = CompanionDialogue.idleMidJourney;
+      lines = RawiDialogue.idleMidJourney;
     }
-    final lineId = CompanionDialogue.getId(lines, _idleTriggerCount);
+    final lineId = RawiDialogue.getId(lines, _idleTriggerCount);
     _showBubble(
-      CompanionDialogue.get(lines, _idleTriggerCount, isAr: _isAr, name: PrefsService.userName),
+      RawiDialogue.get(lines, _idleTriggerCount, isAr: _isAr, name: PrefsService.userName),
       voPath: _companionVoPath(lineId),
     );
     _resetIdleTimer(); // restart for next idle cycle
@@ -532,8 +532,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   /// Mirrors the PopScope logic so there's only one exit path.
   Future<void> _exitScene() async {
     // Block during unanswered Verdict or completion writes
-    if (_phase == _Phase.convergenceQuestion && !_allAnswered) return;
-    if (_phase == _Phase.choose && !_allAnswered) return;
+    if (_phase == _Phase.verdict && !_allAnswered) return;
+    if (_phase == _Phase.verdict && !_allAnswered) return;
     if (_isCompleting && !_alreadyCompleted) return;
     // Save hotspot progress before leaving (await to ensure persistence)
     if (!_alreadyCompleted && !_isCompleting) {
@@ -632,7 +632,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (_activeHotspot != null || _showBranchCard || _showSettings ||
         _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
         _showTutorial ||
-        _phase == _Phase.convergenceQuestion || _phase == _Phase.choose ||
+        _phase == _Phase.verdict || _phase == _Phase.verdict ||
         _phase == _Phase.complete) {
       _stopAutoWalk();
       return;
@@ -754,15 +754,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       final count = (_revisitCount[hotspot.id] ?? 0) + 1;
       _revisitCount[hotspot.id] = count;
       if (count >= 4) {
-        final lid = CompanionDialogue.getId(CompanionDialogue.revisitFirm, count);
-        _showBubble(CompanionDialogue.get(
-            CompanionDialogue.revisitFirm, count, isAr: _isAr, name: PrefsService.userName),
+        final lid = RawiDialogue.getId(RawiDialogue.revisitFirm, count);
+        _showBubble(RawiDialogue.get(
+            RawiDialogue.revisitFirm, count, isAr: _isAr, name: PrefsService.userName),
             voPath: _companionVoPath(lid));
         return;
       } else if (count >= 3) {
-        final lid = CompanionDialogue.getId(CompanionDialogue.revisitWarn, count);
-        _showBubble(CompanionDialogue.get(
-            CompanionDialogue.revisitWarn, count, isAr: _isAr, name: PrefsService.userName),
+        final lid = RawiDialogue.getId(RawiDialogue.revisitWarn, count);
+        _showBubble(RawiDialogue.get(
+            RawiDialogue.revisitWarn, count, isAr: _isAr, name: PrefsService.userName),
             voPath: _companionVoPath(lid));
         return;
       }
@@ -886,20 +886,20 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // NO tutorial here — tutorial was shown at the branch card
         Future.delayed(const Duration(milliseconds: 400), () {
           if (mounted) {
-            setState(() => _phase = _Phase.convergenceQuestion);
+            setState(() => _phase = _Phase.verdict);
             _phaseCtrl.forward();
             _playChoiceVo('q');
           }
         });
       } else {
-        // Linear mode: full-screen choose overlay
-        final adLid = CompanionDialogue.getId(CompanionDialogue.allDone, _discovered.length);
-        _showBubble(CompanionDialogue.get(
-            CompanionDialogue.allDone, _discovered.length, isAr: _isAr, name: PrefsService.userName),
+        // Linear mode: verdict overlay
+        final adLid = RawiDialogue.getId(RawiDialogue.allDone, _discovered.length);
+        _showBubble(RawiDialogue.get(
+            RawiDialogue.allDone, _discovered.length, isAr: _isAr, name: PrefsService.userName),
             voPath: _companionVoPath(adLid));
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
-            setState(() => _phase = _Phase.choose);
+            setState(() => _phase = _Phase.verdict);
             _phaseCtrl.forward();
             _playChoiceVo('q');
           }
@@ -908,9 +908,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     } else if (dismissed != null && _discovered.contains(dismissed.id)) {
       // Post-discovery nudge
       _postDiscoveryCount++;
-      final pdLid = CompanionDialogue.getId(CompanionDialogue.postDiscovery, _postDiscoveryCount);
-      _showBubble(CompanionDialogue.get(
-          CompanionDialogue.postDiscovery, _postDiscoveryCount, isAr: _isAr, name: PrefsService.userName),
+      final pdLid = RawiDialogue.getId(RawiDialogue.postDiscovery, _postDiscoveryCount);
+      _showBubble(RawiDialogue.get(
+          RawiDialogue.postDiscovery, _postDiscoveryCount, isAr: _isAr, name: PrefsService.userName),
           voPath: _companionVoPath(pdLid));
     }
   }
@@ -1098,7 +1098,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Hotspot markers (all visible, sequential/branching unlock) ──
-          if (_phase == _Phase.explore || _phase == _Phase.choose || _phase == _Phase.convergenceQuestion)
+          if (_phase == _Phase.explore || _phase == _Phase.verdict || _phase == _Phase.verdict)
             ...(() {
               // Determine next hotspot ID to unlock
               String? nextHotspotId;
@@ -1143,7 +1143,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               });
             }()),
 
-          // ── Companion figure + speech bubble ────────────────────────
+          // ── Rawi figure + speech bubble ─────────────────────────────
           if (_phase == _Phase.explore)
             Positioned(
               left: _companionX * screenW + sceneOffset - 32,
@@ -1151,13 +1151,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CompanionSpeechBubble(
+                  RawiSpeechBubble(
                     text: _bubbleText,
                     visible: _bubbleVisible,
                     isAr: _isAr,
                   ),
                   const SizedBox(height: 4),
-                  CompanionFigure(
+                  RawiFigure(
                     isWalking: _isWalking,
                     facingDirection: _facingDir,
                     isAr: _isAr,
@@ -1167,7 +1167,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Dim overlay ────────────────────────────────────────────
-          if (_phase == _Phase.choose || _phase == _Phase.complete || _phase == _Phase.convergenceQuestion)
+          if (_phase == _Phase.verdict || _phase == _Phase.complete || _phase == _Phase.verdict)
             AnimatedOpacity(
               opacity: _phase != _Phase.explore ? 0.35 : 0.0,
               duration: const Duration(milliseconds: 500),
@@ -1242,12 +1242,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
           ),
 
-          // ── Discovery progress (top, below era bar) ────────────────
+          // ── Hotspot progress (top, below era bar) ─────────────────
           if (_phase == _Phase.explore && _activeHotspot == null)
             Positioned(
               top: topPad + 52, left: 0, right: 0,
               child: Center(
-                child: DiscoveryProgress(
+                child: HotspotProgress(
                   total: _scene.hotspots.length,
                   discovered: _discovered.length + _pendingDiscovery.length, isAr: _isAr),
               ),
@@ -1280,9 +1280,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── Discovery panel ────────────────────────────────────────
+          // ── Hotspot card ───────────────────────────────────────────
           if (_activeHotspot != null)
-            DiscoveryPanel(
+            HotspotCard(
               label: _isAr ? _activeHotspot!.labelAr : _activeHotspot!.label,
               fragment: _isAr ? _activeHotspot!.fragmentAr : _activeHotspot!.fragment,
               icon: _activeHotspot!.icon, isAr: _isAr, onDismiss: _dismissPanel,
@@ -1296,7 +1296,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               centerMode: true),
 
           // ── The Verdict (all events — unified gold card UI) ────────
-          if ((_phase == _Phase.choose || _phase == _Phase.convergenceQuestion || _phase == _Phase.complete)
+          if ((_phase == _Phase.verdict || _phase == _Phase.verdict || _phase == _Phase.complete)
               && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
             _buildConvergenceQuestion(bottomPad),
 
@@ -1305,7 +1305,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             Positioned.fill(
               child: Container(
                 color: Colors.black.withAlpha(120),
-                child: BranchDecisionCard(
+                child: CrossroadsCard(
                   branchPoint: widget.event.branchPoint!,
                   isAr: _isAr,
                   onOptionSelected: _onBranchSelected,
@@ -1773,10 +1773,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       ),
     );
   }
-
-  // ── The Reflection (linear events — old Moment of Reflection) ───────────────
-
-  // _buildChoiceOverlay and _buildChoiceCards removed — unified into _buildConvergenceQuestion
 }
 
 // ── Footprint trail painter ──────────────────────────────────────────────────

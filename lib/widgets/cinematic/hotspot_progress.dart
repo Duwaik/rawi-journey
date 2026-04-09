@@ -3,12 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 
 /// Bottom progress indicator showing discovery state: "Explore · 2/4"
-class DiscoveryProgress extends StatelessWidget {
+class HotspotProgress extends StatelessWidget {
   final int total;
   final int discovered;
   final bool isAr;
 
-  const DiscoveryProgress({
+  const HotspotProgress({
     super.key,
     required this.total,
     required this.discovered,
