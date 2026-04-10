@@ -40,7 +40,7 @@ const Map<String, DhikrCard> dhikrCards = {
     whenToSay: 'When you feel afraid or face something overwhelming',
     whenToSayAr: '\u0639\u0646\u062F \u0627\u0644\u062E\u0648\u0641 \u0623\u0648 \u0645\u0648\u0627\u062C\u0647\u0629 \u0623\u0645\u0631 \u0639\u0638\u064A\u0645',
     promiseEn:
-        'Ibrahim said it when he was thrown into the fire. Muhammad \uFDFA said it when he was told: \'The people have gathered against you, so fear them.\' But it only increased them in faith, and they said: \'Allah is sufficient for us, and He is the best Disposer of affairs.\'',
+        'Ibrahim (peace be upon him) said it when he was thrown into the fire. Muhammad \uFDFA said it when he was told: \'The people have gathered against you, so fear them.\' But it only increased them in faith, and they said: \'Allah is sufficient for us, and He is the best Disposer of affairs.\'',
     promiseAr:
         '\u0642\u0627\u0644\u0647\u0627 \u0625\u0628\u0631\u0627\u0647\u064A\u0645 \u0639\u0644\u064A\u0647 \u0627\u0644\u0633\u0644\u0627\u0645 \u062D\u064A\u0646 \u0623\u0644\u0642\u064A \u0641\u064A \u0627\u0644\u0646\u0627\u0631\u060C \u0648\u0642\u0627\u0644\u0647\u0627 \u0645\u062D\u0645\u062F \uFDFA \u062D\u064A\u0646 \u0642\u064A\u0644 \u0644\u0647: \'\u0625\u0646 \u0627\u0644\u0646\u0627\u0633 \u0642\u062F \u062C\u0645\u0639\u0648\u0627 \u0644\u0643\u0645 \u0641\u0627\u062E\u0634\u0648\u0647\u0645.\' \u0641\u0632\u0627\u062F\u0647\u0645 \u0625\u064A\u0645\u0627\u0646\u0627\u064B \u0648\u0642\u0627\u0644\u0648\u0627: \u062D\u0633\u0628\u0646\u0627 \u0627\u0644\u0644\u0647 \u0648\u0646\u0639\u0645 \u0627\u0644\u0648\u0643\u064A\u0644.',
     sourceRef: 'Sahih Bukhari 4563',
