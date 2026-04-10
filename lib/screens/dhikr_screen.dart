@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../data/dhikr_data.dart';
 import '../models/dhikr_card.dart';
 import '../services/prefs_service.dart';
-import 'event_list_screen.dart';
+import 'scroll_writing_screen.dart';
 
 /// Full-screen cinematic dhikr card shown after event completion.
 class DhikrScreen extends StatefulWidget {
@@ -50,7 +51,8 @@ class _DhikrScreenState extends State<DhikrScreen>
 
     if (!mounted) return;
 
-    // Brief celebration shimmer
+    // Brief celebration shimmer + haptic
+    HapticFeedback.mediumImpact();
     setState(() => _celebrating = true);
     _shimmerCtrl.forward();
 
@@ -65,9 +67,10 @@ class _DhikrScreenState extends State<DhikrScreen>
   }
 
   void _goToEventList() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const EventListScreen()),
-      (route) => false,
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => ScrollWritingScreen(eventId: widget.eventId),
+      ),
     );
   }
 

@@ -66,6 +66,30 @@ class SceneHotspot {
   });
 }
 
+// ── Hidden scene element (curiosity tap) ─────────────────────────────────────
+class SceneSecret {
+  /// Unique identifier for persistence.
+  final String id;
+
+  /// Position as fraction of scene width/height (0.0–1.0).
+  final double x;
+  final double y;
+
+  /// Visual type: 'bird', 'star', etc.
+  final String type;
+
+  /// Optional sound effect played on discovery.
+  final String? sfxPath;
+
+  const SceneSecret({
+    required this.id,
+    required this.x,
+    required this.y,
+    required this.type,
+    this.sfxPath,
+  });
+}
+
 // ── Scene atmosphere configuration per event ──────────────────────────────────
 class SceneConfig {
   // ── Parallax scene layers ───────────────────────────────────────────────────
@@ -75,6 +99,9 @@ class SceneConfig {
 
   // ── Interactive hotspots ────────────────────────────────────────────────────
   final List<SceneHotspot> hotspots;
+
+  // ── Hidden scene elements (curiosity taps) ─────────────────────────────────
+  final List<SceneSecret> secrets;
 
   // ── Walking path (fractional coordinates) ──────────────────────────────────
   /// Ordered waypoints the companion follows. Joystick moves along this route.
@@ -105,6 +132,7 @@ class SceneConfig {
     this.groundLayers = const [],
     this.sceneHeightFraction = 1.0,
     this.hotspots = const [],
+    this.secrets = const [],
     this.pathWaypoints = const [],
     this.pathWaypointsAlt,
     required this.skyGradient,

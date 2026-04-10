@@ -5,6 +5,7 @@ import '../app_colors.dart';
 import '../character_art.dart';
 import '../data/m1_data.dart';
 import '../main.dart';
+import '../models/rawi_stage.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
@@ -296,6 +297,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     fontSize: 13,
                     color: AppColors.gold.withAlpha(180),
                     fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  RawiStage.stageName(
+                    RawiStage.getStage(
+                      (PrefsService.currentOrder - 1).clamp(0, m1EventCount),
+                    ),
+                    isAr: _isAr,
+                  ),
+                  style: GoogleFonts.lora(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
                   ),
                 ),
               ],

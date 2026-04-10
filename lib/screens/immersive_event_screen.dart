@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
@@ -32,6 +33,7 @@ import '../widgets/cinematic/birds_overlay.dart';
 import '../widgets/cinematic/path_route_painter.dart';
 import '../widgets/cinematic/starfield_layer.dart';
 import '../widgets/cinematic/virtual_joystick.dart';
+import '../widgets/cinematic/fog_overlay.dart';
 import '../widgets/settings_overlay.dart';
 import '../widgets/tutorial_overlay.dart';
 import '../data/dhikr_data.dart';
@@ -128,6 +130,18 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   int _postDiscoveryCount = 0;
   final Map<String, int> _revisitCount = {};
 
+  // Fog of War — golden tint on full reveal
+  bool _fogSceneRevealed = false;
+  double _goldenTintOpacity = 0.0;
+
+  // ── Feature: Rawi figure bounce ──────────────────────────────────────────
+  late final AnimationController _figureBounceCtrl;
+  double _figureScale = 1.0;
+  double _figureBounceTarget = 0.05; // peak scale offset (0.05 = normal, 0.1 = celebration)
+
+  // ── Feature: Hotspot proximity opacity ───────────────────────────────────
+  final Map<String, double> _hotspotProximityOpacity = {};
+
   @override
   void initState() {
     super.initState();
@@ -160,6 +174,24 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       duration: const Duration(seconds: 100),
     );
     _gameLoop.addListener(_onFrame);
+
+    // Figure bounce controller (Feature 6: Rawi Reactions)
+    _figureBounceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    )..addListener(() {
+      // Bounce curve: 1.0 → peak → 1.0
+      final t = _figureBounceCtrl.value;
+      final bounce = sin(t * pi); // 0→1→0 over the animation
+      setState(() {
+        _figureScale = 1.0 + _figureBounceTarget * bounce;
+      });
+    })..addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() => _figureScale = 1.0);
+        _figureBounceCtrl.reset();
+      }
+    });
 
     if (_alreadyCompleted) {
       _phase = _Phase.complete;
@@ -263,6 +295,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     WidgetsBinding.instance.removeObserver(this);
     _gameLoop.removeListener(_onFrame);
     _gameLoop.dispose();
+    _figureBounceCtrl.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
     // Fade all audio for smooth exit (LOCKED RULE: no hard cuts)
@@ -353,6 +386,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
 
     _checkHotspotProximity();
+    _updateHotspotProximity(nextHotspotId: _nextHotspotId);
   }
 
   // ── Speech bubble logic ──────────────────────────────────────────────────
@@ -654,6 +688,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
 
     setState(() => _isWalking = true);
+    _updateHotspotProximity(nextHotspotId: _nextHotspotId);
 
     // Check if arrived
     if ((_pathProgress - _autoWalkTarget).abs() < 0.015) {
@@ -835,6 +870,70 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool get _allAnswered =>
       widget.event.questions.isEmpty || _answers.every((a) => a != null);
 
+  /// Discovery progress 0.0→1.0 for scene evolution effects.
+  double get _discoveredProgress =>
+      _scene.hotspots.isEmpty ? 0.0 : _discovered.length / _scene.hotspots.length;
+
+  /// Trigger a scale bounce on the Rawi figure.
+  void _triggerFigureBounce({bool celebration = false}) {
+    _figureBounceTarget = celebration ? 0.10 : 0.05;
+    _figureBounceCtrl.duration = Duration(milliseconds: celebration ? 500 : 300);
+    _figureBounceCtrl.forward(from: 0.0);
+  }
+
+  /// Determine the next hotspot ID to unlock (shared logic).
+  String? get _nextHotspotId {
+    if (_isBranching && _branchUnlockOrder.isNotEmpty) {
+      final id = _branchUnlockOrder.firstWhere(
+        (id) => !_discovered.contains(id) && !_pendingDiscovery.contains(id),
+        orElse: () => '',
+      );
+      return id.isEmpty ? null : id;
+    } else if (!_isBranching) {
+      final nextIdx = _scene.hotspots.indexWhere(
+          (h) => !_discovered.contains(h.id) && !_pendingDiscovery.contains(h.id));
+      return nextIdx >= 0 ? _scene.hotspots[nextIdx].id : null;
+    } else {
+      // Branching but no choice yet: only anchor is active
+      final anchorId = widget.event.anchorHotspotId;
+      if (anchorId != null && !_discovered.contains(anchorId) && !_pendingDiscovery.contains(anchorId)) {
+        return anchorId;
+      }
+      return null;
+    }
+  }
+
+  /// Update proximity opacity map for undiscovered hotspots.
+  void _updateHotspotProximity({required String? nextHotspotId}) {
+    for (final h in _scene.hotspots) {
+      if (_discovered.contains(h.id) || _pendingDiscovery.contains(h.id)) {
+        // Discovered: always fully visible (handled in build)
+        _hotspotProximityOpacity.remove(h.id);
+        continue;
+      }
+      if (h.id != nextHotspotId) {
+        // Locked future hotspot: invisible
+        _hotspotProximityOpacity[h.id] = 0.0;
+        continue;
+      }
+      // Next undiscovered hotspot: distance-based opacity
+      final dx = _companionX - h.x;
+      final dy = _companionY - h.y;
+      final dist = sqrt(dx * dx + dy * dy);
+      if (dist > 0.15) {
+        _hotspotProximityOpacity[h.id] = 0.0;
+      } else if (dist > 0.08) {
+        // Near zone: lerp opacity 0.3→0.7
+        final t = 1.0 - (dist - 0.08) / (0.15 - 0.08);
+        _hotspotProximityOpacity[h.id] = 0.3 + t * 0.4;
+      } else {
+        // Close zone: lerp opacity 0.7→1.0
+        final t = 1.0 - dist / 0.08;
+        _hotspotProximityOpacity[h.id] = 0.7 + t * 0.3;
+      }
+    }
+  }
+
   void _dismissPanel() {
     // LOCKED RULE: fade VO and ambient, never hard cut
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
@@ -843,13 +942,28 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     // Ensure joystick is clean — prevents stale movement after dismiss
     _joyDx = 0;
     _joyDy = 0;
+    final wasNewDiscovery = dismissed != null && _pendingDiscovery.contains(dismissed.id);
     setState(() {
-      if (dismissed != null && _pendingDiscovery.contains(dismissed.id)) {
+      if (wasNewDiscovery) {
         _pendingDiscovery.remove(dismissed.id);
         _discovered.add(dismissed.id);
+        HapticFeedback.mediumImpact();
       }
       _activeHotspot = null;
     });
+
+    // ── Feature 6: Rawi bounce after discovery ──────────────────────────
+    if (wasNewDiscovery) {
+      _triggerFigureBounce();
+    }
+
+    // ── Feature 5: Ambient volume increase with progress ────────────────
+    if (wasNewDiscovery && _discoveredProgress > 0) {
+      AudioService.fadeAmbientTo(
+        0.10 + _discoveredProgress * 0.10,
+        duration: const Duration(milliseconds: 500),
+      );
+    }
 
     // ── Branching: show branch card after anchor ────────────────────────
     if (_isBranching && dismissed != null &&
@@ -883,6 +997,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
 
     if (_allDiscovered && _phase == _Phase.explore) {
+      // ── Feature 6: All-done celebration bounce ────────────────────
+      _triggerFigureBounce(celebration: true);
+
+      // ── Fog of War: full reveal + golden tint ─────────────────────
+      _triggerFogReveal();
+
       if (_isBranching) {
         // Branching mode: question renders in-scene after convergence
         // NO tutorial here — tutorial was shown at the branch card
@@ -917,8 +1037,27 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
   }
 
+  /// Triggers fog fade-out and golden tint sunrise effect.
+  void _triggerFogReveal() {
+    HapticFeedback.heavyImpact();
+    setState(() => _fogSceneRevealed = true);
+    // Golden tint: fade in over 400ms, hold, then fade out
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) setState(() => _goldenTintOpacity = 1.0);
+    });
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) setState(() => _goldenTintOpacity = 0.0);
+    });
+  }
+
   void _selectChoice(int qIdx, int choiceIdx) async {
     if (_answers[qIdx] != null) return;
+    final isCorrect = choiceIdx == widget.event.questions[qIdx].correctIndex;
+    if (isCorrect) {
+      HapticFeedback.heavyImpact();
+    } else {
+      HapticFeedback.lightImpact();
+    }
     setState(() => _answers[qIdx] = choiceIdx);
     _revealCtrl.forward();
     _playChoiceVo('exp');
@@ -982,6 +1121,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (_isChapterEnd && !_alreadyCompleted) {
       final completer = Completer<void>();
       _chapterDismissCompleter = completer;
+      HapticFeedback.heavyImpact();
       setState(() => _showChapterComplete = true);
       await completer.future;
       if (!mounted) return;
@@ -993,6 +1133,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       for (final badge in _newBadges) {
         if (!mounted) return;
         final completer = Completer<void>();
+        HapticFeedback.heavyImpact();
         setState(() {
           _showBadgeOverlay = true;
           _currentBadge = badge;
@@ -1006,6 +1147,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
     // Step 3: XP animation (every event)
     if (mounted && !_alreadyCompleted) {
+      HapticFeedback.mediumImpact();
       setState(() => _showXpAnimation = true);
       await Future.delayed(const Duration(milliseconds: 2500));
     }
@@ -1072,12 +1214,37 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             externalOffset: sceneOffset,
           ),
 
+          // ── Feature 5: Sky gradient shift (warm overlay with progress) ──
+          if (_discoveredProgress > 0 && _phase == _Phase.explore)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: _discoveredProgress * 0.12,
+                  duration: const Duration(milliseconds: 600),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color.lerp(Colors.transparent, const Color(0xFFFF8C00), _discoveredProgress) ?? Colors.transparent,
+                          Color.lerp(Colors.transparent, const Color(0xFFFFD700), _discoveredProgress) ?? Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           // ── Atmospheric overlays ───────────────────────────────────
           if (_scene.showStars) const StarfieldLayer(),
           if (_scene.showMoon) CrescentMoon(position: _scene.moonPosition),
+          // Feature 5: Particle density increases with discovery progress (~50% at full)
           if (_scene.particleType != ParticleType.none)
             ParticleField(type: _scene.particleType,
-                count: _scene.particleCount, color: _scene.particleColor),
+                count: (_scene.particleCount * (1.0 + _discoveredProgress * 0.5)).round(),
+                color: _scene.particleColor),
           if (_scene.showGrain) const GrainOverlay(),
 
           // ── Birds overlay (Event 2) ────────────────────────────────
@@ -1110,30 +1277,40 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
+          // ── Fog of War overlay ──────────────────────────────────────
+          if (_phase == _Phase.explore && !_alreadyCompleted)
+            Positioned.fill(
+              child: FogOverlay(
+                rawiX: _companionX,
+                rawiY: _companionY,
+                discoveredPositions: _scene.hotspots
+                    .where((h) => _discovered.contains(h.id) || _pendingDiscovery.contains(h.id))
+                    .map((h) => Offset(h.x, h.y))
+                    .toList(),
+                totalHotspots: _scene.hotspots.length,
+                discoveredCount: _discovered.length + _pendingDiscovery.length,
+                sceneRevealed: _fogSceneRevealed,
+                sceneOffset: sceneOffset,
+              ),
+            ),
+
+          // ── Golden tint on full reveal ────────────────────────────────
+          if (_goldenTintOpacity > 0.0)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: _goldenTintOpacity,
+                  duration: const Duration(milliseconds: 400),
+                  child: Container(color: const Color(0x15FFD700)),
+                ),
+              ),
+            ),
+
           // ── Hotspot markers (all visible, sequential/branching unlock) ──
           if (_phase == _Phase.explore || _phase == _Phase.verdict || _phase == _Phase.verdict)
             ...(() {
-              // Determine next hotspot ID to unlock
-              String? nextHotspotId;
-              if (_isBranching && _branchUnlockOrder.isNotEmpty) {
-                // Branching: follow _branchUnlockOrder
-                nextHotspotId = _branchUnlockOrder.firstWhere(
-                  (id) => !_discovered.contains(id) && !_pendingDiscovery.contains(id),
-                  orElse: () => '',
-                );
-                if (nextHotspotId.isEmpty) nextHotspotId = null;
-              } else if (!_isBranching) {
-                // Linear: sequential by hotspot list index
-                final nextIdx = _scene.hotspots.indexWhere(
-                    (h) => !_discovered.contains(h.id) && !_pendingDiscovery.contains(h.id));
-                if (nextIdx >= 0) nextHotspotId = _scene.hotspots[nextIdx].id;
-              } else {
-                // Branching but no choice yet: only anchor is active
-                nextHotspotId = widget.event.anchorHotspotId;
-                if (_discovered.contains(nextHotspotId) || _pendingDiscovery.contains(nextHotspotId!)) {
-                  nextHotspotId = null; // anchor done, waiting for branch card
-                }
-              }
+              // Determine next hotspot ID to unlock (uses shared getter)
+              final nextHotspotId = _nextHotspotId;
 
               return _scene.hotspots.map((h) {
                 final hScreenX = h.x * screenW + sceneOffset - 45;
@@ -1142,16 +1319,35 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 final isPending = _pendingDiscovery.contains(h.id);
                 final isNext = h.id == nextHotspotId && !isDiscovered && !isPending;
                 final isLocked = !isDiscovered && !isPending && !isNext;
+
+                // Feature 2: Proximity-based opacity for undiscovered hotspots
+                final double proximityOpacity;
+                if (isDiscovered || isPending) {
+                  proximityOpacity = 1.0; // Always visible
+                } else if (isNext) {
+                  proximityOpacity = _hotspotProximityOpacity[h.id] ?? 0.0;
+                } else {
+                  proximityOpacity = 0.0; // Locked: invisible
+                }
+
+                final marker = SceneHotspotMarker(
+                  icon: h.icon,
+                  label: _isAr ? h.labelAr : h.label,
+                  discovered: isDiscovered,
+                  active: isNext,
+                  locked: isLocked,
+                  onTap: () => _onHotspotTap(h),
+                );
+
                 return Positioned(
                   left: hScreenX, top: hScreenY,
-                  child: SceneHotspotMarker(
-                    icon: h.icon,
-                    label: _isAr ? h.labelAr : h.label,
-                    discovered: isDiscovered,
-                    active: isNext,
-                    locked: isLocked,
-                    onTap: () => _onHotspotTap(h),
-                  ),
+                  child: (isDiscovered || isPending)
+                      ? marker
+                      : AnimatedOpacity(
+                          opacity: proximityOpacity,
+                          duration: const Duration(milliseconds: 400),
+                          child: marker,
+                        ),
                 );
               });
             }()),
@@ -1170,10 +1366,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     isAr: _isAr,
                   ),
                   const SizedBox(height: 4),
-                  RawiFigure(
-                    isWalking: _isWalking,
-                    facingDirection: _facingDir,
-                    isAr: _isAr,
+                  Transform.scale(
+                    scale: _figureScale,
+                    child: RawiFigure(
+                      isWalking: _isWalking,
+                      facingDirection: _facingDir,
+                      isAr: _isAr,
+                    ),
                   ),
                 ],
               ),

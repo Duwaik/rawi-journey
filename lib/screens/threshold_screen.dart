@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
@@ -53,6 +54,7 @@ class _ThresholdScreenState extends State<ThresholdScreen>
     });
 
     if (index == widget.challenge.correctIndex) {
+      HapticFeedback.mediumImpact();
       setState(() => _unlocked = true);
       // Brief celebration then proceed
       Future.delayed(const Duration(milliseconds: 800), () {

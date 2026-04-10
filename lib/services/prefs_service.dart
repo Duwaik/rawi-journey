@@ -32,6 +32,7 @@ class PrefsService {
   static const String _keyTextScale        = 'text_scale';
   static const String _keyTutorialSeen     = 'tutorial_seen';
   static const String _keyChoiceTutSeen    = 'choice_tutorial_seen';
+  static const String _keyAgeTier          = 'age_tier';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
   static String get language => _prefs?.getString(_keyLanguage) ?? 'en';
@@ -91,7 +92,8 @@ class PrefsService {
           key.startsWith(_keyHotspotProgress) ||
           key.startsWith(_keyThresholdCompleted) ||
           key.startsWith(_keyDhikrCompleted) ||
-          key == _keyDiscoveredCollection) {
+          key == _keyDiscoveredCollection ||
+          key == _keyDiscoveredSecrets) {
         await prefs.remove(key);
       }
     }
@@ -288,6 +290,26 @@ class PrefsService {
 
   static bool isDhikrCompleted(String eventId) =>
       _prefs?.getBool('$_keyDhikrCompleted$eventId') ?? false;
+
+  // ── DISCOVERED SECRETS (Hidden Scene Elements) ─────────────────────────────
+  static const String _keyDiscoveredSecrets = 'discovered_secrets';
+
+  static Set<String> get discoveredSecrets =>
+      _prefs?.getStringList(_keyDiscoveredSecrets)?.toSet() ?? {};
+
+  static Future<void> addDiscoveredSecret(String secretId) async {
+    final current = discoveredSecrets.toList();
+    if (!current.contains(secretId)) {
+      current.add(secretId);
+      await _prefs?.setStringList(_keyDiscoveredSecrets, current);
+    }
+  }
+
+  // ── AGE TIER (Little Rawi Mode) ────────────────────────────────────────────
+  /// 1 = standard Rawi (default), higher tiers reserved for age-adaptive mode.
+  static int get ageTier => _prefs?.getInt(_keyAgeTier) ?? 1;
+  static Future<void> setAgeTier(int tier) async =>
+      await _prefs?.setInt(_keyAgeTier, tier);
 
   // ── HELPERS ───────────────────────────────────────────────────────────────
   static String _todayStr() {

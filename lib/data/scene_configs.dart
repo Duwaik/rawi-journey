@@ -25,6 +25,9 @@ final Map<String, SceneConfig> sceneConfigs = {
         heightFraction: 1.0,
       ),
     ],
+    secrets: const [
+      SceneSecret(id: 'e1_bird', x: 0.85, y: 0.15, type: 'bird'),
+    ],
     hotspots: const [
       SceneHotspot(
         id: 'kaabah',
@@ -139,6 +142,9 @@ final Map<String, SceneConfig> sceneConfigs = {
         verticalPosition: 0.0,
         heightFraction: 1.0,
       ),
+    ],
+    secrets: const [
+      SceneSecret(id: 'e2_star', x: 0.20, y: 0.10, type: 'star'),
     ],
     hotspots: const [
       SceneHotspot(

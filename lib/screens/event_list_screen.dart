@@ -12,6 +12,7 @@ import '../services/prefs_service.dart';
 import 'event_intro_screen.dart';
 import 'immersive_event_screen.dart';
 import 'legacy_event_screen.dart';
+import 'scroll_viewer_screen.dart';
 import 'settings_screen.dart';
 import 'threshold_screen.dart';
 import 'video_intro_screen.dart';
@@ -836,6 +837,39 @@ class _EventListScreenState extends State<EventListScreen>
                   _HeaderBadge(
                     label: '${PrefsService.dhikrCompletedCount}',
                     emoji: '\uD83D\uDCFF',
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 350),
+                          reverseTransitionDuration:
+                              const Duration(milliseconds: 250),
+                          pageBuilder: (c, a, s) =>
+                              const ScrollViewerScreen(),
+                          transitionsBuilder: (c, a, s, child) =>
+                              FadeTransition(
+                            opacity: CurvedAnimation(
+                                parent: a, curve: Curves.easeOut),
+                            child: child,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withAlpha(8),
+                        border: Border.all(
+                            color: AppColors.textMuted.withAlpha(40)),
+                      ),
+                      child: const Icon(Icons.auto_stories_rounded,
+                          size: 16, color: AppColors.textMuted),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
