@@ -6,6 +6,39 @@
 
 ---
 
+## Master List (Single Source of Truth)
+
+The canonical 155-event sequence lives in
+[`doc/RAWI_155_MASTER_LIST.md`](doc/RAWI_155_MASTER_LIST.md).
+All event ordering, titles, and honorifics (e.g., "الزواج من خديجة
+رضي الله عنها", "إسلام حمزة رضي الله عنه", "إسلام عمر رضي الله عنه",
+"وفاة خديجة رضي الله عنها", "استشهاد حمزة رضي الله عنه") are locked
+in the master list. No other doc overrides it.
+
+**Module structure (155 events, 4 modules):**
+
+| Module | Title | Events | Range |
+|--------|-------|--------|-------|
+| M1 | The Prophetic Dawn | 47 | 1–47 |
+| M2 | The Community Rises | 35 | 48–82 |
+| M3 | The Turning Tide | 38 | 83–120 |
+| M4 | The Final Chapter | 35 | 121–155 |
+
+**Chapter Review breakpoints (5 reviews):**
+
+| Review | After Event | Meaning |
+|--------|-------------|---------|
+| 1 | #14 | Pre-prophethood complete — TRIGGERS NOW |
+| 2 | #47 | M1 complete (Meccan period done) |
+| 3 | #82 | M2 complete (Early Medina done) |
+| 4 | #120 | M3 complete (Conquest done) |
+| 5 | #155 | M4 complete (Entire Seerah done) |
+
+**Blocked events:** 18 events pending Khaled's verification before
+content writing — see [`doc/RAWI_BLOCKED_EVENTS.md`](doc/RAWI_BLOCKED_EVENTS.md).
+
+---
+
 ## Project Stats
 
 | Metric | Count |
@@ -13,14 +46,15 @@
 | Dart files | 78 |
 | Dart lines | ~17,700 |
 | Asset files | 119 (52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + 1 video + others) |
-| Playable immersive events | 11 (2 branching + 9 linear with scene configs) |
-| Content-ready events | 14 (11 playable + 3 need scene configs) |
+| Playable immersive events | 14 (Events 1-14 — 2 branching + 12 linear with scene configs) |
+| Content-ready events | 14 (Events 1-14 — all playable) |
+| Total events in scope | 155 across 4 modules (M1:47, M2:35, M3:38, M4:35) |
 | Dhikr cards | 14 (Sahih Bukhari/Muslim sourced) |
 | Scroll entries | 14 |
 | Engagement features | 8 built (Fog, Proximity, Haptics, Secrets, Evolution, Reactions, Scroll, Living Map) |
-| Total events in data | 40 |
-| Era distribution | Jahiliyyah 2, Early Life 9, Mecca 11, Medina 14 |
-| Git commits | 70+ |
+| Total events in data | 40 (Events 1-14 fully built, 15-40 are shells awaiting content) |
+| Era distribution | Jahiliyyah 2, Early Life 13, Mecca 11, Medina 14 |
+| Git commits | 80+ |
 
 ---
 

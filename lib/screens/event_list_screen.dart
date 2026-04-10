@@ -933,9 +933,15 @@ class _EventListScreenState extends State<EventListScreen>
 
             // ── Timeline list ─────────────────────────────────────────
             Expanded(
-              child: ListView(
-                padding: EdgeInsetsDirectional.fromSTEB(12, 4, 16, bottomPad + 16),
-                children: _buildListItems(),
+              child: RefreshIndicator(
+                onRefresh: _refresh,
+                color: AppColors.gold,
+                backgroundColor: AppColors.bg,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsetsDirectional.fromSTEB(12, 4, 16, bottomPad + 16),
+                  children: _buildListItems(),
+                ),
               ),
             ),
           ],

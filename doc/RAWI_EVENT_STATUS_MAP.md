@@ -2,12 +2,14 @@
 
 > **Updated:** 2026-04-10
 > **Structure:** 155 events across 4 modules. M1 has 40 events in code.
-> **Playable:** 11 events with scene configs. **Content-ready:** 14 events total.
-> **Canonical sequence:** `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`
+> **Playable:** 14 events with scene configs (Events 1-14). **Content-ready:** 14 events total (Events 1-14).
+> **SINGLE SOURCE OF TRUTH:** `doc/RAWI_155_MASTER_LIST.md`
+> **Canonical sequence (first 15):** `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`
+> **Blocked events:** 18 pending Khaled's verification — see `doc/RAWI_BLOCKED_EVENTS.md`
 
 ---
 
-## Playable Events (11 — have scene configs)
+## Playable Events (14 — have scene configs)
 
 | # | ID | Title | Era | Type | DYK | SourceRef |
 |---|-----|-------|-----|------|-----|-----------|
@@ -19,17 +21,12 @@
 | 6 | j_m1_006 | Death of Aminah | Early Life | Linear | ✅ 2/4 | ✅ 4/4 |
 | 7 | j_m1_007 | Under Care of Abd al-Muttalib | Early Life | Linear | ✅ 2/4 | ✅ 4/4 |
 | 8 | j_1_2_3 | The Guardian: Abu Talib | Early Life | Linear | ✅ 2/4 | ✅ 4/4 |
+| 9 | j_1_2_4 | Hilf al-Fudul | Early Life | Linear | ✅ 4/4 | ✅ 4/4 |
+| 10 | j_m1_010 | Al-Amin — The Trustworthy | Early Life | Linear | ✅ 4/4 | ✅ 4/4 |
+| 11 | j_m1_011 | Marriage to Khadijah رضي الله عنها | Early Life | Linear | ✅ 4/4 | ✅ 4/4 |
 | 12 | j_1_1_3 | The Black Stone: A Wise Arbitration | Early Life | Branching | ✅ 4/4 | ✅ 4/4 |
 | 13 | j_1_2_6 | Solitude in Cave Hira | Early Life | Linear | ✅ 4/4 | ✅ 4/4 |
-| 14 | j_1_2_7 | The First Revelation | Early Life | Linear | ✅ 2/4 | ✅ 4/4 |
-
-## Content-Ready Events (3 — have data, need scene configs)
-
-| # | ID | Title | Era | DYK | SourceRef |
-|---|-----|-------|-----|-----|-----------|
-| 9 | j_1_2_4 | Hilf al-Fudul | Early Life | ✅ | ✅ |
-| 10 | j_m1_010 | Al-Amin | Early Life | ✅ | ✅ |
-| 11 | j_m1_011 | Marriage to Khadijah | Early Life | ✅ | ✅ |
+| 14 | j_1_2_7 | The First Revelation | Early Life | Linear + Witness Moment | ✅ 2/4 | ✅ 4/4 |
 
 ## Linear-Only Events (26 — need scene configs + content)
 
@@ -46,7 +43,9 @@
 - New events: `j_m1_NNN` format (e.g., `j_m1_005`, `j_m1_006`)
 - **NEVER overwrite an existing ID with different content** — add a new ID
 - Full ID renumbering deferred until all 47 M1 events are written
-- Canonical event sequence: `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`
+- **Canonical source of truth:** `doc/RAWI_155_MASTER_LIST.md`
+- First-15 sequence table: `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`
+- Blocked events tracker: `doc/RAWI_BLOCKED_EVENTS.md` (18 items pending Khaled verification)
 
 ---
 

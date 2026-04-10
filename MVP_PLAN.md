@@ -2,13 +2,13 @@
 # 3 Playable Events + Complete Gaming UX
 
 > Created: 2026-04-01
-> Updated: 2026-04-10 (63 sprints + post-audit complete)
+> Updated: 2026-04-10 (64 sprints + post-audit complete)
 > Goal: A demo-ready app that feels like a real game from first tap to last hotspot
-> **Status: ENGAGEMENT ARCHITECTURE LIVE** — 63 sprints across 10 days. R4–R16 testing rounds fixed 155+ items. 11 playable events. 14 events with full content. Hasanat system (14 dhikr cards). Engagement architecture (8 features). Living Map. Rawi's Scroll (14 entries). Rawi Evolution (5 stages).
+> **Status: ENGAGEMENT ARCHITECTURE LIVE — 155-event master list locked** (`doc/RAWI_155_MASTER_LIST.md`). 64 sprints across 10 days. R4–R16 testing rounds fixed 155+ items. 14 playable events. 14 events with full content. Hasanat system (14 dhikr cards). Engagement architecture (8 features). Living Map. Rawi's Scroll (14 entries). Rawi Evolution (5 stages).
 >
-> **Done:** 40/47 M1 events in data. 11 have full scene configs (Events 1-8, 12-14). 14 have full content (Events 1-14). DYK + sourceRef on all 14. Hasanat: 14 dhikr cards, cinematic screen, profile counter. Engagement: Fog of War, Proximity, Haptics, Secrets, Scene Evolution, Rawi Reactions, Scroll, Rawi Evolution, Living Map. R14-R16 device testing (22 fixes). Terminology rename. RTL support (Directionality wrapper).
-> **Next:** Scene configs for Events 9-11 (Hilf al-Fudul, Al-Amin, Khadijah). Content writing for Event 15 (First Believers). Then batch art + VO generation.
-> **Remaining:** Scene BG images (batch), ambient clips (batch), Jordanian VO (batch), badge artwork, Firebase analytics.
+> **Done:** 40/47 M1 events in data. 14 playable (Events 1-14 with scene configs). 14 have full content (Events 1-14). DYK + sourceRef on all 14. Hasanat: 14 dhikr cards, cinematic screen, profile counter. Engagement: Fog of War, Proximity, Haptics, Secrets, Scene Evolution, Rawi Reactions, Scroll, Rawi Evolution, Living Map. R14-R16 device testing (22 fixes). Terminology rename. RTL support (Directionality wrapper). **155-event master list locked** as single source of truth.
+> **Next:** Continue M1 — Events 15-47 content and scene configs, following `doc/RAWI_155_MASTER_LIST.md` (skip the 18 blocked events until Khaled verifies, see `doc/RAWI_BLOCKED_EVENTS.md`). Then batch art + VO generation.
+> **Remaining:** Scene BG images (batch), ambient clips (batch), Jordanian VO (batch), badge artwork, Firebase analytics, 18 events pending Khaled's verification before content writing (`doc/RAWI_BLOCKED_EVENTS.md`).
 > **Pre-Launch (required):** Firebase Crashlytics + Analytics (~4 sprints). See `doc/RAWI_ANALYTICS_ARCHITECTURE.md`.
 > **Post-Launch:** Young Rawi Mode (`doc/RAWI_YOUNG_RAWI_MODE.md`), Hasanat Layer 2 ("Dhikr Garden"), Rawi's Tent, Companion's Voice.
 >

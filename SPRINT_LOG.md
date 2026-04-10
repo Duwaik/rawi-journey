@@ -1326,3 +1326,31 @@ Applied content from Khaled's reviewed spec files:
 
 ### Quality
 - `flutter analyze` — 0 issues
+
+---
+
+## Sprint 64 — Master List Integration
+**Date:** 2026-04-10
+**Status:** COMPLETE
+
+### Summary
+Imported `doc/RAWI_155_MASTER_LIST.md` as the canonical 155-event source of truth and aligned all project documentation to it.
+
+### Done
+
+| Item | Details |
+|------|---------|
+| Master list locked | `doc/RAWI_155_MASTER_LIST.md` is now THE SINGLE SOURCE OF TRUTH for all 155 events across M1 (47), M2 (35), M3 (38), M4 (35). |
+| Blocked events tracker | Created `doc/RAWI_BLOCKED_EVENTS.md` listing the 18 events pending Khaled's verification (distribution: M1:8, M2:4, M3:3, M4:3). |
+| Docs aligned | Updated `ARCHITECTURE.md`, `SPRINTS.md`, `MVP_PLAN.md`, `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`, `doc/RAWI_EVENT_STATUS_MAP.md` to reference the master list and reflect new status counts. |
+| Status counts | 14 playable events (1-14, including Event 14 First Revelation with scene config + Witness Moment), 122 verified ready for content writing, 18 blocked pending verification. |
+| Honorifics locked | Titles in master list use proper honorifics: Event 11 "الزواج من خديجة رضي الله عنها", Event 23 "إسلام حمزة رضي الله عنه", Event 24 "إسلام عمر رضي الله عنه", Event 29 "وفاة خديجة رضي الله عنها", Event 66 "استشهاد حمزة رضي الله عنه", Event 81 "استشهاد سعد بن معاذ رضي الله عنه", Event 151 "حزن عمر رضي الله عنه", Event 152 "خطبة أبي بكر رضي الله عنه". |
+| Chapter Reviews confirmed | 5 review breakpoints locked: after Events #14, #47, #82, #120, #155. Chapter Review #1 TRIGGERS NOW (Event 14 complete). |
+
+### Impact
+- No code changes — documentation alignment only.
+- Future content work (Events 15-47) must reference the master list, not the old sequence doc.
+- Blocked events are skipped in the content pipeline until Khaled answers the verification questions in `RAWI_BLOCKED_EVENTS.md`.
+
+### Quality
+- No `.dart` or `.yaml` files modified — doc-only sprint.

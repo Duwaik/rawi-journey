@@ -87,6 +87,10 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   late final Animation<int> _xpEarnedCount;
   late final Animation<int> _xpTotalCount;
 
+  // ── XP star bounce (R18-02) ─────────────────────────────────────────
+  late final AnimationController _xpStarCtrl;
+  late final Animation<double> _xpStarScale;
+
   // ── Dhikr celebration shimmer ────────────────────────────────────────
   late final AnimationController _dhikrShimmerCtrl;
   late final Animation<double> _dhikrShimmer;
@@ -181,6 +185,18 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       }
     });
 
+    // R18-02: Star bounce — 0 → 1.3 → 1.0 over 400ms with elastic feel.
+    _xpStarCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _xpStarScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.3), weight: 60),
+      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 40),
+    ]).animate(
+      CurvedAnimation(parent: _xpStarCtrl, curve: Curves.easeOut),
+    );
+
     _dhikrShimmerCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -225,6 +241,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   void _startXpCountUp() {
     if (!mounted) return;
     _xpFade.forward();
+    _xpStarCtrl.forward();
     if (widget.xpEarned > 0) {
       _xpCountCtrl.forward();
     } else {
@@ -297,6 +314,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     _scrollRevealCtrl.dispose();
     _scrollShimmerCtrl.dispose();
     _xpCountCtrl.dispose();
+    _xpStarCtrl.dispose();
     _dhikrShimmerCtrl.dispose();
     super.dispose();
   }
@@ -327,19 +345,42 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
             child: SafeArea(
               child: ListView(
                 padding: EdgeInsets.fromLTRB(24, 24, 24, bottomPad + 24),
-                children: [
-                  if (_showChapter) _buildChapterSection(),
-                  if (_hasBadges) _buildBadgeSection(),
-                  _buildScrollSection(),
-                  _buildXpSection(),
-                  if (_hasDhikr) _buildDhikrSection(),
-                  _buildContinueSection(),
-                ],
+                children: _buildSectionChildren(),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  // ── R18-01: Section assembly with dividers between blocks ───────────
+  List<Widget> _buildSectionChildren() {
+    final blocks = <Widget>[];
+    if (_showChapter) blocks.add(_buildChapterSection());
+    if (_hasBadges) blocks.add(_buildBadgeSection());
+    blocks.add(_buildScrollSection());
+    blocks.add(_buildXpSection());
+    if (_hasDhikr) blocks.add(_buildDhikrSection());
+
+    // Weave 24px spacers + gold divider lines between each section.
+    final children = <Widget>[];
+    for (var i = 0; i < blocks.length; i++) {
+      if (i > 0) {
+        children.add(const SizedBox(height: 24));
+        children.add(_sectionDivider());
+        children.add(const SizedBox(height: 24));
+      }
+      children.add(blocks[i]);
+    }
+    children.add(_buildContinueSection());
+    return children;
+  }
+
+  Widget _sectionDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.gold.withAlpha(75),
     );
   }
 
@@ -382,9 +423,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                     height: 1.6,
                   ),
           ),
-          const SizedBox(height: 20),
-          _goldSeparator(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 4),
         ],
       ),
     );
@@ -449,9 +488,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                 ],
               ),
             ),
-          const SizedBox(height: 12),
-          _goldSeparator(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 4),
         ],
       ),
     );
@@ -476,27 +513,46 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
             ),
           ),
           const SizedBox(height: 14),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
-              color: _parchment,
-              image: const DecorationImage(
-                image: AssetImage('assets/textures/parchment_light.jpg'),
-                fit: BoxFit.cover,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: AppColors.gold.withAlpha(80),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.gold.withAlpha(18),
-                  blurRadius: 14,
+          AnimatedBuilder(
+            animation: _scrollShimmerCtrl,
+            builder: (context, child) {
+              // R18-04: fade a stronger gold glow over the card during
+              // the 200ms shimmer window when the line completes.
+              final shimmerV = _scrollShimmerCtrl.value;
+              final glowAlpha = (18 + (120 * shimmerV)).toInt().clamp(0, 255);
+              final glowSpread = 2.0 * shimmerV;
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: _parchment,
+                  image: DecorationImage(
+                    image: const AssetImage(
+                        'assets/textures/parchment_light.jpg'),
+                    fit: BoxFit.cover,
+                    // R18-03: subtle dark overlay to improve text
+                    // contrast on the crumpled parchment texture (~8%).
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withAlpha(20),
+                      BlendMode.darken,
+                    ),
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: AppColors.gold.withAlpha(80),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.gold.withAlpha(glowAlpha),
+                      blurRadius: 14 + (10 * shimmerV),
+                      spreadRadius: glowSpread,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+                child: child,
+              );
+            },
             child: entry == null
                 ? Text(
                     _isAr
@@ -550,24 +606,29 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                                     ),
                             ),
                           ),
-                          // Quill pen placeholder — small gold dot that
-                          // rides the leading edge of the ink. Fades out
-                          // once the reveal completes.
-                          if (reveal > 0 && reveal < 1)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
-                              child: Container(
-                                width: 7,
-                                height: 7,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.gold,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.gold.withAlpha(160),
-                                      blurRadius: 6,
-                                    ),
-                                  ],
+                          // R18-04: Quill pen — small gold dot that
+                          // rides the leading edge of the ink reveal,
+                          // then fades out (200ms) as the shimmer plays.
+                          if (reveal > 0 && !_scrollShimmerDone)
+                            Opacity(
+                              opacity: reveal < 1
+                                  ? 1.0
+                                  : (1.0 - shimmerV).clamp(0.0, 1.0),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Container(
+                                  width: 4,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.gold,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.gold.withAlpha(180),
+                                        blurRadius: 6,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -576,61 +637,97 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                     },
                   ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 4),
         ],
       ),
     );
   }
 
-  // ── Section 4: XP compact line ───────────────────────────────────────
+  // ── Section 4: XP — prominent center block (R18-02) ─────────────────
   Widget _buildXpSection() {
     return FadeTransition(
       opacity: _xpFade,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: AnimatedBuilder(
-          animation: _xpCountCtrl,
-          builder: (_, _) {
-            final earned = widget.xpEarned == 0 ? 0 : _xpEarnedCount.value;
-            final total = widget.xpEarned == 0
-                ? widget.previousXp
-                : _xpTotalCount.value;
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.star_rounded,
-                    color: AppColors.gold, size: 24),
-                const SizedBox(width: 8),
-                Text(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Star with bounce + gold glow
+            AnimatedBuilder(
+              animation: _xpStarCtrl,
+              builder: (_, _) {
+                return Transform.scale(
+                  scale: _xpStarScale.value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.gold.withAlpha(140),
+                          blurRadius: 4,
+                          spreadRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.gold,
+                      size: 28,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            // Earned XP — large count-up
+            AnimatedBuilder(
+              animation: _xpCountCtrl,
+              builder: (_, _) {
+                final earned = widget.xpEarned == 0 ? 0 : _xpEarnedCount.value;
+                return Text(
                   '+$earned XP',
                   style: GoogleFonts.cinzelDecorative(
                     color: AppColors.gold,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  _isAr ? 'المجموع: ' : 'Total: ',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.gold.withAlpha(170),
-                    fontSize: 14,
-                  ),
-                ),
-                const Icon(Icons.star_rounded,
-                    color: AppColors.gold, size: 16),
-                const SizedBox(width: 2),
-                Text(
-                  '$total',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.gold,
-                    fontSize: 16,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
-                ),
-              ],
-            );
-          },
+                );
+              },
+            ),
+            const SizedBox(height: 6),
+            // Total line
+            AnimatedBuilder(
+              animation: _xpCountCtrl,
+              builder: (_, _) {
+                final total = widget.xpEarned == 0
+                    ? widget.previousXp
+                    : _xpTotalCount.value;
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isAr ? 'المجموع: ' : 'Total: ',
+                      style: GoogleFonts.nunito(
+                        color: AppColors.gold.withAlpha(190),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Icon(Icons.star_rounded,
+                        color: AppColors.gold, size: 16),
+                    const SizedBox(width: 2),
+                    Text(
+                      '$total',
+                      style: GoogleFonts.nunito(
+                        color: AppColors.gold,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -642,7 +739,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     return FadeTransition(
       opacity: _dhikrFade,
       child: Padding(
-        padding: const EdgeInsets.only(top: 20),
+        padding: EdgeInsets.zero,
         child: Column(
           children: [
             Text(
@@ -664,9 +761,16 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
                     color: _parchment,
-                    image: const DecorationImage(
-                      image: AssetImage('assets/textures/parchment_light.jpg'),
+                    image: DecorationImage(
+                      image: const AssetImage(
+                          'assets/textures/parchment_light.jpg'),
                       fit: BoxFit.cover,
+                      // R18-03: subtle dark overlay on parchment for
+                      // better text contrast.
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withAlpha(20),
+                        BlendMode.darken,
+                      ),
                     ),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
@@ -908,20 +1012,4 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     );
   }
 
-  // ── Shared visual bits ───────────────────────────────────────────────
-  Widget _goldSeparator() {
-    return Container(
-      height: 1,
-      width: 140,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.gold.withAlpha(0),
-            AppColors.gold.withAlpha(180),
-            AppColors.gold.withAlpha(0),
-          ],
-        ),
-      ),
-    );
-  }
 }

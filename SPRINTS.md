@@ -1,7 +1,7 @@
 # Rawi — Sprint Index
 
-> 63 sprints + post-audit across 10 days (April 1–10, 2026)
-> All sprints complete. R4–R16 testing rounds fixed (155+ items). 14 events with content (11 playable). Hasanat system live. Engagement architecture (8 features). Living Map. 155-event structure locked.
+> 64 sprints + post-audit across 10 days (April 1–10, 2026)
+> All sprints complete. R4–R16 testing rounds fixed (155+ items). 14 events with content (all playable). Hasanat system live. Engagement architecture (8 features). Living Map. **155-event master list locked** (`doc/RAWI_155_MASTER_LIST.md`).
 
 ---
 
@@ -136,8 +136,8 @@
 
 ---
 
-## Day 10 — April 10, 2026 (Sprints 59–63)
-**Focus:** Hasanat system, Event 14, R16 testing, engagement architecture, Living Map
+## Day 10 — April 10, 2026 (Sprints 59–64)
+**Focus:** Hasanat system, Event 14, R16 testing, engagement architecture, Living Map, Master List integration
 
 | # | Sprint | Key Deliverable |
 |---|--------|----------------|
@@ -146,6 +146,7 @@
 | 61 | R16 Device Testing | 7 fixes: RTL support (Directionality + EdgeInsetsDirectional across 9 files), unskippable videos, dhikr card UI, dhikr counter, back progress re-fix (PrefsService.reload()), settings redesign (5 cinematic cards), instant language switch (RawiApp.rebuild()). |
 | 62 | Engagement Architecture | 8 fully built features: Fog of War (CustomPainter), Hotspot Proximity (3-zone), Haptic Feedback (9 moments), Hidden Scene Elements, Scene Evolution, Rawi Reactions (bounce), Rawi's Scroll (14 entries + viewer), Rawi Evolution (5 stages). Phase 2 architecture: Tent, Voice, Little Rawi. |
 | 63 | Living Map | InteractiveViewer with zoom/pan. 17 locations mapped to 40 events. Route lines, 4 marker states, bottom sheet, map icon in header. Promoted from Phase 2 to Phase 1. |
+| 64 | **Master List Integration** | Imported `RAWI_155_MASTER_LIST.md` as canonical 155-event source of truth. Created `RAWI_BLOCKED_EVENTS.md` tracker (18 items pending Khaled verification). Updated all project docs to align with master list. Confirmed Chapter Review #1 triggers after Event 14. |
 
 ---
 
@@ -153,8 +154,9 @@
 
 | # | Sprint | Scope |
 |---|--------|-------|
-| 64+ | Content writing | Events 9-11 scene configs (Hilf al-Fudul, Al-Amin, Khadijah). Event 15 (First Believers). |
-| — | Pending Khaled | Remaining ambient clips, Jordanian VO regen, badge painterly artwork, scene BG images |
+| 64 | Master List Integration | Imported `RAWI_155_MASTER_LIST.md` as canonical source. Created `RAWI_BLOCKED_EVENTS.md`. Docs aligned. Chapter Review #1 trigger confirmed after Event 14. |
+| 65+ | Events 15-47 (M1 completion) | Write content and scene configs for Events 15-47 following `doc/RAWI_155_MASTER_LIST.md` as single source of truth. Skip the 18 blocked events (see `doc/RAWI_BLOCKED_EVENTS.md`) until Khaled verifies. |
+| — | Pending Khaled | Remaining ambient clips, Jordanian VO regen, badge painterly artwork, scene BG images, 18 blocked events verification |
 | — | Post-Launch | Young Rawi Mode (age-adaptive content — see `doc/RAWI_YOUNG_RAWI_MODE.md`), Hasanat Layer 2 ("Dhikr Garden"), Rawi's Tent, Companion's Voice |
 
 ---
@@ -163,13 +165,14 @@
 
 | Metric | Value |
 |--------|-------|
-| Total sprints | 63 + post-audit |
+| Total sprints | 64 + post-audit |
 | Total days | 10 |
 | Bugs fixed | 155+ across 16 testing rounds + audit |
 | Dart files | 78 |
 | Dart lines | ~17,700 |
-| Total events | 40 in m1_data (155-event structure, 47 for M1) |
-| Playable events | 11 (Events 1-8, 12 Black Stone, 13 Cave Hira, 14 First Revelation) |
+| Total events in scope | 155 across 4 modules (M1:47, M2:35, M3:38, M4:35) |
+| Total events in code | 40 in m1_data (155-event structure, 47 for M1) |
+| Playable events | 14 (Events 1-14) |
 | Events with full content | 14 (Events 1-14) |
 | Dhikr cards | 14 (Sahih Bukhari/Muslim sourced) |
 | Scroll entries | 14 |

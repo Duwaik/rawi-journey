@@ -390,6 +390,11 @@ class _LivingMapScreenState extends State<LivingMapScreen>
           image: DecorationImage(
             image: AssetImage('assets/textures/parchment_dark.jpg'),
             fit: BoxFit.cover,
+            alignment: Alignment.center,
+            colorFilter: ColorFilter.mode(
+              Color(0x66000000),
+              BlendMode.darken,
+            ),
           ),
         ),
         child: Column(
@@ -434,7 +439,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
                         ),
                       ),
                       Text(
-                        isAr ? 'الخريطة الحيّة' : 'The Living Map',
+                        isAr ? 'The Living Map' : 'الخريطة الحيّة',
                         style: GoogleFonts.lora(
                           color: AppColors.textMuted.withAlpha(120),
                           fontSize: 11,
@@ -468,17 +473,6 @@ class _LivingMapScreenState extends State<LivingMapScreen>
 
                   return Stack(
                     children: [
-                      // Subtle darkened overlay on top of the parchment
-                      // texture so route lines and markers still glow.
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF04060D).withAlpha(140),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          margin: const EdgeInsets.all(8),
-                        ),
-                      ),
                       // Coastline outline (behind routes and markers)
                       Positioned(
                         left: offsetX,

@@ -1,8 +1,13 @@
 # RawiJourney — Updated Event Sequence (155 Events)
 
-> **IMPORTANT:** The old 36-event structure is being replaced by
-> 155 events. This document is the single source of truth for
-> event ordering. Do NOT reference the old globalOrder values.
+> **SINGLE SOURCE OF TRUTH:** As of 2026-04-10, the canonical
+> 155-event sequence lives in [`RAWI_155_MASTER_LIST.md`](./RAWI_155_MASTER_LIST.md).
+> This document retains the First 15 Events table for current
+> content work, but all ordering, titles, and honorifics for
+> events 16+ must be read from the master list.
+>
+> **IMPORTANT:** The old 36-event structure is replaced by
+> 155 events. Do NOT reference the old globalOrder values.
 
 ---
 
@@ -16,8 +21,23 @@
 | M4 — The Final Chapter | 35 | 121–155 |
 
 Current events 23–36 in m1_data.dart (Medina onward) will
-eventually move to M2–M4. Do NOT restructure yet. Just follow
-the sequence below for new events.
+eventually move to M2–M4. Do NOT restructure yet. For events
+16+ follow the canonical ordering in `RAWI_155_MASTER_LIST.md`.
+
+### Chapter Review Breakpoints (5 reviews)
+
+| Review | Trigger | Meaning |
+|--------|---------|---------|
+| 1 | After Event #14 | Pre-prophethood complete — TRIGGERS NOW |
+| 2 | After Event #47 | M1 complete (Meccan period done) |
+| 3 | After Event #82 | M2 complete (Early Medina done) |
+| 4 | After Event #120 | M3 complete (Conquest done) |
+| 5 | After Event #155 | M4 complete (Entire Seerah done) |
+
+### Blocked Events
+
+18 events are pending Khaled's verification before content
+writing. See [`RAWI_BLOCKED_EVENTS.md`](./RAWI_BLOCKED_EVENTS.md).
 
 ---
 
@@ -35,11 +55,16 @@ the sequence below for new events.
 | 8 | The Guardian: Abu Talib | في كنف أبي طالب | Exists as j_1_2_3 (old position 5) |
 | 9 | Hilf al-Fudul — The Pact of the Virtuous | حلف الفضول | ✅ Content ready | j_1_2_4 (needs scene config) |
 | 10 | Al-Amin — The Trustworthy | الأمين | ✅ Content ready | j_m1_010 (needs scene config) |
-| 11 | Marriage to Khadijah | الزواج من خديجة رضي الله عنها | ✅ Content ready | j_m1_011 (needs scene config) |
-| 12 | The Black Stone: A Wise Arbitration | الحجر الأسود: حُكم الأمين | ✅ Playable (rewritten Sprint 55) | j_1_1_3 |
-| 13 | Solitude in Cave Hira | الخلوة في غار حراء | ✅ Playable | j_1_2_6 |
-| 14 | The First Revelation | نزول الوحي الأول | ✅ Playable | j_1_2_7 |
+| 11 | Marriage to Khadijah رضي الله عنها | الزواج من خديجة رضي الله عنها | ✅ Content ready | j_m1_011 (needs scene config) |
+| 12 | The Black Stone: A Wise Arbitration | الحجر الأسود: حُكم الأمين | 🟢 Playable (rewritten Sprint 55) | j_1_1_3 |
+| 13 | Solitude in Cave Hira | الخلوة في غار حراء | 🟢 Playable | j_1_2_6 |
+| 14 | The First Revelation | نزول الوحي الأول | 🟢 Playable (with Witness Moment) | j_1_2_7 |
 | 15 | The First Believers | أوائل المؤمنين | Exists as j_1_2_8 (old position 11) |
+
+> **For events 16+** see `RAWI_155_MASTER_LIST.md` — honorifics
+> (e.g., Event 23 "إسلام حمزة رضي الله عنه", Event 24 "إسلام عمر
+> رضي الله عنه", Event 29 "وفاة خديجة رضي الله عنها") are locked
+> in the master list.
 
 ---
 

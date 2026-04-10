@@ -568,6 +568,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _resetIdleTimer();
   }
 
+  /// R18-06: Fire-and-forget save of current progress (union of discovered + pending).
+  /// Called immediately on every discovery state change so progress persists
+  /// the moment it happens, eliminating exit-time race conditions.
+  void _saveProgressNow() {
+    if (_alreadyCompleted || _isCompleting) return;
+    final allFound = _discovered.union(_pendingDiscovery);
+    if (allFound.isEmpty) return;
+    PrefsService.saveHotspotProgress(widget.event.id, allFound);
+  }
+
   /// Header back button — saves progress and exits with audio cleanup.
   /// Mirrors the PopScope logic so there's only one exit path.
   Future<void> _exitScene() async {
@@ -770,6 +780,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _pendingDiscovery.add(hotspot.id);
       _isWalking = false;
     });
+    // R18-06: Save on discovery (immediate persistence — no race conditions)
+    _saveProgressNow();
     Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) {
         setState(() => _activeHotspot = hotspot);
@@ -1017,6 +1029,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       }
       _activeHotspot = null;
     });
+    // R18-06: Save on discovery (immediate persistence — no race conditions)
+    if (wasNewDiscovery) _saveProgressNow();
 
     // ── Feature 6: Rawi bounce after discovery ──────────────────────────
     if (wasNewDiscovery) {

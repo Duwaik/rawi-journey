@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find d:/Rawi_Journey/lib -name \"*.dart\" -exec cat {} +)"
+      "Bash(find d:/Rawi_Journey/lib -name \"*.dart\" -exec cat {} +)",
+      "Bash(grep -n \"Ibrahim \\\\\\\\\\\\\\\\uFDFA\\\\|Ismail \\\\\\\\\\\\\\\\uFDFA\\\\|Isa \\\\\\\\\\\\\\\\uFDFA\\\\|Musa \\\\\\\\\\\\\\\\uFDFA\\\\|Nuh \\\\\\\\\\\\\\\\uFDFA\" lib/data/*.dart lib/widgets/cinematic/*.dart)"
     ]
   }
 }
