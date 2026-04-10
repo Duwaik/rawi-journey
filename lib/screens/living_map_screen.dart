@@ -281,7 +281,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
                         ),
                       ),
                       Text(
-                        isAr ? 'The Living Map' : 'الخريطة الحيّة',
+                        isAr ? 'الخريطة الحيّة' : 'The Living Map',
                         style: GoogleFonts.lora(
                           color: AppColors.textMuted.withAlpha(120),
                           fontSize: 11,
