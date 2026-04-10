@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../main.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'rawi_call_screen.dart';
@@ -61,6 +62,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     await PrefsService.setUserGender(_selectedGender);
     await PrefsService.setLanguage(_selectedLang);
     await PrefsService.setOnboardingComplete();
+    if (mounted) RawiApp.rebuild(context);
 
     // R7-01: ambient_intro.mp3 carries through to events list — DO NOT fade out.
     // The events list is the "home" screen and uses the same ambient.

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../character_art.dart';
 import '../data/m1_data.dart';
+import '../main.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
@@ -58,6 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final next = _lang == 'en' ? 'ar' : 'en';
     setState(() => _lang = next);
     PrefsService.setLanguage(next);
+    RawiApp.rebuild(context);
   }
 
   void _cycleTextSize() {
@@ -68,6 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ? 0.85
             : 1.2;
     PrefsService.setTextScale(next);
+    RawiApp.rebuild(context);
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
         pageBuilder: (c, a, s) => const EventListScreen(),

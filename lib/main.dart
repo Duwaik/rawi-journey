@@ -36,11 +36,18 @@ void main() async {
 class RawiApp extends StatefulWidget {
   const RawiApp({super.key});
 
+  /// Global rebuild trigger — call after language or text scale change.
+  static void rebuild(BuildContext context) {
+    context.findAncestorStateOfType<_RawiAppState>()?.rebuild();
+  }
+
   @override
   State<RawiApp> createState() => _RawiAppState();
 }
 
 class _RawiAppState extends State<RawiApp> with WidgetsBindingObserver {
+  void rebuild() => setState(() {});
+
   @override
   void initState() {
     super.initState();

@@ -121,9 +121,6 @@ class _EventListScreenState extends State<EventListScreen>
 
   bool get _isAr => PrefsService.isAr;
 
-  int get _completedCount =>
-      _events.where((e) => PrefsService.isEventCompleted(e.globalOrder)).length;
-
   /// Returns video intro path for events with cinematic videos.
   /// Only on first play — replays use regular cinematic transition.
   String? _getVideoIntro(String eventId, int globalOrder) {
@@ -770,9 +767,6 @@ class _EventListScreenState extends State<EventListScreen>
     final isAr = _isAr;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
-    final done = _completedCount;
-    final total = _events.length;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -834,21 +828,16 @@ class _EventListScreenState extends State<EventListScreen>
                     ],
                   ),
                   const Spacer(),
-                  _HeaderBadge(label: '$done/$total'),
-                  const SizedBox(width: 8),
                   _HeaderBadge(
                     label: '${PrefsService.xp}',
                     icon: Icons.star_rounded,
                   ),
                   const SizedBox(width: 8),
-                  if (PrefsService.dhikrCompletedCount > 0)
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 8),
-                      child: _HeaderBadge(
-                        label: '${PrefsService.dhikrCompletedCount}',
-                        emoji: '\uD83D\uDCFF',
-                      ),
-                    ),
+                  _HeaderBadge(
+                    label: '${PrefsService.dhikrCompletedCount}',
+                    emoji: '\uD83D\uDCFF',
+                  ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () async {
                       // R7-01: ambient carries into Settings — it's still "home"

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../character_art.dart';
+import '../main.dart';
 import '../data/scene_configs.dart';
 import '../models/journey_event.dart';
 import '../models/scene_config.dart';
@@ -1222,6 +1223,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     onTap: () {
                       setState(() => _isAr = !_isAr);
                       PrefsService.setLanguage(_isAr ? 'ar' : 'en');
+                      RawiApp.rebuild(context);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

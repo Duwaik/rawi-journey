@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../main.dart';
 import '../services/prefs_service.dart';
 
 /// Semi-transparent in-game settings overlay.
@@ -72,6 +73,7 @@ class _SettingsOverlayState extends State<SettingsOverlay>
     final next = _lang == 'en' ? 'ar' : 'en';
     setState(() => _lang = next);
     PrefsService.setLanguage(next);
+    RawiApp.rebuild(context);
   }
 
   @override
