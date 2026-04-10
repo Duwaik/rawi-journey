@@ -1,12 +1,13 @@
 # RawiJourney — Event Status Map (Post-155 Restructure)
 
-> **Updated:** 2026-04-08
+> **Updated:** 2026-04-10
 > **Structure:** 155 events across 4 modules. M1 has 40 events in code.
+> **Playable:** 11 events with scene configs. **Content-ready:** 14 events total.
 > **Canonical sequence:** `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`
 
 ---
 
-## Playable Events (9 — have scene configs)
+## Playable Events (11 — have scene configs)
 
 | # | ID | Title | Era | Type | DYK | SourceRef |
 |---|-----|-------|-----|------|-----|-----------|
@@ -19,6 +20,8 @@
 | 7 | j_m1_007 | Under Care of Abd al-Muttalib | Early Life | Linear | ✅ 2/4 | ✅ 4/4 |
 | 8 | j_1_2_3 | The Guardian: Abu Talib | Early Life | Linear | ✅ 2/4 | ✅ 4/4 |
 | 12 | j_1_1_3 | The Black Stone: A Wise Arbitration | Early Life | Branching | ✅ 4/4 | ✅ 4/4 |
+| 13 | j_1_2_6 | Solitude in Cave Hira | Early Life | Linear | ✅ 4/4 | ✅ 4/4 |
+| 14 | j_1_2_7 | The First Revelation | Early Life | Linear | ✅ 2/4 | ✅ 4/4 |
 
 ## Content-Ready Events (3 — have data, need scene configs)
 
@@ -28,12 +31,10 @@
 | 10 | j_m1_010 | Al-Amin | Early Life | ✅ | ✅ |
 | 11 | j_m1_011 | Marriage to Khadijah | Early Life | ✅ | ✅ |
 
-## Linear-Only Events (28 — need scene configs + content)
+## Linear-Only Events (26 — need scene configs + content)
 
 | # | ID | Title | Era |
 |---|-----|-------|-----|
-| 13 | j_1_2_6 | Solitude in Cave Hira | Early Life |
-| 14 | j_1_2_7 | The First Revelation | Early Life |
 | 15 | j_1_2_8 | The First Believers | Early Life |
 | 16-40 | Various | Mecca + Medina events | Mecca/Medina |
 

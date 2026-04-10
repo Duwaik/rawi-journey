@@ -10,15 +10,17 @@
 
 | Metric | Count |
 |--------|-------|
-| Dart files | 46 |
-| Dart lines | ~13,500 |
+| Dart files | 78 |
+| Dart lines | ~17,700 |
 | Asset files | 119 (52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + 1 video + others) |
-| Playable immersive events | 10 (2 branching + 8 linear with scene configs) |
-| Content-ready events | 13 (10 playable + 3 need scene configs) |
-| Dhikr cards | 13 (Sahih Bukhari/Muslim sourced, 1 per event) |
+| Playable immersive events | 11 (2 branching + 9 linear with scene configs) |
+| Content-ready events | 14 (11 playable + 3 need scene configs) |
+| Dhikr cards | 14 (Sahih Bukhari/Muslim sourced) |
+| Scroll entries | 14 |
+| Engagement features | 8 built (Fog, Proximity, Haptics, Secrets, Evolution, Reactions, Scroll, Living Map) |
 | Total events in data | 40 |
 | Era distribution | Jahiliyyah 2, Early Life 9, Mecca 11, Medina 14 |
-| Git commits | 7+ |
+| Git commits | 70+ |
 
 ---
 
@@ -54,16 +56,21 @@ d:\Rawi_Journey\
 │   │   ├── scene_config.dart                  # SceneConfig, SceneHotspot, ParticleType
 │   │   │                                        + pathWaypointsAlt, deeperContent, ambientPath
 │   │   ├── branch_point.dart                  # BranchPoint, BranchOption (The Crossroads)
-│   │   └── badge_definition.dart              # BadgeDefinition, BadgeTrigger — rebalanced 7 badges
+│   │   ├── badge_definition.dart              # BadgeDefinition, BadgeTrigger — rebalanced 7 badges
+│   │   ├── dhikr_card.dart                    # DhikrCard model (arabic, transliteration, source)
+│   │   ├── scroll_entry.dart                  # ScrollEntry model for Rawi's Scroll
+│   │   ├── scene_secret.dart                  # SceneSecret model for hidden elements
+│   │   └── rawi_stage.dart                    # RawiStage enum — 5 evolution stages
 │   │                                            (Seeker@5, Witness@11, Keeper@15, Steadfast@22,
 │   │                                             Scholar@30, Guardian@36, Rawi@36)
 │   │
 │   ├── data\
 │   │   ├── m1_data.dart                       # 40 events (Milestone 1) with branching
 │   │   │                                        data for Events 1-2 + 12 (Black Stone)
-│   │   ├── scene_configs.dart                 # 12 scene configs (E1-8 + Black Stone + 3 placeholders)
-│   │   │                                        with alt paths, hotspot positions, sky gradients, particles
-│   │   └── companion_dialogue.dart            # Speech bubble dialogue bank (7 triggers,
+│   │   ├── scene_configs.dart                 # 14 scene configs (E1-8 + Black Stone + E13-14
+│   │   │                                        + placeholders) with alt paths, hotspot positions,
+│   │   │                                        sky gradients, particles
+│   │   └── rawi_dialogue.dart                 # Speech bubble dialogue bank (7 triggers,
 │   │                                            EN+AR, ~25 lines each)
 │   │
 │   ├── services\
@@ -80,35 +87,41 @@ d:\Rawi_Journey\
 │   │   │                                        → cinematic chapter preview
 │   │   ├── event_list_screen.dart             # Timeline journey view — chapter headers,
 │   │   │                                        gold timeline thread, progress dots, Play CTA
-│   │   ├── cinematic_transition_screen.dart   # Fade-to-black + title card + particles +
+│   │   ├── event_intro_screen.dart            # Fade-to-black + title card + particles +
 │   │   │                                        sky gradient + ambient fade-in
 │   │   ├── video_intro_screen.dart             # Full-screen cinematic video intro (video_player)
-│   │   ├── immersive_event_screen.dart        # THE CORE — ~1900 lines:
+│   │   ├── immersive_event_screen.dart        # THE CORE:
 │   │   │   ├── Joystick-driven exploration
 │   │   │   ├── Branching: Gate → Crossroads → Paths → Gathering → Verdict
 │   │   │   ├── Linear: sequential hotspots → Reflection
-│   │   │   ├── Discovery panels with VO + Go Deeper
-│   │   │   ├── Companion speech bubbles (idle, nudge, revisit)
+│   │   │   ├── Hotspot panels with VO + Go Deeper
+│   │   │   ├── Rawi speech bubbles (idle, nudge, revisit)
+│   │   │   ├── Fog of War overlay + proximity detection
 │   │   │   ├── Settings overlay (pause)
 │   │   │   ├── Tutorial overlay (first event)
 │   │   │   ├── PopScope: save progress on back, block during Verdict
 │   │   │   └── Completion: await writes → manual Continue → pop(true)
-│   │   ├── journey_event_screen.dart          # Flat narrative fallback (Events 4-36)
-│   │   ├── journey_quiz_screen.dart           # Standalone quiz (future use)
-│   │   ├── settings_screen.dart               # Full settings page (from event list)
+│   │   ├── legacy_event_screen.dart           # Flat narrative fallback (legacy events)
+│   │   ├── dhikr_screen.dart                  # Full-screen cinematic dhikr after XP
+│   │   ├── scroll_writing_screen.dart         # Rawi's Scroll — writing animation
+│   │   ├── scroll_viewer_screen.dart          # Rawi's Scroll — 14-entry viewer
+│   │   ├── living_map_screen.dart             # Interactive map — zoom/pan, 17 locations,
+│   │   │                                        route lines, 4 marker states, bottom sheet
+│   │   ├── settings_screen.dart               # Full settings page (5 cinematic cards)
 │   │   ├── era_complete_screen.dart           # Era celebration (used by flat events)
 │   │   └── xp_reward_animation.dart            # XP count-up + star pop + particle burst
 │   │
 │   └── widgets\
 │       ├── settings_overlay.dart              # In-game pause overlay
 │       ├── tutorial_overlay.dart              # First-event tutorial (joystick + hotspots)
+│       ├── fog_overlay.dart                   # Fog of War — CustomPainter revealing explored areas
 │       └── cinematic\
-│           ├── branch_decision_card.dart      # The Crossroads — gold-pulsing choice card
-│           ├── discovery_panel.dart           # Hotspot fragment card + image + Go Deeper + 
+│           ├── crossroads_card.dart           # The Crossroads — gold-pulsing choice card
+│           ├── hotspot_panel.dart             # Hotspot fragment card + image + Go Deeper + 
 │           │                                    VO replay button
 │           ├── go_deeper_section.dart         # Collapsible scholarly content section
-│           ├── companion_figure.dart          # Rawi/Rawiah avatar (gender-based, pose infra)
-│           ├── companion_speech_bubble.dart   # Gold pill above Rawi/Rawiah
+│           ├── rawi_figure.dart               # Rawi/Rawiah avatar (gender-based, stage-aware)
+│           ├── rawi_speech_bubble.dart        # Gold pill above Rawi/Rawiah
 │           ├── scene_hotspot_marker.dart      # Diamond marker: active/locked/discovered +
 │           │                                    dark backing for locked
 │           ├── parallax_scene.dart            # Parallax layer viewer
@@ -122,9 +135,10 @@ d:\Rawi_Journey\
 │           ├── grain_overlay.dart             # Film grain noise
 │           ├── fly_transition.dart            # Zoom+fade transition
 │           ├── discovery_progress.dart        # "Explore · X/4" progress dots
-│           └── scroll_hint_wrapper.dart      # Scroll hint indicators (discovery, Verdict, Reflection)
+│           └── scroll_hint_wrapper.dart      # Scroll hint indicators
 │
-│   └── rawi_dialog.dart                       # Reusable gold/navy dialog (replaces AlertDialog)
+│   ├── rawi_dialog.dart                       # Reusable gold/navy dialog (replaces AlertDialog)
+│   └── character_art.dart                     # Stage-aware Rawi character rendering (5 stages)
 │
 ├── assets\
 │   ├── audio\                                 # 14 WAV (13 SFX + 1 footsteps)
@@ -153,7 +167,7 @@ d:\Rawi_Journey\
 ├── RAWI_MASTER_PLAN.md                        # Full project vision (155 events, 4 volumes)
 ├── MVP_PLAN.md                                # MVP execution plan
 ├── V06_PLAN.md                                # v0.6 detailed spec (original)
-├── SPRINT_LOG.md                              # All 26+ sprint execution details
+├── SPRINT_LOG.md                              # All 63 sprint execution details
 ├── FIXES_LOG.md                               # Round 1-2 bug tracker
 ├── FIXES_LOG_R3.md                            # Round 3 bug tracker
 └── ARCHITECTURE.md                            # This file
@@ -330,19 +344,52 @@ collapsed (teen, current), auto-expanded (adult).
 
 ---
 
-### Hasanat System (Launch — after 36 events complete)
+### Hasanat System (LIVE — Sprint 59)
 Dual reward track: XP (game progress) + Hasanat (spiritual dhikr).
-After event completion → XP overlay → "Would you like to earn Hasanat?"
-→ contextual dhikr card → honor-based "I've said it" → Hasanat counter.
+Flow: Verdict → XP overlay → Dhikr screen → Event List.
 
-**Implementation when ready:**
-- Data: `Dhikr` model (arabic, transliteration, meaning, whenToSay, source)
-- Prefs: `hasanatTotal` (int), `dhikrDeclineCount` (frequency reducer)
-- UI: Dhikr card overlay (post-XP), Hasanat counter on profile/home
-- Flow: inserted into `_completeAndPop` after XP step, before pop
+**Built:**
+- `DhikrCard` model (`dhikr_card.dart`): arabic, transliteration, meaning, whenToSay, source
+- 14 dhikr cards — all sourced from Sahih Bukhari/Muslim only, no invented numbers
+- `dhikr_screen.dart`: full-screen cinematic UI (navy gradient, gold card, promise section, source citation)
+- Honor-based design: "I've said it" / "Not now" — no enforcement
+- `hasanatTotal` counter in PrefsService, displayed on profile and event list header
 - Layer 2 (post-launch): "Dhikr Garden" screen, morning/evening detection
 
-**Full spec:** `doc/RAWI_HASANAT_ARCHITECTURE.md`
+---
+
+### Engagement System (LIVE — Sprint 62)
+8 features built in Phase 1, 3 architected for Phase 2.
+
+**Phase 1 — Built:**
+| Feature | Implementation |
+|---------|---------------|
+| 1. Fog of War | `fog_overlay.dart` — CustomPainter revealing explored areas around companion |
+| 2. Hotspot Proximity | 3-zone detection (far, near, arrived) with visual/audio feedback |
+| 3. Haptic Feedback | 9 haptic moments: discovery, verdict, badge, XP, scroll, secret, etc. |
+| 4. Hidden Scene Elements | `SceneSecret` model, secrets placed in Events 1-2, discoverable off-path |
+| 5. Scene Evolution | Sky gradient, particles, and ambient evolve as hotspots are discovered |
+| 6. Rawi Reactions | Bounce animations on companion for key moments |
+| 7. Rawi's Scroll | 14 entries, writing animation (`scroll_writing_screen.dart`), viewer (`scroll_viewer_screen.dart`) |
+| 8. Rawi Evolution | 5 stages (`rawi_stage.dart`), `CharacterArt` renders stage-appropriate companion |
+
+**Phase 2 — Architecture Only:**
+- Feature 10: Rawi's Tent (hub for collected items)
+- Feature 11: Companion's Voice (dynamic dialogue system)
+- Feature 12: Little Rawi Mode (age-adaptive content)
+
+---
+
+### Living Map (LIVE — Sprint 63)
+Interactive map accessible from event list header icon.
+
+**Built:**
+- `living_map_screen.dart`: `InteractiveViewer` with zoom/pan
+- 17 locations mapped to all 40 M1 events
+- Route lines connecting sequential event locations
+- 4 marker states: locked, available, active, completed
+- Bottom sheet: event list filtered by selected location
+- Promoted from Phase 2 to Phase 1 during Sprint 63
 
 ### Analytics & Crash Reporting (Pre-Launch — required)
 Firebase Crashlytics + Analytics. Offline-first (queue + send).
@@ -429,3 +476,7 @@ in `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`.
 | 57 | R14+R15 device testing: 15 fixes (paths, verdict UI, VO cleanup, DYK audit, hotspot order, progress, auto-collapse) |
 | 58 | Terminology rename: 7 file renames, phase enum merge, comment cleanup |
 | 59 | **Hasanat system**: DhikrCard model, 13 dhikr cards, cinematic dhikr screen, flow integration, profile counter |
+| 60 | Event 14 (First Revelation): scene config Pattern B, 4 hotspots, Witness Moment, new dhikr card (Muslim 2726). 11 playable. |
+| 61 | R16 device testing: 7 fixes (RTL Directionality, unskippable videos, dhikr UI, back progress re-fix, settings redesign, instant lang switch) |
+| 62 | **Engagement architecture**: 8 features built (Fog, Proximity, Haptics, Secrets, Evolution, Reactions, Scroll 14 entries, Rawi Evolution 5 stages) |
+| 63 | **Living Map**: InteractiveViewer, 17 locations, route lines, 4 marker states, bottom sheet. Promoted from Phase 2. |

@@ -1138,7 +1138,19 @@ Applied content from Khaled's reviewed spec files:
 **Date:** 2026-04-09
 **Status:** COMPLETE
 
-Event 13 (Cave Hira) scene config + 6 DYK entries (Events 9-11) + AR prose rewrites (Events 1-8 + Black Stone) + prefix removal + narrative clearing.
+### Changes
+
+| Area | Details |
+|------|---------|
+| Event 13 (Cave Hira) | Full scene config added — Pattern A linear, 4 hotspots, sky gradient, particles. |
+| DYK entries | 6 new DYK entries for Events 9-11 (Hilf al-Fudul, Al-Amin, Khadijah). |
+| AR prose rewrites | Events 1-8 + Black Stone — flowing connected prose replacing bullet-style fragments. |
+| Prefix removal | Removed "The Gate:", "The Crossroads:" etc. prefixes from fragment text. |
+| Narrative clearing | Cleared narrative fields where content was duplicated in hotspots. |
+
+### Quality
+- `flutter analyze` — 0 issues
+- Event 13 now playable (10 total)
 
 ---
 
@@ -1146,8 +1158,33 @@ Event 13 (Cave Hira) scene config + 6 DYK entries (Events 9-11) + AR prose rewri
 **Date:** 2026-04-09
 **Status:** COMPLETE
 
-R14: paths, verdict UI unification, VO cleanup, transition gradient, source order.
-R15: DYK audit (8 rewrites), verdict labels, chapter overlay, progress persist, button states, threshold markers, auto-collapse, hotspot order, threshold BG, chevron fix.
+### R14 Fixes (5)
+
+| Fix | Details |
+|-----|---------|
+| Paths (Pattern C/D) | Fixed path waypoint patterns for non-standard event layouts. |
+| Verdict UI unification | Unified verdict card styling across branching and linear events. |
+| VO cleanup | Deleted 84 unused VO files from assets. |
+| Transition gradient | Fixed gradient rendering on cinematic transition screen. |
+| Source order | Standardized source reference ordering across all events. |
+
+### R15 Fixes (10)
+
+| Fix | Details |
+|-----|---------|
+| DYK audit | 8 DYK entries rewritten for accuracy and clarity. |
+| Verdict labels | Changed to "Do You Remember?" heading. |
+| Chapter overlay | Fixed chapter completion overlay display issues. |
+| Progress persist | Fixed progress not persisting correctly on back navigation. |
+| Button states | Start/Continue/checkmark states on event list cards. |
+| Threshold markers | Visual markers for era threshold events. |
+| Auto-collapse | Era sections auto-collapse when not active. |
+| Hotspot order (E7/E11) | Fixed unlock order for Events 7 and 11 hotspots. |
+| Threshold BG | Background styling for threshold event cards. |
+| Chevron fix | Era collapse/expand chevron animation fix. |
+
+### Quality
+- `flutter analyze` — 0 issues
 
 ---
 
@@ -1155,7 +1192,19 @@ R15: DYK audit (8 rewrites), verdict labels, chapter overlay, progress persist, 
 **Date:** 2026-04-10
 **Status:** COMPLETE
 
-7 file renames, 1 delete, 1 legacy rename. Phase enum merged. Comments cleaned. -521 lines.
+### Changes
+
+| Change | Details |
+|--------|---------|
+| 7 file renames | companion→rawi, discovery→hotspot, branch→crossroads, cinematic_transition→event_intro, companion_dialogue→rawi_dialogue. |
+| 1 delete | `journey_quiz_screen.dart` removed (unused). |
+| 1 legacy rename | `journey_event→legacy_event`. |
+| Phase enum merge | `choose` + `convergenceQuestion` merged into single `verdict` phase. |
+| Comment cleanup | Removed stale TODO comments and dead code references. |
+| Net reduction | -521 lines across codebase. |
+
+### Quality
+- `flutter analyze` — 0 issues
 
 ---
 
@@ -1163,4 +1212,117 @@ R15: DYK audit (8 rewrites), verdict labels, chapter overlay, progress persist, 
 **Date:** 2026-04-10
 **Status:** COMPLETE
 
-DhikrCard model + 13 dhikr cards (Sahih Bukhari/Muslim). Cinematic dhikr screen. Flow: Verdict → XP → Dhikr → Event List. Profile counter. Honor-based design.
+### Built
+
+| Component | Details |
+|-----------|---------|
+| DhikrCard model | Data model with arabic, transliteration, meaning, whenToSay, source fields. |
+| 13 dhikr cards | All sourced from Sahih Bukhari/Muslim only — no invented numbers. |
+| Dhikr screen | Full-screen cinematic UI — navy gradient, gold card, promise section, source citation. |
+| Flow integration | Verdict → XP overlay → Dhikr screen → Event List. |
+| Profile counter | Hasanat total displayed on profile/settings. |
+| Honor-based design | "I've said it" / "Not now" — no enforcement, trust-based. |
+
+### Quality
+- `flutter analyze` — 0 issues
+
+---
+
+## Sprint 60 — Event 14: The First Revelation
+**Date:** 2026-04-10
+**Status:** COMPLETE
+
+### Built
+
+| Component | Details |
+|-----------|---------|
+| Scene config | Pattern B layout — 4 hotspots, sky gradient, particles. |
+| 4 hotspots | Full fragments EN+AR with connected prose. |
+| DYK | 2 of 4 hotspots have DYK entries. |
+| Witness Moment | Special moment card for the first revelation scene. |
+| New dhikr card | Muslim 2726 — contextual dhikr for revelation theme. |
+| Total dhikr | 14 cards (13 + 1 new). |
+
+### Result
+- 11 playable events total (Events 1-8, 12, 13, 14)
+
+### Quality
+- `flutter analyze` — 0 issues
+
+---
+
+## Sprint 61 — R16 Device Testing (7 fixes)
+**Date:** 2026-04-10
+**Status:** COMPLETE
+
+### Fixes
+
+| Fix | Details |
+|-----|---------|
+| RTL support | Added `Directionality` wrapper + `EdgeInsetsDirectional` across 9 files for proper Arabic layout. |
+| Unskippable videos | Video intros now play to completion without skip option. |
+| Dhikr card UI redesign | Improved card layout, typography, and spacing on dhikr screen. |
+| Dhikr counter on event list | Shows hasanat count on event list header. |
+| Back progress RE-FIX | `PrefsService.reload()` ensures fresh prefs after back navigation. |
+| Settings redesign | 5 cinematic cards layout replacing flat list. |
+| Instant language switch | `RawiApp.rebuild()` for immediate UI refresh on language change. |
+
+### Quality
+- `flutter analyze` — 0 issues
+
+---
+
+## Sprint 62 — Engagement Architecture (12 features)
+**Date:** 2026-04-10
+**Status:** COMPLETE
+
+### Phase 1 — Fully Built (8 features)
+
+| # | Feature | Details |
+|---|---------|---------|
+| 1 | Fog of War | `CustomPainter` overlay revealing explored areas. |
+| 2 | Hotspot Proximity | 3-zone detection (far, near, arrived) with visual feedback. |
+| 3 | Haptic Feedback | 9 haptic moments (discovery, verdict, badge, XP, etc.). |
+| 4 | Hidden Scene Elements | `SceneSecret` model, secrets placed in Events 1-2. |
+| 5 | Scene Evolution | Sky gradient, particles, and ambient change as hotspots discovered. |
+| 6 | Rawi Reactions | Bounce animations on companion for key moments. |
+| 7 | Rawi's Scroll | 14 entries, writing animation, dedicated viewer screen. |
+| 8 | Rawi Evolution | 5 stages of character art, `CharacterArt` stage-aware rendering. |
+
+### Phase 2 — Architecture Only (3 features)
+
+| # | Feature | Details |
+|---|---------|---------|
+| 10 | Rawi's Tent | Hub area for collected items (future). |
+| 11 | Companion's Voice | Dynamic companion dialogue system (future). |
+| 12 | Little Rawi Mode | Age-adaptive content system (future). |
+
+### New files
+- `fog_overlay.dart`, `scroll_writing_screen.dart`, `scroll_viewer_screen.dart`, `rawi_stage.dart`, `scroll_entry.dart`, `scene_secret.dart`
+
+### Quality
+- `flutter analyze` — 0 issues
+
+---
+
+## Sprint 63 — Feature 9: Living Map
+**Date:** 2026-04-10
+**Status:** COMPLETE
+
+### Built
+
+| Component | Details |
+|-----------|---------|
+| Living Map screen | `InteractiveViewer` with zoom/pan across Arabian Peninsula. |
+| 17 locations | Mapped to all 40 events in M1 data. |
+| Route lines | Visual connections between sequential event locations. |
+| 4 marker states | Locked, available, active, completed — with distinct styling. |
+| Bottom sheet | Event list filtered by selected location. |
+| Map icon | Added to event list header for quick access. |
+
+### Design
+- Promoted from Phase 2 to Phase 1 (was Feature 9 in engagement plan).
+- `living_map_screen.dart` — standalone screen accessible from event list header.
+
+### Quality
+- `flutter analyze` — 0 issues

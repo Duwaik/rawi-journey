@@ -37,8 +37,8 @@ the sequence below for new events.
 | 10 | Al-Amin — The Trustworthy | الأمين | ✅ Content ready | j_m1_010 (needs scene config) |
 | 11 | Marriage to Khadijah | الزواج من خديجة رضي الله عنها | ✅ Content ready | j_m1_011 (needs scene config) |
 | 12 | The Black Stone: A Wise Arbitration | الحجر الأسود: حُكم الأمين | ✅ Playable (rewritten Sprint 55) | j_1_1_3 |
-| 13 | Solitude in Cave Hira | الخلوة في غار حراء | Exists as j_1_2_6 (old position 9) |
-| 14 | The First Revelation | نزول الوحي الأول | Exists as j_1_2_7 (old position 10) |
+| 13 | Solitude in Cave Hira | الخلوة في غار حراء | ✅ Playable | j_1_2_6 |
+| 14 | The First Revelation | نزول الوحي الأول | ✅ Playable | j_1_2_7 |
 | 15 | The First Believers | أوائل المؤمنين | Exists as j_1_2_8 (old position 11) |
 
 ---

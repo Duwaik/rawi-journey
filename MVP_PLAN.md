@@ -2,15 +2,15 @@
 # 3 Playable Events + Complete Gaming UX
 
 > Created: 2026-04-01
-> Updated: 2026-04-07 (54 sprints + post-audit complete)
+> Updated: 2026-04-10 (63 sprints + post-audit complete)
 > Goal: A demo-ready app that feels like a real game from first tap to last hotspot
-> **Status: HASANAT SYSTEM LIVE** — 59 sprints across 10 days. R4–R15 testing rounds fixed 140+ items. 10 playable events. 13 events with full content. Hasanat (dhikr) system with 13 Sahih-sourced cards. Terminology rename complete.
+> **Status: ENGAGEMENT ARCHITECTURE LIVE** — 63 sprints across 10 days. R4–R16 testing rounds fixed 155+ items. 11 playable events. 14 events with full content. Hasanat system (14 dhikr cards). Engagement architecture (8 features). Living Map. Rawi's Scroll (14 entries). Rawi Evolution (5 stages).
 >
-> **Done:** 40/47 M1 events in data. 10 have full scene configs. 13 have full content (Events 1-13). DYK + sourceRef on all 13. Hasanat system: 13 dhikr cards, cinematic screen, flow integration, profile counter. R14/R15 device testing (25 fixes). Terminology rename (7 files, phase merge). Video intro (Event 2). Sound, audio isolation, cinematic continuity all working.
-> **Next:** Scene configs for Events 9-11 (Hilf al-Fudul, Al-Amin, Khadijah). Content writing for Events 14-15. Then batch art + VO generation.
+> **Done:** 40/47 M1 events in data. 11 have full scene configs (Events 1-8, 12-14). 14 have full content (Events 1-14). DYK + sourceRef on all 14. Hasanat: 14 dhikr cards, cinematic screen, profile counter. Engagement: Fog of War, Proximity, Haptics, Secrets, Scene Evolution, Rawi Reactions, Scroll, Rawi Evolution, Living Map. R14-R16 device testing (22 fixes). Terminology rename. RTL support (Directionality wrapper).
+> **Next:** Scene configs for Events 9-11 (Hilf al-Fudul, Al-Amin, Khadijah). Content writing for Event 15 (First Believers). Then batch art + VO generation.
 > **Remaining:** Scene BG images (batch), ambient clips (batch), Jordanian VO (batch), badge artwork, Firebase analytics.
 > **Pre-Launch (required):** Firebase Crashlytics + Analytics (~4 sprints). See `doc/RAWI_ANALYTICS_ARCHITECTURE.md`.
-> **Post-Launch:** Young Rawi Mode (`doc/RAWI_YOUNG_RAWI_MODE.md`), Hasanat Layer 2 ("Dhikr Garden").
+> **Post-Launch:** Young Rawi Mode (`doc/RAWI_YOUNG_RAWI_MODE.md`), Hasanat Layer 2 ("Dhikr Garden"), Rawi's Tent, Companion's Voice.
 >
 > **Event Terminology:** The Gate → The Crossroads → The Paths → The Gathering → The Verdict (branching). The Reflection (linear).
 > **Architecture:** See `ARCHITECTURE.md` for full details.
