@@ -689,46 +689,34 @@ class _EventListScreenState extends State<EventListScreen>
   }
 
   Widget _buildThresholdMarker(int beforeOrder, bool isAr) {
-    final completed = PrefsService.currentOrder >= beforeOrder;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(child: Container(height: 1, color: AppColors.gold.withAlpha(completed ? 60 : 30))),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.gold.withAlpha(completed ? 80 : 40)),
-              color: AppColors.gold.withAlpha(completed ? 12 : 6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  completed ? Icons.check_rounded : Icons.vpn_key_rounded,
-                  size: 14,
-                  color: AppColors.gold.withAlpha(completed ? 180 : 100),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  isAr ? 'العَتَبة' : 'The Threshold',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.gold.withAlpha(completed ? 180 : 100),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
+    return _ThresholdMarker(
+      beforeOrder: beforeOrder,
+      isAr: isAr,
+      onTap: () => _openThreshold(beforeOrder),
+    );
+  }
+
+  Future<void> _openThreshold(int beforeOrder) async {
+    final challenge = getThresholdBefore(beforeOrder);
+    if (challenge == null) return;
+    await Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (ctx, a, s) => FadeTransition(
+          opacity: a,
+          child: ThresholdScreen(
+            challenge: challenge,
+            onUnlocked: () {
+              PrefsService.setThresholdCompleted(beforeOrder);
+              Navigator.pop(ctx);
+            },
           ),
-          const SizedBox(width: 12),
-          Expanded(child: Container(height: 1, color: AppColors.gold.withAlpha(completed ? 60 : 30))),
-        ],
+        ),
       ),
     );
+    if (!mounted) return;
+    _refresh();
   }
 
   Widget _buildProgressDots(JourneyEvent event, bool completed, int count) {
@@ -993,6 +981,148 @@ class _HeaderBadge extends StatelessWidget {
                 fontWeight: FontWeight.w700)),
         ],
       ),
+    );
+  }
+}
+
+// ── Threshold marker (interactive mini-card) ────────────────────────────────
+
+class _ThresholdMarker extends StatefulWidget {
+  final int beforeOrder;
+  final bool isAr;
+  final VoidCallback onTap;
+
+  const _ThresholdMarker({
+    required this.beforeOrder,
+    required this.isAr,
+    required this.onTap,
+  });
+
+  @override
+  State<_ThresholdMarker> createState() => _ThresholdMarkerState();
+}
+
+class _ThresholdMarkerState extends State<_ThresholdMarker>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: true);
+    _pulseAnim = Tween<double>(begin: 0.4, end: 0.8).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isAr = widget.isAr;
+    final currentOrder = PrefsService.currentOrder;
+    final isCompleted = PrefsService.isThresholdCompleted(widget.beforeOrder);
+    final isLocked = currentOrder < widget.beforeOrder;
+    final isAvailable = !isLocked && !isCompleted;
+
+    // Choose icon
+    final IconData iconData = isLocked
+        ? Icons.lock_rounded
+        : isCompleted
+            ? Icons.check_circle_rounded
+            : Icons.vpn_key_rounded;
+
+    // Title
+    final String title = isLocked
+        ? '???'
+        : (isAr
+            ? 'العَتَبة · THE THRESHOLD'
+            : 'THE THRESHOLD · العَتَبة');
+
+    // Subtitle
+    final String? subtitle = isLocked
+        ? null
+        : isCompleted
+            ? (isAr ? 'مكتمل' : 'Completed')
+            : (isAr ? 'أجب لتفتح الطريق' : 'Answer to unlock the path');
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth * 0.70;
+
+    Widget card = AnimatedBuilder(
+      animation: _pulseAnim,
+      builder: (context, child) {
+        final borderOpacity = isAvailable ? _pulseAnim.value : 0.6;
+        return Container(
+          width: cardWidth,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: AppColors.gold.withAlpha((255 * 0.08).round()),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.gold.withAlpha((255 * borderOpacity).round()),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gold.withAlpha(25),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(iconData, size: 22, color: AppColors.gold),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.lora(
+                  color: AppColors.gold,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                    color: AppColors.gold.withAlpha(140),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+
+    if (isLocked) {
+      card = Opacity(opacity: 0.5, child: card);
+    } else {
+      card = GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: card,
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Center(child: card),
     );
   }
 }

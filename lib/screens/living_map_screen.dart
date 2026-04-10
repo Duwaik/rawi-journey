@@ -9,6 +9,116 @@ import '../models/map_location.dart';
 import '../models/journey_event.dart';
 import '../services/prefs_service.dart';
 
+// ── Coastline painter (Arabian Peninsula outline) ───────────────────────────
+
+class _CoastlinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.gold.withAlpha(45)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final w = size.width;
+    final h = size.height;
+
+    Offset p(double x, double y) => Offset(x * w, y * h);
+
+    // ── Arabian Peninsula ─────────────────────────────────────────────────
+    final peninsula = Path();
+
+    // Start at northwest — top of the Red Sea / Sinai area
+    peninsula.moveTo(p(0.40, 0.18).dx, p(0.40, 0.18).dy);
+
+    // Red Sea (west coast) — curve down along the peninsula's western side
+    peninsula.quadraticBezierTo(
+      p(0.36, 0.28).dx, p(0.36, 0.28).dy,
+      p(0.40, 0.36).dx, p(0.40, 0.36).dy,
+    );
+    peninsula.quadraticBezierTo(
+      p(0.38, 0.44).dx, p(0.38, 0.44).dy,
+      p(0.42, 0.52).dx, p(0.42, 0.52).dy,
+    );
+    peninsula.quadraticBezierTo(
+      p(0.43, 0.62).dx, p(0.43, 0.62).dy,
+      p(0.46, 0.72).dx, p(0.46, 0.72).dy,
+    );
+    peninsula.quadraticBezierTo(
+      p(0.48, 0.80).dx, p(0.48, 0.80).dy,
+      p(0.50, 0.86).dx, p(0.50, 0.86).dy,
+    );
+
+    // Gulf of Aden / south coast — curve east along the southern edge
+    peninsula.quadraticBezierTo(
+      p(0.56, 0.90).dx, p(0.56, 0.90).dy,
+      p(0.62, 0.87).dx, p(0.62, 0.87).dy,
+    );
+    peninsula.quadraticBezierTo(
+      p(0.68, 0.84).dx, p(0.68, 0.84).dy,
+      p(0.72, 0.78).dx, p(0.72, 0.78).dy,
+    );
+
+    // Oman / UAE — up around the eastern tip
+    peninsula.quadraticBezierTo(
+      p(0.74, 0.72).dx, p(0.74, 0.72).dy,
+      p(0.70, 0.66).dx, p(0.70, 0.66).dy,
+    );
+
+    // Persian Gulf (east coast) — up along the eastern side
+    peninsula.quadraticBezierTo(
+      p(0.64, 0.62).dx, p(0.64, 0.62).dy,
+      p(0.62, 0.55).dx, p(0.62, 0.55).dy,
+    );
+    peninsula.quadraticBezierTo(
+      p(0.63, 0.48).dx, p(0.63, 0.48).dy,
+      p(0.65, 0.42).dx, p(0.65, 0.42).dy,
+    );
+    peninsula.quadraticBezierTo(
+      p(0.62, 0.34).dx, p(0.62, 0.34).dy,
+      p(0.58, 0.28).dx, p(0.58, 0.28).dy,
+    );
+
+    // Close back northward toward Sinai
+    peninsula.quadraticBezierTo(
+      p(0.52, 0.22).dx, p(0.52, 0.22).dy,
+      p(0.46, 0.18).dx, p(0.46, 0.18).dy,
+    );
+    peninsula.quadraticBezierTo(
+      p(0.43, 0.17).dx, p(0.43, 0.17).dy,
+      p(0.40, 0.18).dx, p(0.40, 0.18).dy,
+    );
+
+    canvas.drawPath(peninsula, paint);
+
+    // ── Africa / Abyssinia (separate small landmass, west side) ───────────
+    final africa = Path();
+    africa.moveTo(p(0.14, 0.66).dx, p(0.14, 0.66).dy);
+    africa.quadraticBezierTo(
+      p(0.12, 0.74).dx, p(0.12, 0.74).dy,
+      p(0.16, 0.82).dx, p(0.16, 0.82).dy,
+    );
+    africa.quadraticBezierTo(
+      p(0.20, 0.88).dx, p(0.20, 0.88).dy,
+      p(0.24, 0.86).dx, p(0.24, 0.86).dy,
+    );
+    africa.quadraticBezierTo(
+      p(0.26, 0.78).dx, p(0.26, 0.78).dy,
+      p(0.23, 0.70).dx, p(0.23, 0.70).dy,
+    );
+    africa.quadraticBezierTo(
+      p(0.19, 0.65).dx, p(0.19, 0.65).dy,
+      p(0.14, 0.66).dx, p(0.14, 0.66).dy,
+    );
+
+    canvas.drawPath(africa, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CoastlinePainter oldDelegate) => false;
+}
+
 // ── Route painter ────────────────────────────────────────────────────────────
 
 class _RouteLinePainter extends CustomPainter {
@@ -135,9 +245,22 @@ class _LivingMapScreenState extends State<LivingMapScreen>
   late Animation<double> _pulseAnim;
   late int _currentOrder;
 
+  // Transformation controller — used to read current zoom scale so we can
+  // hide sub-location labels when zoomed out (R17-03).
+  final TransformationController _transformController =
+      TransformationController();
+  double _currentScale = 1.0;
+
   // Virtual map size (the coordinate space)
   static const _mapWidth = 800.0;
   static const _mapHeight = 900.0;
+
+  // Mecca's normalized position — used to detect sub-locations that
+  // cluster around it so their labels can be hidden when zoomed out.
+  static const double _meccaX = 0.42;
+  static const double _meccaY = 0.62;
+  static const double _subLocationRadius = 0.05;
+  static const double _labelZoomThreshold = 1.5;
 
   @override
   void initState() {
@@ -150,12 +273,34 @@ class _LivingMapScreenState extends State<LivingMapScreen>
     _pulseAnim = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    _transformController.addListener(_onTransformChanged);
+  }
+
+  void _onTransformChanged() {
+    final scale = _transformController.value.getMaxScaleOnAxis();
+    if ((scale - _currentScale).abs() > 0.01) {
+      setState(() => _currentScale = scale);
+    }
   }
 
   @override
   void dispose() {
+    _transformController.removeListener(_onTransformChanged);
+    _transformController.dispose();
     _pulseController.dispose();
     super.dispose();
+  }
+
+  /// True if this location is Mecca itself.
+  bool _isMecca(MapLocation loc) => loc.id == 'mecca';
+
+  /// True if this location is a sub-location clustered near Mecca
+  /// (within _subLocationRadius normalized units) — excluding Mecca itself.
+  bool _isMeccaSubLocation(MapLocation loc) {
+    if (_isMecca(loc)) return false;
+    final dx = loc.mapX - _meccaX;
+    final dy = loc.mapY - _meccaY;
+    return (dx * dx + dy * dy) <= (_subLocationRadius * _subLocationRadius);
   }
 
   bool get _isAr => PrefsService.isAr;
@@ -239,13 +384,21 @@ class _LivingMapScreenState extends State<LivingMapScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFF04060D),
-      body: Column(
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF04060D), // fallback
+          image: DecorationImage(
+            image: AssetImage('assets/textures/parchment_dark.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
         children: [
           // ── Header ──────────────────────────────────────────────────
           Container(
             padding: EdgeInsetsDirectional.fromSTEB(16, topPad + 12, 16, 14),
             decoration: BoxDecoration(
-              color: const Color(0xFF04060D),
+              color: const Color(0xFF04060D).withAlpha(220),
               border: Border(
                 bottom: BorderSide(color: AppColors.gold.withAlpha(30)),
               ),
@@ -298,6 +451,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
           // ── Map area ────────────────────────────────────────────────
           Expanded(
             child: InteractiveViewer(
+              transformationController: _transformController,
               minScale: 1.0,
               maxScale: 3.0,
               boundaryMargin: const EdgeInsets.all(60),
@@ -314,14 +468,25 @@ class _LivingMapScreenState extends State<LivingMapScreen>
 
                   return Stack(
                     children: [
-                      // Subtle background container
+                      // Subtle darkened overlay on top of the parchment
+                      // texture so route lines and markers still glow.
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF060A14),
+                            color: const Color(0xFF04060D).withAlpha(140),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           margin: const EdgeInsets.all(8),
+                        ),
+                      ),
+                      // Coastline outline (behind routes and markers)
+                      Positioned(
+                        left: offsetX,
+                        top: offsetY,
+                        width: mapW,
+                        height: mapH,
+                        child: CustomPaint(
+                          painter: _CoastlinePainter(),
                         ),
                       ),
                       // Route lines
@@ -351,6 +516,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -359,7 +525,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
     final status = _status(loc);
     final double dotSize;
     final Color dotColor;
-    final bool showLabel;
+    bool showLabel;
     final bool showCheck;
 
     switch (status) {
@@ -383,6 +549,15 @@ class _LivingMapScreenState extends State<LivingMapScreen>
         dotColor = AppColors.gold.withAlpha(77);
         showLabel = false;
         showCheck = false;
+    }
+
+    // R17-03: When zoomed out (< 1.5x), hide labels for sub-locations
+    // clustered near Mecca to prevent overlap. Mecca itself always keeps
+    // its label. Dots remain visible at every zoom level.
+    if (showLabel &&
+        _currentScale < _labelZoomThreshold &&
+        _isMeccaSubLocation(loc)) {
+      showLabel = false;
     }
 
     final label = isAr ? loc.nameAr : loc.name;

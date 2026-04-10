@@ -43,7 +43,15 @@ class ScrollViewerScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: _parchment,
-      body: Column(
+      body: Container(
+        decoration: const BoxDecoration(
+          color: _parchment,
+          image: DecorationImage(
+            image: AssetImage('assets/textures/parchment_light.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
         children: [
           // Header
           Container(
@@ -91,8 +99,8 @@ class ScrollViewerScreen extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(28, 0, 28, bottomPad + 24),
               physics: const BouncingScrollPhysics(),
               children: [
-                // Completed lines
-                for (final entry in completedEntries)
+                // Completed lines — newest first (reversed order)
+                for (final entry in completedEntries.reversed)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: _CompletedLine(entry: entry, isAr: isAr),
@@ -132,6 +140,7 @@ class ScrollViewerScreen extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }

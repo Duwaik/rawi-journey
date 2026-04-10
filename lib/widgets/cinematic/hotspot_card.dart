@@ -120,12 +120,11 @@ class _HotspotCardState extends State<HotspotCard>
               scale: _scaleAnim,
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: const Color(0xF0101820),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: AppColors.gold.withAlpha(70),
+                    color: const Color(0xFFC9A84C).withAlpha(60),
                     width: 1.5,
                   ),
                   boxShadow: [
@@ -136,7 +135,22 @@ class _HotspotCardState extends State<HotspotCard>
                     ),
                   ],
                 ),
-                child: ConstrainedBox(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(17),
+                  child: Stack(
+                    children: [
+                      // Subtle parchment texture overlay
+                      Positioned.fill(
+                        child: Image.asset(
+                          'assets/textures/parchment_light.jpg',
+                          fit: BoxFit.cover,
+                          opacity: const AlwaysStoppedAnimation(0.08),
+                          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: ConstrainedBox(
                   constraints: BoxConstraints(
                     maxHeight: MediaQuery.of(context).size.height * 0.75,
                   ),
@@ -362,6 +376,10 @@ class _HotspotCardState extends State<HotspotCard>
               ), // SingleChildScrollView
             ), // ScrollHintWrapper
           ), // ConstrainedBox
+                      ), // Padding
+                    ],
+                  ), // Stack
+                ), // ClipRRect
               ),
             ),
           ),

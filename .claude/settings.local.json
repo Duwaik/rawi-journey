@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find d:/Rawi_Journey/lib -name \"*.dart\" -exec cat {} +)"
+    ]
+  }
+}

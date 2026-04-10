@@ -153,7 +153,11 @@ class _DhikrScreenState extends State<DhikrScreen>
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF0A0E14).withAlpha(240),
+            color: const Color(0xFFF5E6C8),
+            image: const DecorationImage(
+              image: AssetImage('assets/textures/parchment_light.jpg'),
+              fit: BoxFit.cover,
+            ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: _celebrating
@@ -182,7 +186,7 @@ class _DhikrScreenState extends State<DhikrScreen>
             _card.arabicText,
             style: GoogleFonts.amiri(
               fontSize: 22,
-              color: AppColors.gold,
+              color: const Color(0xFF402010),
               height: 1.8,
             ),
             textAlign: TextAlign.center,
@@ -196,7 +200,7 @@ class _DhikrScreenState extends State<DhikrScreen>
             _card.transliteration,
             style: GoogleFonts.nunito(
               fontSize: 14,
-              color: AppColors.gold.withAlpha(160),
+              color: const Color(0xFF6B4423),
             ),
             textAlign: TextAlign.center,
           ),
@@ -209,7 +213,7 @@ class _DhikrScreenState extends State<DhikrScreen>
             style: GoogleFonts.lora(
               fontSize: 13,
               fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
-              color: AppColors.textBody,
+              color: const Color(0xFF402010),
             ),
             textAlign: TextAlign.center,
             textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
@@ -218,7 +222,7 @@ class _DhikrScreenState extends State<DhikrScreen>
           const SizedBox(height: 18),
 
           // Divider
-          Container(height: 1, color: AppColors.gold.withAlpha(40)),
+          Container(height: 1, color: const Color(0xFF8B6F47).withAlpha(60)),
 
           const SizedBox(height: 18),
 
@@ -248,9 +252,9 @@ class _DhikrScreenState extends State<DhikrScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.gold.withAlpha(8),
+              color: const Color(0xFFE8D6B0),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.gold.withAlpha(50)),
+              border: Border.all(color: const Color(0xFF8B6F47).withAlpha(60)),
             ),
             child: Column(
               children: [
@@ -267,7 +271,7 @@ class _DhikrScreenState extends State<DhikrScreen>
                   _isAr ? _card.promiseAr : _card.promiseEn,
                   style: GoogleFonts.lora(
                     fontSize: 14,
-                    color: AppColors.textPrimary,
+                    color: const Color(0xFF402010),
                     height: 1.6,
                   ),
                   textAlign: TextAlign.center,
@@ -278,7 +282,7 @@ class _DhikrScreenState extends State<DhikrScreen>
                   _isAr ? _card.sourceRefAr : _card.sourceRef,
                   style: GoogleFonts.nunito(
                     fontSize: 11,
-                    color: AppColors.textMuted,
+                    color: const Color(0xFF6B4423),
                   ),
                   textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
                 ),
@@ -301,7 +305,7 @@ class _DhikrScreenState extends State<DhikrScreen>
             text,
             style: GoogleFonts.nunito(
               fontSize: 13,
-              color: AppColors.textPrimary,
+              color: const Color(0xFF402010),
             ),
             textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
           ),

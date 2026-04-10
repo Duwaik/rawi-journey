@@ -124,130 +124,141 @@ class _ScrollWritingScreenState extends State<ScrollWritingScreen>
 
     return Scaffold(
       backgroundColor: _parchment,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Header
-                    Center(
-                      child: Text(
-                        isAr
-                            ? '\u0633\u0650\u062C\u0650\u0644\u0651 \u0627\u0644\u0631\u0627\u0648\u064A'
-                            : 'The Rawi\u2019s Scroll',
-                        style: GoogleFonts.cinzelDecorative(
-                          fontSize: 20,
-                          color: _inkDark,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Previous lines (faded)
-                    for (final prev in _previousEntries)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+      body: Container(
+        decoration: const BoxDecoration(
+          color: _parchment,
+          image: DecorationImage(
+            image: AssetImage('assets/textures/parchment_light.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(28, 24, 28, 80),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Header
+                      Center(
                         child: Text(
-                          isAr ? prev.lineAr : prev.lineEn,
-                          textDirection:
-                              isAr ? TextDirection.rtl : TextDirection.ltr,
-                          style: isAr
-                              ? GoogleFonts.amiri(
-                                  color: _inkFaded,
-                                  fontSize: 16,
-                                  height: 2.0,
-                                )
-                              : GoogleFonts.lora(
-                                  color: _inkFaded,
-                                  fontSize: 16,
-                                  height: 2.0,
-                                ),
+                          isAr
+                              ? '\u0633\u0650\u062C\u0650\u0644\u0651 \u0627\u0644\u0631\u0627\u0648\u064A'
+                              : 'The Rawi\u2019s Scroll',
+                          style: GoogleFonts.cinzelDecorative(
+                            fontSize: 20,
+                            color: _inkDark,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
+                      const SizedBox(height: 24),
 
-                    const SizedBox(height: 12),
+                      // New line with character reveal animation (TOP — newest first)
+                      AnimatedBuilder(
+                        animation:
+                            Listenable.merge([_revealCtrl, _shimmerCtrl]),
+                        builder: (context, _) {
+                          final text =
+                              isAr ? _entry.lineAr : _entry.lineEn;
+                          final revealFraction = _revealCtrl.value;
+                          final charCount =
+                              (text.length * revealFraction).round();
+                          final visibleText = text.substring(0, charCount);
 
-                    // New line with character reveal animation
-                    AnimatedBuilder(
-                      animation: Listenable.merge([_revealCtrl, _shimmerCtrl]),
-                      builder: (context, _) {
-                        final text =
-                            isAr ? _entry.lineAr : _entry.lineEn;
-                        final revealFraction = _revealCtrl.value;
-                        final charCount =
-                            (text.length * revealFraction).round();
-                        final visibleText = text.substring(0, charCount);
+                          // Gold shimmer overlay when shimmer is active
+                          final shimmerValue = _shimmerCtrl.value;
+                          final lineColor = shimmerValue > 0 && !_shimmerDone
+                              ? Color.lerp(
+                                  _inkDark, _goldShimmer, shimmerValue)!
+                              : _inkDark;
 
-                        // Gold shimmer overlay when shimmer is active
-                        final shimmerValue = _shimmerCtrl.value;
-                        final lineColor = shimmerValue > 0 && !_shimmerDone
-                            ? Color.lerp(_inkDark, _goldShimmer, shimmerValue)!
-                            : _inkDark;
+                          return Text(
+                            visibleText,
+                            textDirection:
+                                isAr ? TextDirection.rtl : TextDirection.ltr,
+                            style: isAr
+                                ? GoogleFonts.amiri(
+                                    color: lineColor,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    height: 2.0,
+                                  )
+                                : GoogleFonts.lora(
+                                    color: lineColor,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    height: 2.0,
+                                  ),
+                          );
+                        },
+                      ),
 
-                        return Text(
-                          visibleText,
-                          textDirection:
-                              isAr ? TextDirection.rtl : TextDirection.ltr,
-                          style: isAr
-                              ? GoogleFonts.amiri(
-                                  color: lineColor,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  height: 2.0,
-                                )
-                              : GoogleFonts.lora(
-                                  color: lineColor,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  height: 2.0,
-                                ),
-                        );
-                      },
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+
+                      // Previous lines (faded, below the new line — newest first order)
+                      for (final prev in _previousEntries.reversed)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            isAr ? prev.lineAr : prev.lineEn,
+                            textDirection:
+                                isAr ? TextDirection.rtl : TextDirection.ltr,
+                            style: isAr
+                                ? GoogleFonts.amiri(
+                                    color: _inkFaded,
+                                    fontSize: 16,
+                                    height: 2.0,
+                                  )
+                                : GoogleFonts.lora(
+                                    color: _inkFaded,
+                                    fontSize: 16,
+                                    height: 2.0,
+                                  ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Continue button (fades in after animation completes)
-            FadeTransition(
-              opacity:
-                  CurvedAnimation(parent: _buttonCtrl, curve: Curves.easeIn),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(28, 0, 28, bottomPad + 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _shimmerDone ? _goToEventList : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _inkDark,
-                      foregroundColor: _parchment,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+              // Continue button (fades in after animation completes)
+              FadeTransition(
+                opacity: CurvedAnimation(
+                    parent: _buttonCtrl, curve: Curves.easeIn),
+                child: Padding(
+                  padding:
+                      EdgeInsets.fromLTRB(28, 0, 28, bottomPad + 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _shimmerDone ? _goToEventList : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _inkDark,
+                        foregroundColor: _parchment,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
                       ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      isAr
-                          ? '\u0627\u0633\u062A\u0645\u0631'
-                          : 'Continue',
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                      child: Text(
+                        isAr
+                            ? '\u0627\u0633\u062A\u0645\u0631'
+                            : 'Continue',
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
