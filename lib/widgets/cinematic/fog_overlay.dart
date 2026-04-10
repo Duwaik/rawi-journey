@@ -87,12 +87,26 @@ class _FogPainter extends CustomPainter {
     return 0.0; // 4/4 — handled by AnimatedOpacity wrapper
   }
 
+  /// Fog color warms with discovery progress — cold black → warm amber.
+  /// 0/4: pure black. 1/4: subtle brown tint. 2/4: warmer. 3/4: warm amber.
+  Color _fogTintedColor(double opacity) {
+    if (totalHotspots <= 0) return Colors.black.withValues(alpha: opacity);
+    final ratio = discoveredCount / totalHotspots;
+    // Lerp from cold black (0,0,0) to warm dark amber (40, 24, 12)
+    // Earlier stages stay cold; warming kicks in at 1/4+
+    final warmth = (ratio).clamp(0.0, 1.0);
+    final r = (warmth * 40).round();
+    final g = (warmth * 24).round();
+    final b = (warmth * 12).round();
+    return Color.fromRGBO(r, g, b, opacity);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final opacity = _fogOpacity;
     if (opacity <= 0) return;
 
-    final fogColor = Colors.black.withValues(alpha: opacity);
+    final fogColor = _fogTintedColor(opacity);
 
     // Save a compositing layer so BlendMode.dstOut can punch holes
     canvas.saveLayer(Offset.zero & size, Paint());

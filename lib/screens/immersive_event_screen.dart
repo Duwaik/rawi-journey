@@ -36,9 +36,8 @@ import '../widgets/cinematic/virtual_joystick.dart';
 import '../widgets/cinematic/fog_overlay.dart';
 import '../widgets/settings_overlay.dart';
 import '../widgets/tutorial_overlay.dart';
-import '../data/dhikr_data.dart';
-import 'dhikr_screen.dart';
 import 'event_list_screen.dart';
+import 'unified_completion_screen.dart';
 
 enum _Phase { explore, verdict, complete }
 
@@ -133,6 +132,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // Fog of War — golden tint on full reveal
   bool _fogSceneRevealed = false;
   double _goldenTintOpacity = 0.0;
+
+  // Hidden Scene Elements (secrets) — discovered during walking
+  final Set<String> _discoveredSecrets = {};
+  final Map<String, AnimationController> _secretAnims = {};
 
   // ── Feature: Rawi figure bounce ──────────────────────────────────────────
   late final AnimationController _figureBounceCtrl;
@@ -779,6 +782,63 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     });
   }
 
+  /// Check if a screen tap hits any undiscovered secret near the Rawi.
+  /// Secrets are pure visual delight — no card opens, just an effect.
+  void _checkSecretTap(Offset localPosition, double screenW, double screenH, double sceneOffset) {
+    if (_phase != _Phase.explore) return;
+    if (_scene.secrets.isEmpty) return;
+
+    // Convert tap position to normalized coords (accounting for parallax offset)
+    final tapXNorm = (localPosition.dx - sceneOffset) / screenW;
+    final tapYNorm = localPosition.dy / screenH;
+
+    for (final secret in _scene.secrets) {
+      if (_discoveredSecrets.contains(secret.id)) continue;
+
+      // Tap must be within ~40px of the secret position
+      final dx = (tapXNorm - secret.x).abs();
+      final dy = (tapYNorm - secret.y).abs();
+      final tapRadius = 0.06; // ~40px on a 600px-wide screen
+      if (dx > tapRadius || dy > tapRadius) continue;
+
+      // Secret must be within the Rawi's lit fog radius (~0.25 normalized)
+      final distFromRawi = sqrt(
+        pow(_companionX - secret.x, 2) + pow(_companionY - secret.y, 2),
+      );
+      if (distFromRawi > 0.25) continue;
+
+      // Secret found — trigger reaction
+      _triggerSecret(secret);
+      return;
+    }
+  }
+
+  void _triggerSecret(SceneSecret secret) {
+    HapticFeedback.selectionClick();
+    PrefsService.addDiscoveredSecret(secret.id);
+    setState(() {
+      _discoveredSecrets.add(secret.id);
+    });
+
+    // Play SFX if defined
+    if (secret.sfxPath != null) {
+      AudioService.playSfx(secret.sfxPath!, volume: 0.5);
+    }
+
+    // Create a brief animation controller for the visual effect (2s)
+    final ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
+    _secretAnims[secret.id] = ctrl;
+    ctrl.forward().then((_) {
+      if (mounted) {
+        setState(() => _secretAnims.remove(secret.id));
+      }
+      ctrl.dispose();
+    });
+  }
+
   void _onHotspotTap(SceneHotspot hotspot) {
     if (_activeHotspot != null) return;
     if (_autoWalking) return; // Don't interrupt auto-walk
@@ -917,19 +977,25 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         continue;
       }
       // Next undiscovered hotspot: distance-based opacity
+      // Range extended past the fog cutout (~0.25 normalized) so the marker
+      // becomes visible THROUGH the fog as a hint, before entering the lit area.
       final dx = _companionX - h.x;
       final dy = _companionY - h.y;
       final dist = sqrt(dx * dx + dy * dy);
-      if (dist > 0.15) {
+      if (dist > 0.32) {
         _hotspotProximityOpacity[h.id] = 0.0;
-      } else if (dist > 0.08) {
-        // Near zone: lerp opacity 0.3→0.7
-        final t = 1.0 - (dist - 0.08) / (0.15 - 0.08);
-        _hotspotProximityOpacity[h.id] = 0.3 + t * 0.4;
+      } else if (dist > 0.18) {
+        // Far-near zone: faint hint through fog (0.2 → 0.5)
+        final t = 1.0 - (dist - 0.18) / (0.32 - 0.18);
+        _hotspotProximityOpacity[h.id] = 0.2 + t * 0.3;
+      } else if (dist > 0.10) {
+        // Near zone: noticeable (0.5 → 0.8)
+        final t = 1.0 - (dist - 0.10) / (0.18 - 0.10);
+        _hotspotProximityOpacity[h.id] = 0.5 + t * 0.3;
       } else {
-        // Close zone: lerp opacity 0.7→1.0
-        final t = 1.0 - dist / 0.08;
-        _hotspotProximityOpacity[h.id] = 0.7 + t * 0.3;
+        // Close zone: fully visible (0.8 → 1.0)
+        final t = 1.0 - dist / 0.10;
+        _hotspotProximityOpacity[h.id] = 0.8 + t * 0.2;
       }
     }
   }
@@ -1109,68 +1175,51 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool get _isChapterEnd =>
       widget.event.globalOrder == widget.event.era.lastEventOrder;
 
-  /// "Continue Journey" — layered reward flow then auto-pop.
-  /// Sequence: chapter screen → badge → XP → navigate to event list.
+  /// "Continue Journey" — pushes the unified completion screen, which
+  /// replaces the old 5-step overlay sequence (chapter / badge / XP /
+  /// dhikr / scroll writing) with a single scrollable screen.
+  ///
+  /// R17.2-05: replaced by UnifiedCompletionScreen.
+  /// Note: XP, badges, event completion, and hotspot clearing are ALREADY
+  /// persisted by _selectChoice before this runs. The unified screen only
+  /// handles dhikr prefs on user tap.
   Future<void> _completeAndPop() async {
     // LOCKED RULE: fade VO and ambient before reward flow (no cuts)
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 300));
     AudioService.fadeOut(duration: const Duration(milliseconds: 300));
-    if (!mounted) return;
-
-    // Step 1: Chapter completion (if last event in era)
-    if (_isChapterEnd && !_alreadyCompleted) {
-      final completer = Completer<void>();
-      _chapterDismissCompleter = completer;
-      HapticFeedback.heavyImpact();
-      setState(() => _showChapterComplete = true);
-      await completer.future;
-      if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 300));
-    }
-
-    // Step 2: Badge moment (if earned)
-    if (_newBadges.isNotEmpty) {
-      for (final badge in _newBadges) {
-        if (!mounted) return;
-        final completer = Completer<void>();
-        HapticFeedback.heavyImpact();
-        setState(() {
-          _showBadgeOverlay = true;
-          _currentBadge = badge;
-        });
-        _badgeDismissCompleter = completer;
-        await completer.future;
-        if (!mounted) return;
-        await Future.delayed(const Duration(milliseconds: 300));
-      }
-    }
-
-    // Step 3: XP animation (every event)
-    if (mounted && !_alreadyCompleted) {
-      HapticFeedback.mediumImpact();
-      setState(() => _showXpAnimation = true);
-      await Future.delayed(const Duration(milliseconds: 2500));
-    }
-
-    // Step 4: Dhikr screen (if card exists for this event), then event list
-    if (!mounted) return;
     AudioService.stopSfx();
-    AudioService.fadeOut(duration: const Duration(milliseconds: 250));
+    if (!mounted) return;
 
-    final hasDhikr = dhikrCards.containsKey(widget.event.id);
-    if (hasDhikr) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => DhikrScreen(eventId: widget.event.id),
+    // Capture state for the unified screen
+    final xpEarned = _alreadyCompleted ? 0 : widget.event.xpReward;
+    final previousXp = _previousXp;
+    final newBadges = _newBadges;
+    final isChapterEnd = _isChapterEnd && !_alreadyCompleted;
+
+    // R17.2-05: replaced by UnifiedCompletionScreen — the old sequential
+    // overlay flow (chapter / badge / XP / dhikr / scroll writing) is
+    // preserved in its source files but no longer triggered from here.
+    //
+    // Old sequence (for reference):
+    //   Step 1: Chapter completion overlay (_showChapterComplete)
+    //   Step 2: Badge overlay loop (_showBadgeOverlay / _currentBadge)
+    //   Step 3: XP reward animation (_showXpAnimation)
+    //   Step 4: DhikrScreen push → ScrollWritingScreen → EventListScreen
+    //
+    // All five steps now live inside UnifiedCompletionScreen as sections.
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => UnifiedCompletionScreen(
+          event: widget.event,
+          xpEarned: xpEarned,
+          previousXp: previousXp,
+          newBadges: newBadges,
+          isChapterEnd: isChapterEnd,
+          alreadyCompleted: _alreadyCompleted,
         ),
-        (route) => false,
-      );
-    } else {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const EventListScreen()),
-        (route) => false,
-      );
-    }
+      ),
+    );
   }
 
   /// Back to events for replays.
@@ -1205,7 +1254,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       },
       child: Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
+      body: Listener(
+        behavior: HitTestBehavior.deferToChild,
+        onPointerDown: (event) => _checkSecretTap(
+          event.localPosition, screenW, screenH, sceneOffset,
+        ),
+        child: Stack(
         children: [
           // ── Full-screen parallax scene ──────────────────────────────
           ParallaxScene(
@@ -1236,6 +1290,30 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 ),
               ),
             ),
+
+          // ── Hidden scene secrets (active animations) ──────────────
+          ..._secretAnims.entries.map((entry) {
+            final secret = _scene.secrets.firstWhere((s) => s.id == entry.key);
+            return Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: entry.value,
+                  builder: (context, _) {
+                    final t = entry.value.value;
+                    return CustomPaint(
+                      painter: _SecretPainter(
+                        type: secret.type,
+                        x: secret.x,
+                        y: secret.y,
+                        progress: t,
+                        sceneOffset: sceneOffset,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          }),
 
           // ── Atmospheric overlays ───────────────────────────────────
           if (_scene.showStars) const StarfieldLayer(),
@@ -1667,6 +1745,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
         ],
       ),
+      ),
     ),
     );
   }
@@ -1989,6 +2068,74 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 }
 
 // ── Footprint trail painter ──────────────────────────────────────────────────
+
+/// Paints a brief reaction effect for a discovered scene secret.
+/// Type 'bird': diagonal flying line. Type 'star': diagonal shooting trail.
+class _SecretPainter extends CustomPainter {
+  final String type;
+  final double x;
+  final double y;
+  final double progress; // 0.0 → 1.0
+  final double sceneOffset;
+
+  _SecretPainter({
+    required this.type,
+    required this.x,
+    required this.y,
+    required this.progress,
+    required this.sceneOffset,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final centerX = x * size.width + sceneOffset;
+    final centerY = y * size.height;
+
+    // Fade out toward end
+    final alpha = (255 * (1.0 - progress)).round().clamp(0, 255);
+
+    if (type == 'bird') {
+      // Bird flies diagonally up-right
+      final flyX = centerX + progress * 80;
+      final flyY = centerY - progress * 50;
+      final paint = Paint()
+        ..color = const Color(0xFF2A1810).withAlpha(alpha)
+        ..style = PaintingStyle.fill;
+      // Simple V shape (wings)
+      final path = Path()
+        ..moveTo(flyX - 6, flyY)
+        ..lineTo(flyX, flyY - 4)
+        ..lineTo(flyX + 6, flyY)
+        ..lineTo(flyX, flyY - 1)
+        ..close();
+      canvas.drawPath(path, paint);
+    } else if (type == 'star') {
+      // Shooting star — diagonal line with fading trail
+      final starX = centerX + progress * 100;
+      final starY = centerY + progress * 60;
+      final paint = Paint()
+        ..color = const Color(0xFFFFD700).withAlpha(alpha)
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(
+        Offset(starX - 30, starY - 18),
+        Offset(starX, starY),
+        paint,
+      );
+      // Bright tip
+      canvas.drawCircle(
+        Offset(starX, starY),
+        3,
+        Paint()..color = const Color(0xFFFFD700).withAlpha(alpha),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SecretPainter oldDelegate) =>
+      oldDelegate.progress != progress;
+}
 
 class _FootprintPainter extends CustomPainter {
   final List<Offset> footprints;

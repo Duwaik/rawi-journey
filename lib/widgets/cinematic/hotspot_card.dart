@@ -227,16 +227,19 @@ class _HotspotCardState extends State<HotspotCard>
                         isAr: widget.isAr,
                       ),
 
-                    // "Did You Know?" section
+                    // "Did You Know?" section — always visible when DYK exists.
+                    // Buttons below remain for engagement feedback but do NOT
+                    // gate the "Tap to continue" button.
                     if (_dykText != null) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
+                      // Subtle gold separator below fragment
                       Container(height: 1, color: AppColors.gold.withAlpha(50)),
                       const SizedBox(height: 12),
                       Row(children: [
-                        Text('💡 ',
+                        Text('✨ ',
                             style: const TextStyle(fontSize: 14)),
                         Text(
-                          widget.isAr ? 'هل تعلم؟' : 'Did you know?',
+                          widget.isAr ? 'هل تعلم؟' : 'Did You Know?',
                           style: GoogleFonts.nunito(
                             color: AppColors.gold,
                             fontSize: 13,
@@ -255,7 +258,8 @@ class _HotspotCardState extends State<HotspotCard>
                         ),
                         textDirection: widget.isAr ? TextDirection.rtl : TextDirection.ltr,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
+                      // Engagement buttons — visual feedback only, no gating
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -272,8 +276,6 @@ class _HotspotCardState extends State<HotspotCard>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Container(height: 1, color: AppColors.gold.withAlpha(50)),
                     ],
 
                     // Source reference
@@ -291,8 +293,7 @@ class _HotspotCardState extends State<HotspotCard>
 
                     const SizedBox(height: 16),
 
-                    // Tap to continue + VO replay — only show if no DYK, or DYK answered
-                    if (_dykText == null || _dykResponse != null)
+                    // Tap to continue + VO replay — always visible (no DYK gate)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,

@@ -26,11 +26,23 @@ class EventIntroScreen extends StatefulWidget {
 }
 
 class _EventIntroScreenState extends State<EventIntroScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   double _blackOpacity = 0.0;
   double _cardOpacity = 0.0;
   bool _disposed = false;
   late final AnimationController _particleCtrl;
+  late final AnimationController _cursorCtrl;
+
+  // Typewriter state: which line is currently typing (0=date, 1=location,
+  // 2=title, 3=done) and how many characters of each line are visible.
+  int _currentLine = -1;
+  int _dateChars = 0;
+  int _locationChars = 0;
+  int _titleChars = 0;
+
+  static const int _charIntervalMs = 40;
+  static const int _linePauseMs = 200;
+  static const int _finalPauseMs = 800;
 
   @override
   void initState() {
@@ -40,6 +52,11 @@ class _EventIntroScreenState extends State<EventIntroScreen>
       vsync: this,
       duration: const Duration(seconds: 8),
     )..repeat();
+    // Blinking cursor (500ms interval)
+    _cursorCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..repeat(reverse: true);
     // R7-01: Home ambient (ambient_intro.mp3) is already playing from
     // events list. Fade it out smoothly as the title card appears —
     // no separate transition ambient, just continuity into silence
@@ -53,23 +70,59 @@ class _EventIntroScreenState extends State<EventIntroScreen>
     await _animateTo(() => _blackOpacity, (v) => _blackOpacity = v, 1.0, 400);
     if (_disposed) return;
 
-    // Phase 2: Title card fades in (400ms)
+    // Phase 2: Title card container fades in (400ms)
     await _animateTo(() => _cardOpacity, (v) => _cardOpacity = v, 1.0, 400);
     if (_disposed) return;
 
-    // Phase 3: Hold title card (3000ms)
-    await Future.delayed(const Duration(milliseconds: 3000));
+    // Phase 3: Typewriter reveal of the three lines
+    final isAr = PrefsService.isAr;
+    final event = widget.event;
+    final dateText = '${event.year} CE';
+    final locationText = isAr ? event.locationAr : event.location;
+    final titleText = isAr ? event.titleAr : event.title;
+
+    // Line 1: date
+    await _typeLine(0, dateText.length, (n) => _dateChars = n);
+    if (_disposed) return;
+    await Future.delayed(const Duration(milliseconds: _linePauseMs));
     if (_disposed) return;
 
-    // Phase 4: Title card fades out (400ms)
-    await _animateTo(() => _cardOpacity, (v) => _cardOpacity = v, 0.0, 400);
+    // Line 2: location
+    await _typeLine(1, locationText.characters.length,
+        (n) => _locationChars = n);
+    if (_disposed) return;
+    await Future.delayed(const Duration(milliseconds: _linePauseMs));
     if (_disposed) return;
 
-    // Phase 5: Brief pause then callback
-    await Future.delayed(const Duration(milliseconds: 200));
+    // Line 3: title
+    await _typeLine(2, titleText.characters.length, (n) => _titleChars = n);
+    if (_disposed) return;
+
+    // Cursor disappears after all lines complete
+    if (!_disposed) setState(() => _currentLine = 3);
+
+    // Phase 4: Final pause (800ms) then auto-transition
+    await Future.delayed(const Duration(milliseconds: _finalPauseMs));
     if (_disposed) return;
 
     widget.onComplete();
+  }
+
+  Future<void> _typeLine(
+    int lineIndex,
+    int totalChars,
+    void Function(int) setter,
+  ) async {
+    if (_disposed) return;
+    setState(() {
+      _currentLine = lineIndex;
+      setter(0);
+    });
+    for (int i = 1; i <= totalChars; i++) {
+      await Future.delayed(const Duration(milliseconds: _charIntervalMs));
+      if (_disposed) return;
+      setState(() => setter(i));
+    }
   }
 
   Future<void> _animateTo(
@@ -94,9 +147,61 @@ class _EventIntroScreenState extends State<EventIntroScreen>
   void dispose() {
     _disposed = true;
     _particleCtrl.dispose();
+    _cursorCtrl.dispose();
     // Home ambient already faded during initState (800ms fade).
     // Immersive event's hotspot ambients will take over cleanly.
     super.dispose();
+  }
+
+  /// Blinking vertical gold cursor, sized to match the text line height.
+  Widget _buildCursor(double fontSize) {
+    return AnimatedBuilder(
+      animation: _cursorCtrl,
+      builder: (_, _) => Opacity(
+        opacity: _cursorCtrl.value,
+        child: Container(
+          width: 2,
+          height: fontSize,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          color: AppColors.gold,
+        ),
+      ),
+    );
+  }
+
+  /// A single typewriter line: shows substring(0, charCount) of [fullText]
+  /// and, if this is the active line, a blinking cursor on the leading edge.
+  /// For LTR the cursor sits to the right of the text; for RTL (Arabic) the
+  /// cursor sits to the left — matching the direction of character reveal.
+  Widget _buildTypewriterLine({
+    required String fullText,
+    required int charCount,
+    required bool isActive,
+    required bool isAr,
+    required TextStyle style,
+    TextAlign textAlign = TextAlign.center,
+  }) {
+    final chars = fullText.characters;
+    final shown = charCount >= chars.length
+        ? fullText
+        : chars.take(charCount).toString();
+    final fontSize = style.fontSize ?? 14;
+    final cursor = isActive ? _buildCursor(fontSize) : const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+      children: [
+        Flexible(
+          child: Text(
+            shown,
+            textAlign: textAlign,
+            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: style,
+          ),
+        ),
+        cursor,
+      ],
+    );
   }
 
   @override
@@ -167,9 +272,12 @@ class _EventIntroScreenState extends State<EventIntroScreen>
                     ),
                     const SizedBox(height: 10),
 
-                    // Year
-                    Text(
-                      '${event.year} CE',
+                    // Year (typewriter line 1)
+                    _buildTypewriterLine(
+                      fullText: '${event.year} CE',
+                      charCount: _dateChars,
+                      isActive: _currentLine == 0,
+                      isAr: false,
                       style: GoogleFonts.nunito(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -179,11 +287,12 @@ class _EventIntroScreenState extends State<EventIntroScreen>
                     ),
                     const SizedBox(height: 8),
 
-                    // Location
-                    Text(
-                      location,
-                      textDirection:
-                          isAr ? TextDirection.rtl : TextDirection.ltr,
+                    // Location (typewriter line 2)
+                    _buildTypewriterLine(
+                      fullText: location,
+                      charCount: _locationChars,
+                      isActive: _currentLine == 1,
+                      isAr: isAr,
                       style: GoogleFonts.nunito(
                         fontSize: 13,
                         color: AppColors.gold.withAlpha(160),
@@ -200,12 +309,12 @@ class _EventIntroScreenState extends State<EventIntroScreen>
                     ),
                     const SizedBox(height: 16),
 
-                    // Event title
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      textDirection:
-                          isAr ? TextDirection.rtl : TextDirection.ltr,
+                    // Event title (typewriter line 3)
+                    _buildTypewriterLine(
+                      fullText: title,
+                      charCount: _titleChars,
+                      isActive: _currentLine == 2,
+                      isAr: isAr,
                       style: GoogleFonts.cinzelDecorative(
                         fontSize: 22,
                         color: AppColors.gold,
