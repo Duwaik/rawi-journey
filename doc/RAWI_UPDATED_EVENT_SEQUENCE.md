@@ -59,7 +59,7 @@ writing. See [`RAWI_BLOCKED_EVENTS.md`](./RAWI_BLOCKED_EVENTS.md).
 | 12 | The Black Stone: A Wise Arbitration | الحجر الأسود: حُكم الأمين | 🟢 Playable (rewritten Sprint 55) | j_1_1_3 |
 | 13 | Solitude in Cave Hira | الخلوة في غار حراء | 🟢 Playable | j_1_2_6 |
 | 14 | The First Revelation | نزول الوحي الأول | 🟢 Playable (with Witness Moment) | j_1_2_7 |
-| 15 | The First Believers | أوائل المؤمنين | Exists as j_1_2_8 (old position 11) |
+| 15 | The First Believers | أوائل المؤمنين | 🟢 Playable | j_1_2_8 |
 
 > **For events 16+** see `RAWI_155_MASTER_LIST.md` — honorifics
 > (e.g., Event 23 "إسلام حمزة رضي الله عنه", Event 24 "إسلام عمر

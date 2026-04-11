@@ -47,6 +47,12 @@ app.*.map.json
 # Bug screenshots (testing artifacts)
 assets/bugs/
 
+# Generator intermediate output (regenerated on demand)
+tools/output/
+
+# Backup copies of dart files (created during generator runs)
+lib/data/*.bak
+
 # Release signing (private)
 android/key.properties
 *.jks

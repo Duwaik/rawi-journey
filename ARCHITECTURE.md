@@ -46,14 +46,16 @@ content writing — see [`doc/RAWI_BLOCKED_EVENTS.md`](doc/RAWI_BLOCKED_EVENTS.m
 | Dart files | 78 |
 | Dart lines | ~17,700 |
 | Asset files | 119 (52 companion + 14 SFX + 8 ElevenLabs ambient/SFX + 16 scenes + 4 figures + 1 icon + 1 video + others) |
-| Playable immersive events | 14 (Events 1-14 — 2 branching + 12 linear with scene configs) |
-| Content-ready events | 14 (Events 1-14 — all playable) |
+| Playable immersive events | 152 (Events 1-36, 38-44, 47-155 with scene configs) |
+| Content-ready events | 152 (1-36, 38-44, 47-155 — generated from Khaled's content packs) |
 | Total events in scope | 155 across 4 modules (M1:47, M2:35, M3:38, M4:35) |
-| Dhikr cards | 14 (Sahih Bukhari/Muslim sourced) |
-| Scroll entries | 14 |
+| Dhikr cards | 147 (Sahih Bukhari/Muslim/Abu Dawud sourced) |
+| Scroll entries | 151 |
 | Engagement features | 8 built (Fog, Proximity, Haptics, Secrets, Evolution, Reactions, Scroll, Living Map) |
-| Total events in data | 40 (Events 1-14 fully built, 15-40 are shells awaiting content) |
-| Era distribution | Jahiliyyah 2, Early Life 13, Mecca 11, Medina 14 |
+| Total events in data | 155 (3 stubs at 37/45/46 awaiting Khaled content) |
+| Era distribution | Jahiliyyah 2, Early Life 13, Mecca 32, Medina 108 |
+| Blocked events | 15 implemented (review-flagged), 3 stubs pending content |
+| Generator script | tools/generate_events.py — parses Downloads .md, splices into 4 dart files |
 | Git commits | 80+ |
 
 ---

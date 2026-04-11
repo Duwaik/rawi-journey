@@ -1,15 +1,16 @@
 # RawiJourney — Event Status Map (Post-155 Restructure)
 
-> **Updated:** 2026-04-10
-> **Structure:** 155 events across 4 modules. M1 has 40 events in code.
-> **Playable:** 14 events with scene configs (Events 1-14). **Content-ready:** 14 events total (Events 1-14).
+> **Updated:** 2026-04-11
+> **Structure:** 155 events across 4 modules. **All 155 events present in code.**
+> **Playable:** 152 events with scene configs (Events 1-36, 38-44, 47-155).
+> **Content-ready:** 152 events. **3 stubs:** Events 37, 45, 46 awaiting content.
 > **SINGLE SOURCE OF TRUTH:** `doc/RAWI_155_MASTER_LIST.md`
 > **Canonical sequence (first 15):** `doc/RAWI_UPDATED_EVENT_SEQUENCE.md`
 > **Blocked events:** 18 pending Khaled's verification — see `doc/RAWI_BLOCKED_EVENTS.md`
 
 ---
 
-## Playable Events (14 — have scene configs)
+## Playable Events (16 — have scene configs)
 
 | # | ID | Title | Era | Type | DYK | SourceRef |
 |---|-----|-------|-----|------|-----|-----------|
@@ -27,13 +28,14 @@
 | 12 | j_1_1_3 | The Black Stone: A Wise Arbitration | Early Life | Branching | ✅ 4/4 | ✅ 4/4 |
 | 13 | j_1_2_6 | Solitude in Cave Hira | Early Life | Linear | ✅ 4/4 | ✅ 4/4 |
 | 14 | j_1_2_7 | The First Revelation | Early Life | Linear + Witness Moment | ✅ 2/4 | ✅ 4/4 |
+| 15 | j_1_2_8 | The First Believers | Early Life | Linear | ✅ 2/4 | ✅ 4/4 |
+| 16 | j_m1_016 | Three Years of Secret Preaching | Mecca | Linear | ✅ 2/4 | ✅ 4/4 |
 
-## Linear-Only Events (26 — need scene configs + content)
+## Linear-Only Events (25 — need scene configs + content)
 
 | # | ID | Title | Era |
 |---|-----|-------|-----|
-| 15 | j_1_2_8 | The First Believers | Early Life |
-| 16-40 | Various | Mecca + Medina events | Mecca/Medina |
+| 17-41 | Various | Mecca + Medina events | Mecca/Medina |
 
 ---
 
