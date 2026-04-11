@@ -1808,7 +1808,28 @@ final List<JourneyEvent> m1Events = [
     narrativeAr: '',
     source: 'Quran 9:108 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 16',
     xpReward: 35,
-    questions: const [],
+    questions: [
+      JourneyQuestion(
+        id: 'q_m1_044',
+        question: 'How long did the Prophet \uFDFA stay in Quba before continuing to Yathrib?',
+        questionAr: 'كم أقام النبيّ \uFDFA في قباء قبل مواصلة الطريق إلى يثرب؟',
+        options: [
+          'One day',
+          'Four days',
+          'Two weeks',
+        ],
+        optionsAr: [
+          'يومًا واحدًا',
+          'أربعة أيام',
+          'أسبوعين',
+        ],
+        correctIndex: 1,
+        explanation: 'The Prophet \uFDFA stayed in Quba for four days with the Banu Amr ibn Awf. During that time he laid the foundation of Masjid Quba, the first mosque in Islam, before continuing to Yathrib.',
+        explanationAr: 'أقام النبيّ \uFDFA في قباء أربعة أيام عند بني عمرو بن عوف. خلالها وضع أساس مسجد قباء أوّل مسجد في الإسلام قبل مواصلة الطريق إلى يثرب.',
+        sourceRef: 'Sahih al-Bukhari #3906; Al-Raheeq Al-Makhtum Ch. 16',
+        sourceRefAr: 'Sahih al-Bukhari #3906; Al-Raheeq Al-Makhtum Ch. 16',
+      ),
+    ],
   ),
 
   JourneyEvent(
@@ -1875,7 +1896,28 @@ final List<JourneyEvent> m1Events = [
     narrativeAr: '',
     source: 'Sahih Bukhari 428 | Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 16',
     xpReward: 35,
-    questions: const [],
+    questions: [
+      JourneyQuestion(
+        id: 'q_m2_048',
+        question: 'Who owned the land where the Prophet\'s Mosque was built?',
+        questionAr: 'من كان يملك الأرض التي بُني عليها المسجد النبوي؟',
+        options: [
+          'Abu Ayyub al-Ansari رضي الله عنه',
+          'Two orphan boys, Sahl and Suhayl',
+          'It was public land with no owner',
+        ],
+        optionsAr: [
+          'أبو أيّوب الأنصاري رضي الله عنه',
+          'يتيمان، سهل وسهيل',
+          'أرض عامّة بلا مالك',
+        ],
+        correctIndex: 1,
+        explanation: 'The land belonged to two orphan boys named Sahl and Suhayl. The Prophet \uFDFA insisted on paying them the full price of ten dinars, refusing to take it as a gift, establishing that even the most sacred building must be acquired justly.',
+        explanationAr: 'كانت الأرض ليتيمين اسمهما سهل وسهيل. أصرّ النبيّ \uFDFA على دفع ثمنها كاملًا عشرة دنانير رافضًا أخذها هدية مرسيًا أنّ حتّى أقدس بناء يجب أن يُقتنى بالعدل.',
+        sourceRef: 'Al-Raheeq Al-Makhtum Ch. 16; Sahih al-Bukhari #3906',
+        sourceRefAr: 'Al-Raheeq Al-Makhtum Ch. 16; Sahih al-Bukhari #3906',
+      ),
+    ],
   ),
 
   JourneyEvent(
@@ -1892,7 +1934,28 @@ final List<JourneyEvent> m1Events = [
     narrativeAr: '',
     source: 'Quran 2:127 | Al-Raheeq Al-Makhtum, Ch. 1',
     xpReward: 35,
-    questions: const [],
+    questions: [
+      JourneyQuestion(
+        id: 'q_m2_049',
+        question: 'What did Abdur-Rahman ibn Awf ask his Ansari brother Sa\'d ibn al-Rabi\' for?',
+        questionAr: 'ماذا طلب عبد الرحمن بن عوف من أخيه الأنصاري سعد بن الربيع؟',
+        options: [
+          'Half his wealth and one of his wives',
+          'Only to be shown where the market was',
+          'A house to live in permanently',
+        ],
+        optionsAr: [
+          'نصف ماله وإحدى زوجاته',
+          'فقط أن يدلّه على السوق',
+          'بيتًا يسكنه دائمًا',
+        ],
+        correctIndex: 1,
+        explanation: 'When Sa\'d offered to split his wealth and even divorce a wife for him, Abdur-Rahman رضي الله عنه declined everything and asked only: "Show me where the market is." Within days he was trading and building his own livelihood. He came to give, not to take.',
+        explanationAr: 'حين عرض سعد أن يقسم ماله ويطلّق زوجةً لأجله رفض عبد الرحمن رضي الله عنه كلّ شيء وطلب فقط: "دلّني على السوق." خلال أيام كان يتاجر ويبني رزقه بنفسه. جاء ليعطي لا ليأخذ.',
+        sourceRef: 'Sahih al-Bukhari #3781; Al-Raheeq Al-Makhtum Ch. 16',
+        sourceRefAr: 'Sahih al-Bukhari #3781; Al-Raheeq Al-Makhtum Ch. 16',
+      ),
+    ],
   ),
 
   JourneyEvent(
@@ -1909,7 +1972,28 @@ final List<JourneyEvent> m1Events = [
     narrativeAr: '',
     source: 'Ibn Hisham | Al-Raheeq Al-Makhtum, Ch. 16',
     xpReward: 35,
-    questions: const [],
+    questions: [
+      JourneyQuestion(
+        id: 'q_m2_050',
+        question: 'What did the Constitution of Medina guarantee to the Jewish tribes?',
+        questionAr: 'ماذا ضمنت صحيفة المدينة للقبائل اليهودية؟',
+        options: [
+          'They must convert to Islam within one year',
+          'Freedom of religion while sharing mutual defense obligations',
+          'They were expelled from the city',
+        ],
+        optionsAr: [
+          'يجب أن يُسلموا خلال سنة',
+          'حرّية الدين مع التزامات دفاعية مشتركة',
+          'طُردوا من المدينة',
+        ],
+        correctIndex: 1,
+        explanation: 'The Constitution explicitly guaranteed the Jewish tribes freedom of worship and their own religious practices, while establishing mutual obligations: all groups would defend Medina together and resolve disputes through the Prophet \uFDFA as arbiter.',
+        explanationAr: 'ضمنت الصحيفة صراحةً للقبائل اليهودية حرّية العبادة وممارساتهم الدينية مع التزامات مشتركة: كلّ المجموعات تدافع عن المدينة معًا وتحلّ النزاعات عبر النبيّ \uFDFA حَكَمًا.',
+        sourceRef: 'Al-Raheeq Al-Makhtum Ch. 16; Ibn Hisham',
+        sourceRefAr: 'Al-Raheeq Al-Makhtum Ch. 16; Ibn Hisham',
+      ),
+    ],
   ),
 
   JourneyEvent(
