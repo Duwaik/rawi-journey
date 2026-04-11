@@ -124,9 +124,12 @@ class _EventListScreenState extends State<EventListScreen>
   bool get _isAr => PrefsService.isAr;
 
   /// Returns video intro path for events with cinematic videos.
-  /// Only on first play — replays use regular cinematic transition.
+  /// Plays only on the very first visit — once the user has discovered
+  /// any hotspot (or finished the event), the video is skipped on
+  /// re-entry. Universal rule, no per-event exceptions.
   String? _getVideoIntro(String eventId, int globalOrder) {
     if (PrefsService.isEventCompleted(globalOrder)) return null;
+    if (PrefsService.loadHotspotProgress(eventId).isNotEmpty) return null;
     const videoIntros = {
       'j_1_1_2': 'assets/video/event2_intro.mp4',
       // Add more: 'j_1_1_X': 'assets/video/eventX_intro.mp4',

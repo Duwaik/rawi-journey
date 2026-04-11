@@ -152,15 +152,29 @@ class _CompletedLine extends StatelessWidget {
 
   const _CompletedLine({required this.entry, required this.isAr});
 
+  /// Convert ASCII digits to Arabic-Indic digits (٠١٢٣٤٥٦٧٨٩).
+  static String _toArabicNumeral(int n) {
+    const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    return n.toString().split('').map((d) => arabicDigits[int.parse(d)]).join();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Display-only prefix: "E1:" in EN, "١ :الحدث" in AR.
+    // Data in scroll_entries.dart is unchanged.
+    final body = isAr ? entry.lineAr : entry.lineEn;
+    final prefix = isAr
+        ? '${_toArabicNumeral(entry.globalOrder)} :الحدث'
+        : 'E${entry.globalOrder}:';
+    final displayText = '$prefix $body';
+
     return GestureDetector(
       onTap: () {
         // Visual feedback only for now
         HapticFeedback.selectionClick();
       },
       child: Text(
-        isAr ? entry.lineAr : entry.lineEn,
+        displayText,
         textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
         style: isAr
             ? GoogleFonts.amiri(

@@ -1,236 +1,174 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../data/m1_data.dart';
 import '../data/map_locations.dart';
-import '../models/map_location.dart';
 import '../models/journey_event.dart';
+import '../models/map_location.dart';
 import '../services/prefs_service.dart';
 
-// ── Coastline painter (Arabian Peninsula outline) ───────────────────────────
+// ─── Constants ───────────────────────────────────────────────────────────────
 
-class _CoastlinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.gold.withAlpha(45)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+const _inkBrown = Color(0xFF4A3520);
+const _inkBrownFaded = Color(0x554A3520);
+const _inkBrownGhost = Color(0x224A3520);
+const _gold = AppColors.gold;
+const _virtualMapWidth = 800.0;
+const _virtualMapHeight = 1100.0;
 
-    final w = size.width;
-    final h = size.height;
+// ─── Location state ──────────────────────────────────────────────────────────
 
-    Offset p(double x, double y) => Offset(x * w, y * h);
+enum _LocState {
+  /// All events at this location are completed.
+  completed,
 
-    // ── Arabian Peninsula ─────────────────────────────────────────────────
-    final peninsula = Path();
+  /// At least one event is the user's current event (or partial progress).
+  current,
 
-    // Start at northwest — top of the Red Sea / Sinai area
-    peninsula.moveTo(p(0.40, 0.18).dx, p(0.40, 0.18).dy);
+  /// Revealed but the user hasn't reached its events yet.
+  revealed,
 
-    // Red Sea (west coast) — curve down along the peninsula's western side
-    peninsula.quadraticBezierTo(
-      p(0.36, 0.28).dx, p(0.36, 0.28).dy,
-      p(0.40, 0.36).dx, p(0.40, 0.36).dy,
-    );
-    peninsula.quadraticBezierTo(
-      p(0.38, 0.44).dx, p(0.38, 0.44).dy,
-      p(0.42, 0.52).dx, p(0.42, 0.52).dy,
-    );
-    peninsula.quadraticBezierTo(
-      p(0.43, 0.62).dx, p(0.43, 0.62).dy,
-      p(0.46, 0.72).dx, p(0.46, 0.72).dy,
-    );
-    peninsula.quadraticBezierTo(
-      p(0.48, 0.80).dx, p(0.48, 0.80).dy,
-      p(0.50, 0.86).dx, p(0.50, 0.86).dy,
-    );
+  /// One of the next 3 locations about to appear; rendered as faint "?".
+  upcoming,
 
-    // Gulf of Aden / south coast — curve east along the southern edge
-    peninsula.quadraticBezierTo(
-      p(0.56, 0.90).dx, p(0.56, 0.90).dy,
-      p(0.62, 0.87).dx, p(0.62, 0.87).dy,
-    );
-    peninsula.quadraticBezierTo(
-      p(0.68, 0.84).dx, p(0.68, 0.84).dy,
-      p(0.72, 0.78).dx, p(0.72, 0.78).dy,
-    );
-
-    // Oman / UAE — up around the eastern tip
-    peninsula.quadraticBezierTo(
-      p(0.74, 0.72).dx, p(0.74, 0.72).dy,
-      p(0.70, 0.66).dx, p(0.70, 0.66).dy,
-    );
-
-    // Persian Gulf (east coast) — up along the eastern side
-    peninsula.quadraticBezierTo(
-      p(0.64, 0.62).dx, p(0.64, 0.62).dy,
-      p(0.62, 0.55).dx, p(0.62, 0.55).dy,
-    );
-    peninsula.quadraticBezierTo(
-      p(0.63, 0.48).dx, p(0.63, 0.48).dy,
-      p(0.65, 0.42).dx, p(0.65, 0.42).dy,
-    );
-    peninsula.quadraticBezierTo(
-      p(0.62, 0.34).dx, p(0.62, 0.34).dy,
-      p(0.58, 0.28).dx, p(0.58, 0.28).dy,
-    );
-
-    // Close back northward toward Sinai
-    peninsula.quadraticBezierTo(
-      p(0.52, 0.22).dx, p(0.52, 0.22).dy,
-      p(0.46, 0.18).dx, p(0.46, 0.18).dy,
-    );
-    peninsula.quadraticBezierTo(
-      p(0.43, 0.17).dx, p(0.43, 0.17).dy,
-      p(0.40, 0.18).dx, p(0.40, 0.18).dy,
-    );
-
-    canvas.drawPath(peninsula, paint);
-
-    // ── Africa / Abyssinia (separate small landmass, west side) ───────────
-    final africa = Path();
-    africa.moveTo(p(0.14, 0.66).dx, p(0.14, 0.66).dy);
-    africa.quadraticBezierTo(
-      p(0.12, 0.74).dx, p(0.12, 0.74).dy,
-      p(0.16, 0.82).dx, p(0.16, 0.82).dy,
-    );
-    africa.quadraticBezierTo(
-      p(0.20, 0.88).dx, p(0.20, 0.88).dy,
-      p(0.24, 0.86).dx, p(0.24, 0.86).dy,
-    );
-    africa.quadraticBezierTo(
-      p(0.26, 0.78).dx, p(0.26, 0.78).dy,
-      p(0.23, 0.70).dx, p(0.23, 0.70).dy,
-    );
-    africa.quadraticBezierTo(
-      p(0.19, 0.65).dx, p(0.19, 0.65).dy,
-      p(0.14, 0.66).dx, p(0.14, 0.66).dy,
-    );
-
-    canvas.drawPath(africa, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _CoastlinePainter oldDelegate) => false;
+  /// Not yet on the map.
+  hidden,
 }
 
-// ── Route painter ────────────────────────────────────────────────────────────
+// ─── Wobble path generator ──────────────────────────────────────────────────
 
-class _RouteLinePainter extends CustomPainter {
-  final List<MapLocation> locations;
-  final Size mapSize;
-  final int currentOrder;
+/// Build a slightly imperfect Path between two points by deflecting the
+/// midpoint along the perpendicular. Deterministic on (idA, idB) so the
+/// same edge always wobbles the same way.
+Path _wobblePath(Offset a, Offset b, String idA, String idB) {
+  final path = Path()..moveTo(a.dx, a.dy);
+  final dx = b.dx - a.dx;
+  final dy = b.dy - a.dy;
+  final dist = math.sqrt(dx * dx + dy * dy);
+  if (dist < 1) {
+    path.lineTo(b.dx, b.dy);
+    return path;
+  }
+  // Perpendicular unit vector
+  final pxN = -dy / dist;
+  final pyN = dx / dist;
+  // Deterministic wobble seed from the two ids
+  final seed = (idA.codeUnits.fold<int>(0, (s, c) => s + c) * 31 +
+          idB.codeUnits.fold<int>(0, (s, c) => s + c)) %
+      1000;
+  final amp = (3.0 + (seed % 5)) * (dist / 200.0).clamp(0.5, 2.5);
+  // Two control points along the line, both deflected
+  final c1x = a.dx + dx * 0.33 + pxN * amp;
+  final c1y = a.dy + dy * 0.33 + pyN * amp;
+  final c2x = a.dx + dx * 0.66 - pxN * amp * 0.8;
+  final c2y = a.dy + dy * 0.66 - pyN * amp * 0.8;
+  path.cubicTo(c1x, c1y, c2x, c2y, b.dx, b.dy);
+  return path;
+}
 
-  _RouteLinePainter({
-    required this.locations,
-    required this.mapSize,
-    required this.currentOrder,
+// ─── Path painter ────────────────────────────────────────────────────────────
+
+class _ParchmentPathPainter extends CustomPainter {
+  final List<MapLocation> visible;
+  final Set<String> completedIds;
+  final Set<String> currentIds;
+  final List<MapLocation> upcoming;
+
+  _ParchmentPathPainter({
+    required this.visible,
+    required this.completedIds,
+    required this.currentIds,
+    required this.upcoming,
   });
 
-  Offset _pos(MapLocation loc) =>
-      Offset(loc.mapX * mapSize.width, loc.mapY * mapSize.height);
+  Offset _pos(MapLocation loc, Size size) =>
+      Offset(loc.mapX * size.width, loc.mapY * size.height);
 
-  bool _isLocationCompleted(MapLocation loc) {
-    if (loc.eventIds.isEmpty) return false;
-    for (final eid in loc.eventIds) {
-      final ev = m1Events.cast<JourneyEvent?>().firstWhere(
-            (e) => e?.id == eid,
-            orElse: () => null,
-          );
-      if (ev != null && !PrefsService.isEventCompleted(ev.globalOrder)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool _hasAnyCompleted(MapLocation loc) {
-    for (final eid in loc.eventIds) {
-      final ev = m1Events.cast<JourneyEvent?>().firstWhere(
-            (e) => e?.id == eid,
-            orElse: () => null,
-          );
-      if (ev != null && PrefsService.isEventCompleted(ev.globalOrder)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool _isLocOpen(MapLocation loc) =>
+      completedIds.contains(loc.id) || currentIds.contains(loc.id);
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Build ordered location list from locationRouteOrder
-    final ordered = <MapLocation>[];
-    for (final id in locationRouteOrder) {
-      final loc = locations.cast<MapLocation?>().firstWhere(
-            (l) => l?.id == id,
-            orElse: () => null,
-          );
-      if (loc != null) ordered.add(loc);
-    }
+    final byId = {for (final l in visible) l.id: l};
+    final upcomingById = {for (final l in upcoming) l.id: l};
+    final drawnPairs = <String>{};
 
-    for (int i = 0; i < ordered.length - 1; i++) {
-      final from = ordered[i];
-      final to = ordered[i + 1];
-      final a = _pos(from);
-      final b = _pos(to);
+    for (final from in visible) {
+      for (final toId in from.connectedTo) {
+        // Avoid drawing the same edge twice
+        final pair = ([from.id, toId]..sort()).join('|');
+        if (drawnPairs.contains(pair)) continue;
+        drawnPairs.add(pair);
 
-      final fromDone = _isLocationCompleted(from) || _hasAnyCompleted(from);
-      final toDone = _isLocationCompleted(to) || _hasAnyCompleted(to);
-      final segmentCompleted = fromDone && toDone;
+        final to = byId[toId] ?? upcomingById[toId];
+        if (to == null) continue;
 
-      if (segmentCompleted) {
-        // Solid gold line
-        final paint = Paint()
-          ..color = AppColors.gold.withAlpha(102)
-          ..strokeWidth = 1.5
-          ..style = PaintingStyle.stroke;
-        canvas.drawLine(a, b, paint);
-      } else {
-        // Dotted line
-        _drawDottedLine(canvas, a, b, AppColors.gold.withAlpha(51));
+        final a = _pos(from, size);
+        final b = _pos(to, size);
+        final path = _wobblePath(a, b, from.id, toId);
+
+        final fromOpen = _isLocOpen(from);
+        final toOpen = _isLocOpen(to);
+        final toIsRevealed = byId.containsKey(toId);
+
+        final Paint paint;
+        if (fromOpen && toOpen) {
+          // Traveled — solid ink line
+          paint = Paint()
+            ..color = _inkBrown
+            ..strokeWidth = 1.7
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round;
+          canvas.drawPath(path, paint);
+        } else if (fromOpen && toIsRevealed) {
+          // Open path to a revealed (not yet completed) location
+          paint = Paint()
+            ..color = _inkBrownFaded
+            ..strokeWidth = 1.4
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round;
+          canvas.drawPath(path, paint);
+        } else if (fromOpen && upcomingById.containsKey(toId)) {
+          // "Next" path to a yet-to-be-revealed upcoming location: dashed
+          _drawDashedPath(canvas, path, _inkBrownGhost);
+        }
+        // Otherwise: invisible
       }
     }
   }
 
-  void _drawDottedLine(Canvas canvas, Offset a, Offset b, Color color) {
+  void _drawDashedPath(Canvas canvas, Path path, Color color) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    final dx = b.dx - a.dx;
-    final dy = b.dy - a.dy;
-    final dist = math.sqrt(dx * dx + dy * dy);
-    const dashLen = 4.0;
-    const gapLen = 6.0;
-    final steps = dist / (dashLen + gapLen);
-    final ux = dx / dist;
-    final uy = dy / dist;
-    for (int s = 0; s < steps; s++) {
-      final startD = s * (dashLen + gapLen);
-      final endD = startD + dashLen;
-      canvas.drawLine(
-        Offset(a.dx + ux * startD, a.dy + uy * startD),
-        Offset(a.dx + ux * endD, a.dy + uy * endD),
-        paint,
-      );
+    final metrics = path.computeMetrics();
+    const dashLen = 6.0;
+    const gapLen = 5.0;
+    for (final metric in metrics) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final next = math.min(distance + dashLen, metric.length);
+        final extract = metric.extractPath(distance, next);
+        canvas.drawPath(extract, paint);
+        distance = next + gapLen;
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _RouteLinePainter oldDelegate) => true;
+  bool shouldRepaint(covariant _ParchmentPathPainter old) {
+    return old.completedIds != completedIds ||
+        old.currentIds != currentIds ||
+        old.visible.length != visible.length;
+  }
 }
 
-// ── Location status enum ─────────────────────────────────────────────────────
-
-enum _LocationStatus { completed, current, partial, locked }
-
-// ── Main screen ──────────────────────────────────────────────────────────────
+// ─── Main screen ─────────────────────────────────────────────────────────────
 
 class LivingMapScreen extends StatefulWidget {
   const LivingMapScreen({super.key});
@@ -241,79 +179,51 @@ class LivingMapScreen extends StatefulWidget {
 
 class _LivingMapScreenState extends State<LivingMapScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnim;
   late int _currentOrder;
-
-  // Transformation controller — used to read current zoom scale so we can
-  // hide sub-location labels when zoomed out (R17-03).
-  final TransformationController _transformController =
-      TransformationController();
-  double _currentScale = 1.0;
-
-  // Virtual map size (the coordinate space)
-  static const _mapWidth = 800.0;
-  static const _mapHeight = 900.0;
-
-  // Mecca's normalized position — used to detect sub-locations that
-  // cluster around it so their labels can be hidden when zoomed out.
-  static const double _meccaX = 0.42;
-  static const double _meccaY = 0.62;
-  static const double _subLocationRadius = 0.05;
-  static const double _labelZoomThreshold = 1.5;
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulseAnim;
+  final TransformationController _viewCtrl = TransformationController();
 
   @override
   void initState() {
     super.initState();
     _currentOrder = PrefsService.currentOrder;
-    _pulseController = AnimationController(
+    _pulseCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
-    _pulseAnim = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    _transformController.addListener(_onTransformChanged);
-  }
-
-  void _onTransformChanged() {
-    final scale = _transformController.value.getMaxScaleOnAxis();
-    if ((scale - _currentScale).abs() > 0.01) {
-      setState(() => _currentScale = scale);
-    }
+    _pulseAnim =
+        Tween<double>(begin: 0.55, end: 1.0).animate(CurvedAnimation(
+      parent: _pulseCtrl,
+      curve: Curves.easeInOut,
+    ));
   }
 
   @override
   void dispose() {
-    _transformController.removeListener(_onTransformChanged);
-    _transformController.dispose();
-    _pulseController.dispose();
+    _pulseCtrl.dispose();
+    _viewCtrl.dispose();
     super.dispose();
-  }
-
-  /// True if this location is Mecca itself.
-  bool _isMecca(MapLocation loc) => loc.id == 'mecca';
-
-  /// True if this location is a sub-location clustered near Mecca
-  /// (within _subLocationRadius normalized units) — excluding Mecca itself.
-  bool _isMeccaSubLocation(MapLocation loc) {
-    if (_isMecca(loc)) return false;
-    final dx = loc.mapX - _meccaX;
-    final dy = loc.mapY - _meccaY;
-    return (dx * dx + dy * dy) <= (_subLocationRadius * _subLocationRadius);
   }
 
   bool get _isAr => PrefsService.isAr;
 
-  // ── Location status helpers ────────────────────────────────────────────
+  // ── State helpers ────────────────────────────────────────────────────────
 
-  _LocationStatus _status(MapLocation loc) {
-    if (loc.eventIds.isEmpty) return _LocationStatus.locked;
+  JourneyEvent? _findEvent(String id) {
+    for (final e in m1Events) {
+      if (e.id == id) return e;
+    }
+    return null;
+  }
+
+  _LocState _statusFor(MapLocation loc) {
+    if (_currentOrder < loc.revealsAtEvent) return _LocState.hidden;
+    if (loc.eventIds.isEmpty) return _LocState.revealed;
 
     bool allDone = true;
+    bool anyCurrent = false;
     bool anyDone = false;
-    bool hasCurrent = false;
-
     for (final eid in loc.eventIds) {
       final ev = _findEvent(eid);
       if (ev == null) continue;
@@ -322,42 +232,29 @@ class _LivingMapScreenState extends State<LivingMapScreen>
       } else {
         allDone = false;
       }
-      if (ev.globalOrder == _currentOrder) hasCurrent = true;
+      if (ev.globalOrder == _currentOrder) anyCurrent = true;
     }
-
-    if (allDone && anyDone) return _LocationStatus.completed;
-    if (hasCurrent) return _LocationStatus.current;
-    if (anyDone) return _LocationStatus.partial;
-    return _LocationStatus.locked;
+    if (anyCurrent) return _LocState.current;
+    if (allDone && anyDone) return _LocState.completed;
+    return _LocState.revealed;
   }
 
-  JourneyEvent? _findEvent(String id) {
-    return m1Events.cast<JourneyEvent?>().firstWhere(
-          (e) => e?.id == id,
-          orElse: () => null,
-        );
-  }
-
-  // ── Tap handler — bottom sheet ─────────────────────────────────────────
-
-  void _onLocationTap(MapLocation loc) {
-    final status = _status(loc);
+  void _onLocationTap(MapLocation loc, _LocState state) {
     final isAr = _isAr;
-
-    if (status == _LocationStatus.locked) {
-      // Show mystery toast
+    if (state == _LocState.upcoming) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            isAr ? '؟؟؟ — اكتشف هذا الموقع لاحقاً' : '??? — Discover this location later',
-            style: GoogleFonts.nunito(color: Colors.white),
+            isAr ? '... وجهة جديدة تنتظرك' : 'A new destination awaits...',
+            style: GoogleFonts.lora(color: const Color(0xFFE8D8B8)),
           ),
-          backgroundColor: const Color(0xFF1A2030),
+          backgroundColor: const Color(0xFF1A1410),
           duration: const Duration(seconds: 2),
         ),
       );
       return;
     }
+    if (state == _LocState.hidden) return;
 
     showModalBottomSheet(
       context: context,
@@ -369,43 +266,40 @@ class _LivingMapScreenState extends State<LivingMapScreen>
         currentOrder: _currentOrder,
         onEventTap: (event) {
           Navigator.pop(context); // close sheet
-          Navigator.pop(context); // back to event list — let it handle navigation
+          Navigator.pop(context); // back to event list
         },
       ),
     );
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────
+  // ── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final isAr = _isAr;
     final topPad = MediaQuery.of(context).padding.top;
 
+    final visible = visibleLocations(_currentOrder);
+    final upcoming = upcomingLocations(_currentOrder);
+    final completedIds = <String>{};
+    final currentIds = <String>{};
+    for (final loc in visible) {
+      final s = _statusFor(loc);
+      if (s == _LocState.completed) completedIds.add(loc.id);
+      if (s == _LocState.current) currentIds.add(loc.id);
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFF04060D),
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF04060D), // fallback
-          image: DecorationImage(
-            image: AssetImage('assets/textures/parchment_dark.jpg'),
-            fit: BoxFit.cover,
-            alignment: Alignment.center,
-            colorFilter: ColorFilter.mode(
-              Color(0x66000000),
-              BlendMode.darken,
-            ),
-          ),
-        ),
-        child: Column(
+      backgroundColor: const Color(0xFFE8D5A8),
+      body: Column(
         children: [
-          // ── Header ──────────────────────────────────────────────────
+          // ── Header ─────────────────────────────────────────────────────
           Container(
             padding: EdgeInsetsDirectional.fromSTEB(16, topPad + 12, 16, 14),
             decoration: BoxDecoration(
-              color: const Color(0xFF04060D).withAlpha(220),
+              color: const Color(0xFF1A1410).withAlpha(220),
               border: Border(
-                bottom: BorderSide(color: AppColors.gold.withAlpha(30)),
+                bottom: BorderSide(color: _gold.withAlpha(50)),
               ),
             ),
             child: Row(
@@ -418,7 +312,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withAlpha(8),
-                      border: Border.all(color: AppColors.gold.withAlpha(40)),
+                      border: Border.all(color: _gold.withAlpha(50)),
                     ),
                     child: const Icon(Icons.arrow_back_rounded,
                         size: 18, color: AppColors.textMuted),
@@ -432,7 +326,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
                       Text(
                         isAr ? 'الخريطة الحيّة' : 'The Living Map',
                         style: GoogleFonts.cinzelDecorative(
-                          color: AppColors.gold,
+                          color: _gold,
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.5,
@@ -449,206 +343,195 @@ class _LivingMapScreenState extends State<LivingMapScreen>
                     ],
                   ),
                 ),
+                Text(
+                  '${visible.length}/${mapLocations.length}',
+                  style: GoogleFonts.nunito(
+                    color: _gold.withAlpha(160),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.0,
+                  ),
+                ),
               ],
             ),
           ),
 
-          // ── Map area ────────────────────────────────────────────────
+          // ── Parchment map area ─────────────────────────────────────────
           Expanded(
-            child: InteractiveViewer(
-              transformationController: _transformController,
-              minScale: 1.0,
-              maxScale: 3.0,
-              boundaryMargin: const EdgeInsets.all(60),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Use the full available area, maintaining aspect ratio
-                  final w = constraints.maxWidth;
-                  final h = constraints.maxHeight;
-                  final scale = math.min(w / _mapWidth, h / _mapHeight);
-                  final mapW = _mapWidth * scale;
-                  final mapH = _mapHeight * scale;
-                  final offsetX = (w - mapW) / 2;
-                  final offsetY = (h - mapH) / 2;
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/textures/parchment_light.jpg'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: InteractiveViewer(
+                transformationController: _viewCtrl,
+                minScale: 0.9,
+                maxScale: 3.5,
+                boundaryMargin: const EdgeInsets.all(80),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final w = constraints.maxWidth;
+                    final h = constraints.maxHeight;
+                    final scale = math.min(
+                        w / _virtualMapWidth, h / _virtualMapHeight);
+                    final mapW = _virtualMapWidth * scale;
+                    final mapH = _virtualMapHeight * scale;
+                    final offsetX = (w - mapW) / 2;
+                    final offsetY = (h - mapH) / 2;
 
-                  return Stack(
-                    children: [
-                      // Coastline outline (behind routes and markers)
-                      Positioned(
-                        left: offsetX,
-                        top: offsetY,
-                        width: mapW,
-                        height: mapH,
-                        child: CustomPaint(
-                          painter: _CoastlinePainter(),
-                        ),
-                      ),
-                      // Route lines
-                      Positioned(
-                        left: offsetX,
-                        top: offsetY,
-                        width: mapW,
-                        height: mapH,
-                        child: CustomPaint(
-                          painter: _RouteLinePainter(
-                            locations: mapLocations,
-                            mapSize: Size(mapW, mapH),
-                            currentOrder: _currentOrder,
+                    return RepaintBoundary(
+                      child: Stack(
+                        children: [
+                          // Ink paths between revealed locations
+                          Positioned(
+                            left: offsetX,
+                            top: offsetY,
+                            width: mapW,
+                            height: mapH,
+                            child: CustomPaint(
+                              painter: _ParchmentPathPainter(
+                                visible: visible,
+                                completedIds: completedIds,
+                                currentIds: currentIds,
+                                upcoming: upcoming,
+                              ),
+                            ),
                           ),
-                        ),
+
+                          // Upcoming "?" marks (drawn under revealed markers)
+                          ...upcoming.map((loc) {
+                            final x = offsetX + loc.mapX * mapW;
+                            final y = offsetY + loc.mapY * mapH;
+                            return _buildUpcomingMark(loc, x, y);
+                          }),
+
+                          // Revealed location markers
+                          ...visible.map((loc) {
+                            final state = _statusFor(loc);
+                            final x = offsetX + loc.mapX * mapW;
+                            final y = offsetY + loc.mapY * mapH;
+                            return _buildMarker(loc, state, x, y, isAr);
+                          }),
+                        ],
                       ),
-                      // Location markers
-                      ...mapLocations.map((loc) {
-                        final x = offsetX + loc.mapX * mapW;
-                        final y = offsetY + loc.mapY * mapH;
-                        return _buildMarker(loc, x, y, isAr);
-                      }),
-                    ],
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildUpcomingMark(MapLocation loc, double x, double y) {
+    return Positioned(
+      left: x - 18,
+      top: y - 18,
+      width: 36,
+      height: 36,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _onLocationTap(loc, _LocState.upcoming),
+        child: Center(
+          child: Text(
+            '?',
+            style: GoogleFonts.cinzelDecorative(
+              color: _inkBrownFaded,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildMarker(MapLocation loc, double x, double y, bool isAr) {
-    final status = _status(loc);
+  Widget _buildMarker(
+      MapLocation loc, _LocState state, double x, double y, bool isAr) {
+    if (state == _LocState.hidden) return const SizedBox.shrink();
+
     final double dotSize;
     final Color dotColor;
-    bool showLabel;
-    final bool showCheck;
-
-    switch (status) {
-      case _LocationStatus.completed:
-        dotSize = 14;
-        dotColor = AppColors.gold;
-        showLabel = true;
-        showCheck = true;
-      case _LocationStatus.current:
-        dotSize = 16;
-        dotColor = AppColors.gold;
-        showLabel = true;
-        showCheck = false;
-      case _LocationStatus.partial:
+    switch (state) {
+      case _LocState.completed:
         dotSize = 12;
-        dotColor = AppColors.gold.withAlpha(160);
-        showLabel = true;
-        showCheck = false;
-      case _LocationStatus.locked:
+        dotColor = _gold;
+      case _LocState.current:
+        dotSize = 14;
+        dotColor = _gold;
+      case _LocState.revealed:
+        dotSize = 10;
+        dotColor = _gold.withAlpha(180);
+      case _LocState.upcoming:
+      case _LocState.hidden:
         dotSize = 8;
-        dotColor = AppColors.gold.withAlpha(77);
-        showLabel = false;
-        showCheck = false;
-    }
-
-    // R17-03: When zoomed out (< 1.5x), hide labels for sub-locations
-    // clustered near Mecca to prevent overlap. Mecca itself always keeps
-    // its label. Dots remain visible at every zoom level.
-    if (showLabel &&
-        _currentScale < _labelZoomThreshold &&
-        _isMeccaSubLocation(loc)) {
-      showLabel = false;
+        dotColor = _inkBrownFaded;
     }
 
     final label = isAr ? loc.nameAr : loc.name;
 
     return Positioned(
-      left: x - 40,
-      top: y - 40,
-      width: 80,
-      height: 80,
+      left: x - 50,
+      top: y - 24,
+      width: 100,
+      height: 60,
       child: GestureDetector(
-        onTap: () => _onLocationTap(loc),
+        onTap: () => _onLocationTap(loc, state),
         behavior: HitTestBehavior.opaque,
         child: Stack(
-          alignment: Alignment.center,
+          alignment: Alignment.topCenter,
           children: [
-            // Glow for current / completed
-            if (status == _LocationStatus.current)
+            // Dot (with pulse for current)
+            if (state == _LocState.current)
               AnimatedBuilder(
                 animation: _pulseAnim,
-                builder: (context, child) => Container(
-                  width: dotSize + 18,
-                  height: dotSize + 18,
+                builder: (context, _) => Container(
+                  width: dotSize + 14,
+                  height: dotSize + 14,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.gold.withAlpha(
-                        (30 * _pulseAnim.value).toInt()),
+                    color: _gold.withAlpha((40 * _pulseAnim.value).toInt()),
                   ),
                 ),
               ),
-            if (status == _LocationStatus.completed)
-              Container(
-                width: dotSize + 10,
-                height: dotSize + 10,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.gold.withAlpha(40),
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-              ),
-            // The dot
-            if (status == _LocationStatus.current)
-              AnimatedBuilder(
-                animation: _pulseAnim,
-                builder: (context, child) => Container(
-                  width: dotSize,
-                  height: dotSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: dotColor.withAlpha(
-                        (180 + 75 * _pulseAnim.value).toInt().clamp(0, 255)),
-                    border: Border.all(
-                        color: AppColors.gold.withAlpha(200), width: 2),
-                  ),
-                ),
-              )
-            else
-              Container(
+            Padding(
+              padding: const EdgeInsets.only(top: 7),
+              child: Container(
                 width: dotSize,
                 height: dotSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: dotColor,
-                  border: showCheck
-                      ? Border.all(
-                          color: AppColors.gold.withAlpha(180), width: 1.5)
+                  border: state == _LocState.completed
+                      ? Border.all(color: _inkBrown, width: 1)
                       : null,
                 ),
-                child: showCheck
-                    ? const Icon(Icons.check_rounded,
-                        size: 9, color: Color(0xFF04060D))
-                    : null,
               ),
-            // Label
-            if (showLabel)
-              Positioned(
-                bottom: 4,
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
-                    color: status == _LocationStatus.current
-                        ? AppColors.gold
-                        : AppColors.gold.withAlpha(180),
-                    fontSize: status == _LocationStatus.current ? 10 : 9,
-                    fontWeight: status == _LocationStatus.current
-                        ? FontWeight.w700
-                        : FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+            ),
+
+            // Hand-sketched ink label
+            Positioned(
+              top: dotSize + 12,
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                textDirection: isAr ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+                style: GoogleFonts.lora(
+                  color: state == _LocState.current ? _inkBrown : _inkBrownFaded,
+                  fontSize: state == _LocState.current ? 11 : 10,
+                  fontWeight: state == _LocState.current
+                      ? FontWeight.w700
+                      : FontWeight.w600,
+                  letterSpacing: 0.3,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
           ],
         ),
       ),
@@ -656,7 +539,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
   }
 }
 
-// ── Location detail bottom sheet ─────────────────────────────────────────────
+// ─── Location detail bottom sheet (kept from previous design) ───────────────
 
 class _LocationSheet extends StatelessWidget {
   final MapLocation location;
@@ -672,10 +555,10 @@ class _LocationSheet extends StatelessWidget {
   });
 
   JourneyEvent? _findEvent(String id) {
-    return m1Events.cast<JourneyEvent?>().firstWhere(
-          (e) => e?.id == id,
-          orElse: () => null,
-        );
+    for (final e in m1Events) {
+      if (e.id == id) return e;
+    }
+    return null;
   }
 
   @override
@@ -686,6 +569,9 @@ class _LocationSheet extends StatelessWidget {
       if (ev != null) events.add(ev);
     }
     events.sort((a, b) => a.globalOrder.compareTo(b.globalOrder));
+
+    final completedCount =
+        events.where((e) => PrefsService.isEventCompleted(e.globalOrder)).length;
 
     return Container(
       constraints: BoxConstraints(
@@ -704,12 +590,12 @@ class _LocationSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.gold.withAlpha(60),
+              color: _gold.withAlpha(60),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 16),
-          // Location name bilingual
+          // Title
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -717,7 +603,7 @@ class _LocationSheet extends StatelessWidget {
                 Text(
                   isAr ? location.nameAr : location.name,
                   style: GoogleFonts.cinzelDecorative(
-                    color: AppColors.gold,
+                    color: _gold,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -725,17 +611,31 @@ class _LocationSheet extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   isAr ? location.name : location.nameAr,
+                  textDirection:
+                      isAr ? ui.TextDirection.ltr : ui.TextDirection.rtl,
                   style: GoogleFonts.lora(
                     color: AppColors.textMuted.withAlpha(120),
                     fontSize: 12,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  isAr
+                      ? '$completedCount من ${events.length} مكتمل'
+                      : '$completedCount of ${events.length} complete',
+                  style: GoogleFonts.nunito(
+                    color: _gold.withAlpha(150),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          Divider(color: AppColors.gold.withAlpha(30), height: 1),
+          Divider(color: _gold.withAlpha(30), height: 1),
           // Event list
           Flexible(
             child: ListView.builder(
@@ -744,8 +644,7 @@ class _LocationSheet extends StatelessWidget {
               itemCount: events.length,
               itemBuilder: (_, i) {
                 final ev = events[i];
-                final completed =
-                    PrefsService.isEventCompleted(ev.globalOrder);
+                final completed = PrefsService.isEventCompleted(ev.globalOrder);
                 final isCurrent = ev.globalOrder == currentOrder;
                 final locked = ev.globalOrder > currentOrder;
 
@@ -758,12 +657,12 @@ class _LocationSheet extends StatelessWidget {
                           horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
                         color: isCurrent
-                            ? AppColors.gold.withAlpha(12)
+                            ? _gold.withAlpha(12)
                             : AppColors.card.withAlpha(80),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isCurrent
-                              ? AppColors.gold.withAlpha(80)
+                              ? _gold.withAlpha(80)
                               : AppColors.divider.withAlpha(40),
                         ),
                       ),
@@ -771,17 +670,16 @@ class _LocationSheet extends StatelessWidget {
                         opacity: locked ? 0.45 : 1.0,
                         child: Row(
                           children: [
-                            // Status icon
                             if (completed)
                               Container(
                                 width: 28,
                                 height: 28,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: AppColors.gold.withAlpha(20),
+                                  color: _gold.withAlpha(20),
                                 ),
                                 child: const Icon(Icons.check_rounded,
-                                    size: 14, color: AppColors.gold),
+                                    size: 14, color: _gold),
                               )
                             else if (locked)
                               const Icon(Icons.lock_rounded,
@@ -793,13 +691,13 @@ class _LocationSheet extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                      color: AppColors.gold.withAlpha(100)),
+                                      color: _gold.withAlpha(100)),
                                 ),
                                 child: Center(
                                   child: Text(
                                     '${ev.globalOrder}',
                                     style: GoogleFonts.nunito(
-                                      color: AppColors.gold,
+                                      color: _gold,
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -807,7 +705,6 @@ class _LocationSheet extends StatelessWidget {
                                 ),
                               ),
                             const SizedBox(width: 12),
-                            // Event title
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -815,8 +712,8 @@ class _LocationSheet extends StatelessWidget {
                                   Text(
                                     isAr ? ev.titleAr : ev.title,
                                     textDirection: isAr
-                                        ? TextDirection.rtl
-                                        : TextDirection.ltr,
+                                        ? ui.TextDirection.rtl
+                                        : ui.TextDirection.ltr,
                                     style: GoogleFonts.nunito(
                                       color: locked
                                           ? const Color(0xFF5A7A7A)
@@ -837,13 +734,12 @@ class _LocationSheet extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            // Play button for current
                             if (isCurrent)
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: AppColors.gold,
+                                  color: _gold,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
