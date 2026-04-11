@@ -1080,4 +1080,32 @@ const Map<String, ScrollEntry> scrollEntries = {
     lineAr: 'المخطوطة ممتلئة. القلم يرتاح. لكنّ حبر هذه القصة لن يجفّ، لأنّك لا تزال تكتبها — بحياتك.',
   ),
 
+  'j_m1_037': ScrollEntry(
+    eventId: 'j_m1_037',
+    globalOrder: 37,
+    lineEn: 'One teacher with a patched cloak and a Quran opened a city that armies could not, and prepared the ground for everything that followed.',
+    lineAr: 'معلّمٌ واحد بعباءةٍ مرقّعة وقرآن فتح مدينةً عجزت عنها الجيوش ومهّد الأرض لكلّ ما تلا.',
+  ),
+
+  'j_m1_045': ScrollEntry(
+    eventId: 'j_m1_045',
+    globalOrder: 45,
+    lineEn: 'Before he built a state or an army, he placed a stone and said: here we will pray — and the first mosque rose from the earth.',
+    lineAr: 'قبل أن يبني دولة أو جيشًا وضع حجرًا وقال: هنا سنصلّي — فارتفع أوّل مسجد من الأرض.',
+  ),
+
+  'j_m1_046': ScrollEntry(
+    eventId: 'j_m1_046',
+    globalOrder: 46,
+    lineEn: 'He stopped on a road because it was Friday, and a billion people have stopped every Friday since.',
+    lineAr: 'توقّف على طريق لأنّه يوم الجمعة، ومليار إنسان يتوقّفون كلّ جمعة منذ ذلك الحين.',
+  ),
+
+  'j_m1_043': ScrollEntry(
+    eventId: 'j_m1_043',
+    globalOrder: 43,
+    lineEn: 'Two men and a guide crossed the desert that empires feared, and the road they chose became the road that changed the world.',
+    lineAr: 'رجلان ودليل عبروا صحراء هابتها الإمبراطوريات، والطريق الذي اختاروه أصبح الطريق الذي غيّر العالم.',
+  ),
+
 };

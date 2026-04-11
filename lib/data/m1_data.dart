@@ -5942,9 +5942,30 @@ final List<JourneyEvent> m1Events = [
     locationAr: 'المدينة المنورة',
     narrative: '',
     narrativeAr: '',
-    source: '',
+    source: 'Al-Raheeq Al-Makhtum Ch. 14',
     xpReward: 35,
-    questions: const [],
+    questions: [
+      JourneyQuestion(
+        id: 'q_m1_037',
+        question: 'What was Mus\'ab\'s approach to teaching Islam in Yathrib?',
+        questionAr: 'ما كان أسلوب مصعب في تعليم الإسلام في يثرب؟',
+        options: [
+          'He challenged tribal chiefs to public debates',
+          'He gently recited the Quran and let its beauty convince people',
+          'He offered money to those who converted',
+        ],
+        optionsAr: [
+          'تحدّى زعماء القبائل لمناظرات علنية',
+          'تلا القرآن بلطف وترك جماله يقنع الناس',
+          'قدّم المال لمن أسلم',
+        ],
+        correctIndex: 1,
+        explanation: 'Mus\'ab\'s approach was gentle and wise: he visited homes, recited the Quran, answered questions, and never argued. When Usayd came with a spear, Mus\'ab simply asked him to listen. The Quran\'s beauty did the rest. Within months, nearly every household in Yathrib had entered Islam.',
+        explanationAr: 'كان أسلوب مصعب لطيفًا وحكيمًا: زار البيوت وتلا القرآن وأجاب الأسئلة ولم يجادل أبدًا. حين جاء أسيد بحربة طلب مصعب منه أن يستمع فحسب. جمال القرآن فعل الباقي. خلال أشهر دخل كلّ بيتٍ تقريبًا في يثرب الإسلام.',
+        sourceRef: 'Al-Raheeq Al-Makhtum Ch. 14',
+        sourceRefAr: 'Al-Raheeq Al-Makhtum Ch. 14',
+      ),
+    ],
   ),
 
   JourneyEvent(
@@ -5959,9 +5980,30 @@ final List<JourneyEvent> m1Events = [
     locationAr: 'قباء',
     narrative: '',
     narrativeAr: '',
-    source: '',
+    source: 'Sunan al-Nasa\'i #699',
     xpReward: 35,
-    questions: const [],
+    questions: [
+      JourneyQuestion(
+        id: 'q_m1_045',
+        question: 'What reward did the Prophet \uFDFA promise for praying at Masjid Quba?',
+        questionAr: 'ما الأجر الذي وعد به النبيّ \uFDFA للصلاة في مسجد قباء؟',
+        options: [
+          'The reward of a full Hajj',
+          'The reward of an Umrah',
+          'The reward of fasting an entire month',
+        ],
+        optionsAr: [
+          'أجر حجّة كاملة',
+          'أجر عمرة',
+          'أجر صيام شهر كامل',
+        ],
+        correctIndex: 1,
+        explanation: 'The Prophet \uFDFA said: "Whoever purifies himself at home, then comes to Masjid Quba and prays there, he will have the reward of an Umrah." He himself visited Masjid Quba every Saturday, honoring the first mosque ever built in Islam.',
+        explanationAr: 'قال النبيّ \uFDFA: "من تطهّر في بيته ثمّ أتى مسجد قباء فصلّى فيه كان له كأجر عمرة." وكان هو نفسه يزور مسجد قباء كلّ سبت تكريمًا لأوّل مسجد بُني في الإسلام.',
+        sourceRef: 'Sunan al-Nasa\'i #699',
+        sourceRefAr: 'Sunan al-Nasa\'i #699',
+      ),
+    ],
   ),
 
   // ⚠️ NEEDS REVIEW — Event #46 flagged in RAWI_BLOCKED_EVENTS.md.
@@ -5978,9 +6020,30 @@ final List<JourneyEvent> m1Events = [
     locationAr: 'وادي رانوناء',
     narrative: '',
     narrativeAr: '',
-    source: '',
+    source: 'Al-Raheeq Al-Makhtum Ch. 16',
     xpReward: 35,
-    questions: const [],
+    questions: [
+      JourneyQuestion(
+        id: 'q_m1_046',
+        question: 'Where was the first Friday prayer in Islam performed?',
+        questionAr: 'أين أُقيمت أوّل صلاة جمعة في الإسلام؟',
+        options: [
+          'In Masjid Quba',
+          'In the valley of Banu Salim ibn Awf, on the road between Quba and Yathrib',
+          'In the Prophet\'s Mosque in Medina',
+        ],
+        optionsAr: [
+          'في مسجد قباء',
+          'في وادي بني سالم بن عوف على الطريق بين قباء ويثرب',
+          'في المسجد النبوي في المدينة',
+        ],
+        correctIndex: 1,
+        explanation: 'The first Jumu\'ah was performed in the open valley of Banu Salim ibn Awf when the Prophet \uFDFA stopped there on his way from Quba to Yathrib. The location later became known as Masjid al-Jumu\'ah and still stands in Medina today.',
+        explanationAr: 'أُقيمت أوّل جمعة في وادي بني سالم بن عوف المفتوح حين توقّف النبيّ \uFDFA هناك في طريقه من قباء إلى يثرب. عُرف الموقع لاحقًا بمسجد الجمعة ولا يزال قائمًا في المدينة اليوم.',
+        sourceRef: 'Al-Raheeq Al-Makhtum Ch. 16',
+        sourceRefAr: 'Al-Raheeq Al-Makhtum Ch. 16',
+      ),
+    ],
   ),
 
 ]; // end m1Events
