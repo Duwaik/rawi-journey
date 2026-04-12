@@ -161,6 +161,11 @@ class _EventListScreenState extends State<EventListScreen>
       if (!mounted) return;
     }
 
+    // Explorer Mode: deplete noor on event transition (-25%)
+    if (PrefsService.isExplorerMode) {
+      await PrefsService.depleteNoor(25);
+    }
+
     final config = sceneConfigs[event.id];
     final hasScene = config != null;
 

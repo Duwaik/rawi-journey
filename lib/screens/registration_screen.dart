@@ -8,9 +8,10 @@ import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'rawi_call_screen.dart';
 
-/// 2-step registration flow shown on first launch after intro cinematic.
+/// 3-step registration flow shown on first launch after intro cinematic.
 /// Screen 1: Identity (name + companion)
-/// Screen 2: Language
+/// Screen 2: Age range (drives default Explorer/Reader mode)
+/// Screen 3: Language
 /// Background: blurred cinematic desert scene throughout.
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -24,9 +25,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _nameFocus = FocusNode();
   int _currentPage = 0;
   String _selectedGender = 'male';
+  String _selectedAgeRange = '13-22';
   late String _selectedLang;
 
-  static const _totalPages = 2;
+  static const _totalPages = 3;
 
   @override
   void initState() {
@@ -60,6 +62,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final name = _nameCtrl.text.trim();
     if (name.isNotEmpty) await PrefsService.setUserName(name);
     await PrefsService.setUserGender(_selectedGender);
+    await PrefsService.setAgeRange(_selectedAgeRange);
+    // Age-driven default mode: 40+ → Reader, everyone else → Explorer
+    final defaultMode =
+        (_selectedAgeRange == '40-59' || _selectedAgeRange == '60+')
+            ? 'reader'
+            : 'explorer';
+    await PrefsService.setJourneyMode(defaultMode);
     await PrefsService.setLanguage(_selectedLang);
     await PrefsService.setOnboardingComplete();
     if (mounted) RawiApp.rebuild(context);
@@ -178,10 +187,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               key: const ValueKey('identity'),
                               child: _buildIdentityPage(isAr),
                             )
-                          : KeyedSubtree(
-                              key: const ValueKey('language'),
-                              child: _buildLanguagePage(),
-                            ),
+                          : _currentPage == 1
+                              ? KeyedSubtree(
+                                  key: const ValueKey('age'),
+                                  child: _buildAgePage(isAr),
+                                )
+                              : KeyedSubtree(
+                                  key: const ValueKey('language'),
+                                  child: _buildLanguagePage(),
+                                ),
                     ),
                   ),
                 ],
@@ -298,7 +312,134 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // ── Page 2: Language ──────────────────────────────────────────────────────
+  // ── Page 2: Age Range ─────────────────────────────────────────────────────
+
+  static const _ageRanges = [
+    ('4-12',  'Young Explorer', 'مستكشف صغير'),
+    ('13-22', 'Explorer',       'مستكشف'),
+    ('23-39', 'Explorer',       'مستكشف'),
+    ('40-59', 'Reader',         'قارئ'),
+    ('60+',   'Reader',         'قارئ'),
+  ];
+
+  Widget _buildAgePage(bool isAr) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        children: [
+          const SizedBox(height: 30),
+          Text(
+            isAr ? 'كم عمرك؟' : 'How old are you?',
+            textAlign: TextAlign.center,
+            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.cinzelDecorative(
+              fontSize: 20,
+              color: AppColors.gold,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isAr
+                ? 'نختار لك الأنسب — يمكنك تغييره لاحقاً'
+                : 'We\u2019ll pick the best experience for you \u2014 you can change it later',
+            textAlign: TextAlign.center,
+            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.nunito(
+              fontSize: 13,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Age range cards
+          ...List.generate(_ageRanges.length, (i) {
+            final (range, labelEn, labelAr) = _ageRanges[i];
+            final selected = _selectedAgeRange == range;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedAgeRange = range),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: selected
+                        ? AppColors.gold.withAlpha(18)
+                        : Colors.white.withAlpha(6),
+                    border: Border.all(
+                      color: selected
+                          ? AppColors.gold
+                          : AppColors.textMuted.withAlpha(40),
+                      width: selected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      // Range number
+                      Text(
+                        range,
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: selected
+                              ? AppColors.gold
+                              : AppColors.textMuted,
+                        ),
+                      ),
+                      const Spacer(),
+                      // Mode label
+                      Text(
+                        isAr ? labelAr : labelEn,
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          color: selected
+                              ? AppColors.gold.withAlpha(200)
+                              : AppColors.textMuted.withAlpha(120),
+                        ),
+                      ),
+                      if (selected) ...[
+                        const SizedBox(width: 8),
+                        Icon(Icons.check_circle_rounded,
+                            size: 18, color: AppColors.gold),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+
+          const SizedBox(height: 20),
+
+          // Continue button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _nextPage,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: const Color(0xFF04060D),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 0,
+              ),
+              child: Text(
+                isAr ? 'التالي' : 'Continue',
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Page 3: Language ──────────────────────────────────────────────────────
 
   Widget _buildLanguagePage() {
     return Padding(

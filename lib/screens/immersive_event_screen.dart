@@ -63,6 +63,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   int _previousXp = 0;
   List<BadgeDefinition> _newBadges = [];
   BadgeDefinition? _currentBadge;
+
+  /// Explorer/Reader mode flag — drives fog, movement, and hotspot visibility.
+  /// Read once at init so mid-event switches don't break anything.
+  /// Used by Sprint 2 (free-roam) and Sprint 3 (fog/noor). Intentionally
+  /// declared ahead of those sprints so the flag is wired and testable.
+  // ignore: unused_field
+  late final bool _explorerMode;
   final ScrollController _verdictScrollCtrl = ScrollController();
   // _reflectionScrollCtrl removed — unified verdict uses _verdictScrollCtrl
 
@@ -150,6 +157,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _isAr = PrefsService.language == 'ar';
+    _explorerMode = PrefsService.isExplorerMode;
     _alreadyCompleted =
         PrefsService.isEventCompleted(widget.event.globalOrder);
     _scene = sceneConfigs[widget.event.id]!;

@@ -179,7 +179,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                       const SizedBox(height: 16),
 
-                      // ── 2. Journey Stats ───────────────────────────────
+                      // ── 2. Journey Mode ───────────────────────────────
+                      _buildSectionHeader(
+                          _isAr ? 'نمط الرحلة' : 'Journey Mode'),
+                      const SizedBox(height: 8),
+                      _buildJourneyModeCard(),
+
+                      const SizedBox(height: 16),
+
+                      // ── 3. Journey Stats ───────────────────────────────
                       _buildSectionHeader(
                           _isAr ? 'إحصائيات الرحلة' : 'Journey Stats'),
                       const SizedBox(height: 8),
@@ -375,6 +383,123 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // ── 2. Journey Mode card ────────────────────────────────────────────────
+
+  String _mode = PrefsService.journeyMode;
+
+  void _switchMode(String newMode) async {
+    if (newMode == _mode) return;
+    final confirmed = await showRawiDialog(
+      context: context,
+      title: _isAr ? 'تغيير النمط؟' : 'Switch mode?',
+      body: _isAr
+          ? 'سيُطبّق التغيير على الحدث التالي.'
+          : 'This will take effect on your next event.',
+      cancelLabel: _isAr ? 'إلغاء' : 'Cancel',
+      confirmLabel: _isAr ? 'تأكيد' : 'Confirm',
+      isAr: _isAr,
+    );
+    if (confirmed != true) return;
+    await PrefsService.setJourneyMode(newMode);
+    setState(() => _mode = newMode);
+  }
+
+  Widget _buildJourneyModeCard() {
+    return Container(
+      decoration: _sectionDecoration,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildModeOption(
+            mode: 'explorer',
+            icon: Icons.explore_rounded,
+            titleEn: 'Explorer',
+            titleAr: 'المستكشف',
+            descEn: 'Explore scenes freely, discover hotspots in the fog, let dhikr fuel your light',
+            descAr: 'استكشف المشاهد بحرية، اكتشف النقاط في الضباب، دع الذكر يغذّي نورك',
+          ),
+          const SizedBox(height: 10),
+          _buildModeOption(
+            mode: 'reader',
+            icon: Icons.auto_stories_rounded,
+            titleEn: 'Reader',
+            titleAr: 'القارئ',
+            descEn: 'Follow the guided path, all hotspots visible, focus on reading and reflection',
+            descAr: 'اتّبع المسار المرسوم، جميع النقاط ظاهرة، ركّز على القراءة والتأمل',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeOption({
+    required String mode,
+    required IconData icon,
+    required String titleEn,
+    required String titleAr,
+    required String descEn,
+    required String descAr,
+  }) {
+    final selected = _mode == mode;
+    return GestureDetector(
+      onTap: () => _switchMode(mode),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: selected ? AppColors.gold.withAlpha(15) : Colors.transparent,
+          border: Border.all(
+            color: selected ? AppColors.gold : AppColors.textMuted.withAlpha(30),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon,
+                size: 24,
+                color: selected ? AppColors.gold : AppColors.textMuted),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isAr ? titleAr : titleEn,
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: selected
+                          ? AppColors.gold
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _isAr ? descAr : descEn,
+                    textDirection:
+                        _isAr ? TextDirection.rtl : TextDirection.ltr,
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      color: AppColors.textMuted.withAlpha(150),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 8),
+                child: Icon(Icons.check_circle_rounded,
+                    size: 20, color: AppColors.gold),
+              ),
+          ],
+        ),
+      ),
     );
   }
 

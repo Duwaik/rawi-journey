@@ -305,13 +305,38 @@ class PrefsService {
     }
   }
 
-  // ── AGE TIER (Little Rawi Mode) ────────────────────────────────────────────
-  /// 1 = standard Rawi (default), higher tiers reserved for age-adaptive mode.
+  // ── AGE RANGE (registration) ────────────────────────────────────────────
+  static const String _keyAgeRange = 'userAgeRange';
+  static String get ageRange => _prefs?.getString(_keyAgeRange) ?? '13-22';
+  static Future<void> setAgeRange(String range) async =>
+      await _prefs?.setString(_keyAgeRange, range);
+
+  // ── JOURNEY MODE (explorer / reader) ───────���──────────────────────────
+  static const String _keyJourneyMode = 'journeyMode';
+  static String get journeyMode =>
+      _prefs?.getString(_keyJourneyMode) ?? 'explorer';
+  static bool get isExplorerMode => journeyMode == 'explorer';
+  static Future<void> setJourneyMode(String mode) async =>
+      await _prefs?.setString(_keyJourneyMode, mode);
+
+  // ── NOOR LEVEL (Explorer Mode light mechanic) ──��──────────────────────
+  static const String _keyNoorLevel = 'noorLevel';
+  static int get noorLevel => _prefs?.getInt(_keyNoorLevel) ?? 100;
+  static Future<void> setNoorLevel(int level) async =>
+      await _prefs?.setInt(_keyNoorLevel, level.clamp(0, 100));
+  /// Deplete noor on event transition. Min floor = 0.
+  static Future<void> depleteNoor(int amount) async =>
+      await setNoorLevel(noorLevel - amount);
+  /// Recharge noor after dhikr. Max cap = 100.
+  static Future<void> rechargeNoor(int amount) async =>
+      await setNoorLevel(noorLevel + amount);
+
+  // ── LEGACY AGE TIER (kept for backward compat) ────────────────────────
   static int get ageTier => _prefs?.getInt(_keyAgeTier) ?? 1;
   static Future<void> setAgeTier(int tier) async =>
       await _prefs?.setInt(_keyAgeTier, tier);
 
-  // ── HELPERS ───────────────────────────────────────────────────────────────
+  // ── HELPERS ───────��───────────────────────────────��───────────────────────
   static String _todayStr() {
     final t = DateTime.now();
     return '${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
