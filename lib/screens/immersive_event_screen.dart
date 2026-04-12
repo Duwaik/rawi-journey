@@ -110,6 +110,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // Parallax offset
   double _parallaxOffset = 0.0;
 
+  // Anti-frustration timer (Explorer Mode) — time since last hotspot
+  // discovery. Drives progressive hints at 60s/90s/120s.
+  DateTime _lastDiscoveryTime = DateTime.now();
+  int get _secondsSinceDiscovery =>
+      DateTime.now().difference(_lastDiscoveryTime).inSeconds;
+
   // Phase transitions
   late final AnimationController _phaseCtrl;
 
@@ -358,9 +364,48 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     final joyMag = sqrt(_joyDx * _joyDx + _joyDy * _joyDy);
     if (joyMag < 0.15) return; // joystick at rest — no update needed
 
-    // Fixed timestep for path movement
+    // Fixed timestep
     const dt = 0.016; // ~60fps
 
+    // ── FREE-ROAM branch (Explorer Mode, non-branching events) ──────────
+    // Branching events (E1, E2, E12) always use path-guided movement
+    // because the branch mechanic depends on path routing.
+    if (_explorerMode && !_isBranching) {
+      final joyNormX = _joyDx / joyMag;
+      final joyNormY = _joyDy / joyMag;
+      final speed = _moveSpeed * joyMag * dt * 0.6; // slightly slower than path
+
+      final oldX = _companionX;
+      _companionX = (_companionX + joyNormX * speed).clamp(0.05, 0.95);
+      _companionY = (_companionY + joyNormY * speed).clamp(0.15, 0.90);
+      _parallaxOffset = -(_companionX - 0.5) * 0.8;
+
+      final moveDx = _companionX - oldX;
+      if (moveDx.abs() > 0.001) {
+        _facingDir = moveDx > 0 ? 1.0 : -1.0;
+      }
+
+      // Footprint trail (distance-based, same as path mode)
+      final dist = sqrt(joyNormX * joyNormX + joyNormY * joyNormY) * speed;
+      _footprintAccum += dist;
+      if (_footprintAccum > 0.025) {
+        _footprints.add(Offset(_companionX, _companionY));
+        _footprintAccum = 0;
+        if (_footprints.length > 80) _footprints.removeAt(0);
+      }
+
+      setState(() => _isWalking = true);
+      if (!_footstepPlaying) {
+        AudioService.playSfx('assets/audio/sfx_footsteps_sand.wav', volume: 0.15);
+        _footstepPlaying = true;
+      }
+
+      _checkHotspotProximity();
+      _updateHotspotProximity(nextHotspotId: _nextHotspotId);
+      return;
+    }
+
+    // ── PATH-CONSTRAINED branch (Reader Mode + branching events) ────────
     final segDir = _currentSegmentDir();
     final joyNormX = _joyDx / joyMag;
     final joyNormY = _joyDy / joyMag;
@@ -787,6 +832,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     setState(() {
       _pendingDiscovery.add(hotspot.id);
       _isWalking = false;
+      _lastDiscoveryTime = DateTime.now(); // reset anti-frustration timer
     });
     // R18-06: Save on discovery (immediate persistence — no race conditions)
     _saveProgressNow();
@@ -1002,20 +1048,35 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       final dx = _companionX - h.x;
       final dy = _companionY - h.y;
       final dist = sqrt(dx * dx + dy * dy);
-      if (dist > 0.32) {
-        _hotspotProximityOpacity[h.id] = 0.0;
-      } else if (dist > 0.18) {
-        // Far-near zone: faint hint through fog (0.2 → 0.5)
-        final t = 1.0 - (dist - 0.18) / (0.32 - 0.18);
-        _hotspotProximityOpacity[h.id] = 0.2 + t * 0.3;
-      } else if (dist > 0.10) {
-        // Near zone: noticeable (0.5 → 0.8)
-        final t = 1.0 - (dist - 0.10) / (0.18 - 0.10);
-        _hotspotProximityOpacity[h.id] = 0.5 + t * 0.3;
+
+      // Anti-frustration (Explorer Mode): progressively boost visibility
+      // when the user hasn't found the next hotspot for a while.
+      //   60s → double the visible range (0.32 → 0.64)
+      //   90s → triple it + minimum glow
+      //  120s → fully visible regardless of distance
+      final secs = _explorerMode ? _secondsSinceDiscovery : 0;
+      if (secs >= 120) {
+        // 120s: pulse brightly — nobody stays stuck forever
+        _hotspotProximityOpacity[h.id] = 0.9;
       } else {
-        // Close zone: fully visible (0.8 → 1.0)
-        final t = 1.0 - dist / 0.10;
-        _hotspotProximityOpacity[h.id] = 0.8 + t * 0.2;
+        final rangeMultiplier = secs >= 90 ? 3.0 : (secs >= 60 ? 2.0 : 1.0);
+        final minGlow = secs >= 90 ? 0.25 : 0.0;
+        final maxDist = 0.32 * rangeMultiplier;
+        if (dist > maxDist) {
+          _hotspotProximityOpacity[h.id] = minGlow;
+        } else if (dist > 0.18) {
+          // Far-near zone: faint hint through fog (0.2 → 0.5)
+          final t = 1.0 - (dist - 0.18) / (maxDist - 0.18).clamp(0.01, 10.0);
+          _hotspotProximityOpacity[h.id] = (0.2 + t * 0.3).clamp(minGlow, 1.0);
+        } else if (dist > 0.10) {
+          // Near zone: noticeable (0.5 → 0.8)
+          final t = 1.0 - (dist - 0.10) / (0.18 - 0.10);
+          _hotspotProximityOpacity[h.id] = 0.5 + t * 0.3;
+        } else {
+          // Close zone: fully visible (0.8 → 1.0)
+          final t = 1.0 - dist / 0.10;
+          _hotspotProximityOpacity[h.id] = 0.8 + t * 0.2;
+        }
       }
     }
   }
@@ -1378,7 +1439,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Fog of War overlay ──────────────────────────────────────
-          if (_phase == _Phase.explore && !_alreadyCompleted)
+          // ── Fog of War: Explorer Mode = noor-driven radius;
+          //    Reader Mode = cosmetic (off if Option A, legacy if Option B).
+          //    Default to Option A: Reader Mode skips fog entirely.
+          if (_phase == _Phase.explore && !_alreadyCompleted &&
+              (_explorerMode || true)) // TODO: Reader Mode Option A → change to _explorerMode only
             Positioned.fill(
               child: FogOverlay(
                 rawiX: _companionX,
@@ -1391,6 +1456,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 discoveredCount: _discovered.length + _pendingDiscovery.length,
                 sceneRevealed: _fogSceneRevealed,
                 sceneOffset: sceneOffset,
+                rawiLightRadius: _explorerMode
+                    ? 25.0 + (PrefsService.noorLevel / 100.0) * 95.0
+                    : 100.0, // Reader Mode: fixed legacy radius
               ),
             ),
 
@@ -1554,6 +1622,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
           ),
+
+          // ── Noor HUD (Explorer Mode only) ────────────────────────
+          if (_explorerMode && _phase == _Phase.explore && _activeHotspot == null)
+            Positioned(
+              top: topPad + 50, left: 14,
+              child: _NoorHud(noorLevel: PrefsService.noorLevel),
+            ),
 
           // ── Hotspot progress (top, below era bar) ─────────────────
           if (_phase == _Phase.explore && _activeHotspot == null)
@@ -2093,6 +2168,47 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
 /// Paints a brief reaction effect for a discovered scene secret.
 /// Type 'bird': diagonal flying line. Type 'star': diagonal shooting trail.
+// ── Noor HUD (Explorer Mode) ──────────────────────────────────────────────
+/// Small sun icon + circular fill indicator showing the Rawi's current
+/// light level. Positioned top-left during explore phase.
+class _NoorHud extends StatelessWidget {
+  final int noorLevel; // 0-100
+  const _NoorHud({required this.noorLevel});
+
+  @override
+  Widget build(BuildContext context) {
+    final fraction = noorLevel / 100.0;
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Background ring
+          SizedBox(
+            width: 36,
+            height: 36,
+            child: CircularProgressIndicator(
+              value: fraction,
+              strokeWidth: 3,
+              backgroundColor: Colors.white.withAlpha(20),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                AppColors.gold.withAlpha((140 + fraction * 115).toInt().clamp(0, 255)),
+              ),
+            ),
+          ),
+          // Sun icon
+          Icon(
+            noorLevel > 50 ? Icons.wb_sunny_rounded : Icons.wb_sunny_outlined,
+            size: 16,
+            color: AppColors.gold.withAlpha((100 + fraction * 155).toInt().clamp(0, 255)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SecretPainter extends CustomPainter {
   final String type;
   final double x;

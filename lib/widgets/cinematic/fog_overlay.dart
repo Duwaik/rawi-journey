@@ -25,6 +25,11 @@ class FogOverlay extends StatelessWidget {
   /// Parallax offset in logical pixels applied to the scene.
   final double sceneOffset;
 
+  /// Rawi's light radius in logical pixels (driven by Noor level in
+  /// Explorer Mode). Default 100 matches the legacy fixed radius.
+  /// Range: 25 (minimum, Noor 0%) → 120 (maximum, Noor 100%).
+  final double rawiLightRadius;
+
   const FogOverlay({
     super.key,
     required this.rawiX,
@@ -34,6 +39,7 @@ class FogOverlay extends StatelessWidget {
     required this.discoveredCount,
     required this.sceneRevealed,
     this.sceneOffset = 0.0,
+    this.rawiLightRadius = 100.0,
   });
 
   @override
@@ -52,6 +58,7 @@ class FogOverlay extends StatelessWidget {
             totalHotspots: totalHotspots,
             discoveredCount: discoveredCount,
             sceneOffset: sceneOffset,
+            rawiLightRadius: rawiLightRadius,
           ),
         ),
       ),
@@ -66,6 +73,7 @@ class _FogPainter extends CustomPainter {
   final int totalHotspots;
   final int discoveredCount;
   final double sceneOffset;
+  final double rawiLightRadius;
 
   _FogPainter({
     required this.rawiX,
@@ -74,6 +82,7 @@ class _FogPainter extends CustomPainter {
     required this.totalHotspots,
     required this.discoveredCount,
     required this.sceneOffset,
+    required this.rawiLightRadius,
   });
 
   /// Fog opacity decreases as more hotspots are discovered.
@@ -117,12 +126,12 @@ class _FogPainter extends CustomPainter {
     // 2. Punch soft-edge holes using dstOut
     final holePaint = Paint()..blendMode = ui.BlendMode.dstOut;
 
-    // Rawi character cutout (larger radius)
+    // Rawi character cutout (radius driven by Noor level in Explorer Mode)
     _punchHole(
       canvas,
       holePaint,
       Offset(rawiX * size.width + sceneOffset, rawiY * size.height),
-      100.0,
+      rawiLightRadius,
       size,
     );
 
@@ -173,6 +182,7 @@ class _FogPainter extends CustomPainter {
         rawiY != oldDelegate.rawiY ||
         discoveredCount != oldDelegate.discoveredCount ||
         sceneOffset != oldDelegate.sceneOffset ||
+        rawiLightRadius != oldDelegate.rawiLightRadius ||
         discoveredPositions.length != oldDelegate.discoveredPositions.length;
   }
 }
