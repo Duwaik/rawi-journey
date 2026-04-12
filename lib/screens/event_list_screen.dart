@@ -161,8 +161,11 @@ class _EventListScreenState extends State<EventListScreen>
       if (!mounted) return;
     }
 
-    // Explorer Mode: deplete noor on event transition (-25%)
-    if (PrefsService.isExplorerMode) {
+    // Explorer Mode: deplete noor on event transition (-25%).
+    // Skip for completed events (replays) and Event 1 (first-time grace).
+    if (PrefsService.isExplorerMode &&
+        !PrefsService.isEventCompleted(event.globalOrder) &&
+        event.globalOrder > 1) {
       await PrefsService.depleteNoor(25);
     }
 

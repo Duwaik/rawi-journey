@@ -110,6 +110,7 @@ class PrefsService {
     await prefs.setBool(_keyOnboardingDone, false);
     await prefs.setBool(_keyRawiCallShown, false);
     await prefs.setInt(_keyDhikrCount, 0);
+    await setNoorLevel(100);
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────

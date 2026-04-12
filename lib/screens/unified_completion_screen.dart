@@ -284,11 +284,12 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   static Duration _holdDurationForCard(DhikrCard? card) {
     if (card == null) return const Duration(seconds: 8);
     final c = (card.count ?? '').toLowerCase();
-    if (c.contains('100'))  return const Duration(seconds: 60);
+    if (c.contains('100') || c.contains('hundred')) return const Duration(seconds: 60);
     if (c.contains('33'))   return const Duration(seconds: 45);
     if (c.contains('10'))   return const Duration(seconds: 30);
-    if (c.contains('7'))    return const Duration(seconds: 20);
-    if (c.contains('3'))    return const Duration(seconds: 12);
+    // Note: 'seven' is safe but 'ten' appears in 'often' — don't add it.
+    if (c.contains('7') || c.contains('seven'))  return const Duration(seconds: 20);
+    if (c.contains('3') || c.contains('three'))  return const Duration(seconds: 12);
     return const Duration(seconds: 8); // single / unspecified
   }
 

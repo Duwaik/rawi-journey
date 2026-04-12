@@ -354,7 +354,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (_activeHotspot != null || _showBranchCard || _showSettings ||
         _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
         _showTutorial ||
-        _phase == _Phase.verdict || _phase == _Phase.verdict ||
+        _phase == _Phase.verdict ||
         _phase == _Phase.complete) {
       return;
     }
@@ -734,7 +734,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (_activeHotspot != null || _showBranchCard || _showSettings ||
         _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
         _showTutorial ||
-        _phase == _Phase.verdict || _phase == _Phase.verdict ||
+        _phase == _Phase.verdict ||
         _phase == _Phase.complete) {
       _stopAutoWalk();
       return;
@@ -953,6 +953,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         }
       }
       if (hotspot.id == nextHotspotId) {
+        if (_explorerMode && !_isBranching) {
+          // Free-roam: no auto-walk. User walks manually.
+          // Hotspot activates via _checkHotspotProximity().
+          return;
+        }
         _autoWalkTo(hotspot);
         return;
       }
@@ -1412,7 +1417,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           if (_scene.showBirds) BirdsOverlay(count: _scene.birdCount),
 
           // ── Path route visualization ───────────────────────────────
-          if (_phase == _Phase.explore && _activeWaypoints.length > 1)
+          if (_phase == _Phase.explore && _activeWaypoints.length > 1
+              && !(_explorerMode && !_isBranching))
             CustomPaint(
               size: Size(screenW, screenH),
               painter: PathRoutePainter(
@@ -1439,11 +1445,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Fog of War overlay ──────────────────────────────────────
-          // ── Fog of War: Explorer Mode = noor-driven radius;
-          //    Reader Mode = cosmetic (off if Option A, legacy if Option B).
-          //    Default to Option A: Reader Mode skips fog entirely.
-          if (_phase == _Phase.explore && !_alreadyCompleted &&
-              (_explorerMode || true)) // TODO: Reader Mode Option A → change to _explorerMode only
+          // ── Fog of War: Explorer Mode only (Option A — Reader has no fog).
+          if (_phase == _Phase.explore && !_alreadyCompleted && _explorerMode)
             Positioned.fill(
               child: FogOverlay(
                 rawiX: _companionX,
@@ -1475,7 +1478,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Hotspot markers (all visible, sequential/branching unlock) ──
-          if (_phase == _Phase.explore || _phase == _Phase.verdict || _phase == _Phase.verdict)
+          if (_phase == _Phase.explore || _phase == _Phase.verdict)
             ...(() {
               // Determine next hotspot ID to unlock (uses shared getter)
               final nextHotspotId = _nextHotspotId;
@@ -1684,7 +1687,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               centerMode: true),
 
           // ── The Verdict (all events — unified gold card UI) ────────
-          if ((_phase == _Phase.verdict || _phase == _Phase.verdict || _phase == _Phase.complete)
+          if ((_phase == _Phase.verdict || _phase == _Phase.complete)
               && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
             _buildConvergenceQuestion(bottomPad),
 
