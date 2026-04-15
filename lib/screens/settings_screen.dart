@@ -9,7 +9,7 @@ import '../models/rawi_stage.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
-import 'event_list_screen.dart';
+import '../widgets/segmented_picker.dart';
 import 'splash_screen.dart';
 
 /// Full-page settings accessible from the hub gear icon.
@@ -72,31 +72,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     RawiApp.rebuild(context);
   }
 
-  void _cycleTextSize() {
-    final current = PrefsService.textScale;
-    final next = current < 0.9
-        ? 1.0
-        : current > 1.1
-            ? 0.85
-            : 1.2;
-    PrefsService.setTextScale(next);
-    RawiApp.rebuild(context);
-    Navigator.of(context).pushAndRemoveUntil(
-      PageRouteBuilder(
-        pageBuilder: (c, a, s) => const EventListScreen(),
-        transitionsBuilder: (c, a, s, child) =>
-            FadeTransition(opacity: a, child: child),
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
-      (route) => false,
-    );
+  // R20-A1: Text size is now a segmented bar instead of cycle-tap.
+  // 0.85 = Small, 1.0 = Medium, 1.2 = Large.
+  static const double _textScaleSmall = 0.85;
+  static const double _textScaleMedium = 1.0;
+  static const double _textScaleLarge = 1.2;
+
+  double get _textScaleKey {
+    final s = PrefsService.textScale;
+    if (s < 0.9) return _textScaleSmall;
+    if (s > 1.1) return _textScaleLarge;
+    return _textScaleMedium;
   }
 
-  String get _textSizeLabel {
-    final s = PrefsService.textScale;
-    if (s < 0.9) return _isAr ? 'ص' : 'S';
-    if (s > 1.1) return _isAr ? 'ك' : 'L';
-    return _isAr ? 'م' : 'M';
+  void _setTextSize(double scale) {
+    PrefsService.setTextScale(scale);
+    RawiApp.rebuild(context);
+    setState(() {});
   }
 
   Future<void> _resetJourney() async {
@@ -605,12 +597,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _cycleLang,
           ),
           Divider(color: AppColors.gold.withAlpha(20), height: 24),
-          // Text size toggle
-          _tapPrefRow(
-            Icons.text_fields_rounded,
-            _isAr ? 'حجم الخط' : 'Text Size',
-            _textSizeLabel,
-            _cycleTextSize,
+          // R20-A1: Text size as 3-segment bar (S / M / L).
+          _segmentedPrefRow(
+            icon: Icons.text_fields_rounded,
+            label: _isAr ? 'حجم الخط' : 'Text Size',
+            picker: SegmentedPicker<double>(
+              values: const [
+                _textScaleSmall,
+                _textScaleMedium,
+                _textScaleLarge,
+              ],
+              labels: _isAr
+                  ? const ['ص', 'و', 'ك']
+                  : const ['S', 'M', 'L'],
+              selected: _textScaleKey,
+              onChanged: _setTextSize,
+            ),
           ),
           Divider(color: AppColors.gold.withAlpha(20), height: 24),
           // Music
@@ -680,6 +682,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               size: 18, color: AppColors.textMuted.withAlpha(100)),
         ],
       ),
+    );
+  }
+
+  // R20-A1: Row with a trailing segmented picker instead of tappable chip.
+  Widget _segmentedPrefRow({
+    required IconData icon,
+    required String label,
+    required Widget picker,
+  }) {
+    return Row(
+      textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+      children: [
+        Icon(icon, size: 20, color: AppColors.gold.withAlpha(180)),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(
+                fontSize: 15, color: AppColors.textPrimary),
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          ),
+        ),
+        picker,
+      ],
     );
   }
 

@@ -158,6 +158,50 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // ── Feature: Hotspot proximity opacity ───────────────────────────────────
   final Map<String, double> _hotspotProximityOpacity = {};
 
+  // R20 Part B + C: per-hotspot effective (x,y) overrides computed once
+  // in initState based on the journey mode. Explorer Mode = seeded random
+  // per event id (quadrant-spread); Reader Mode = fixed horizontal row.
+  // All downstream code (proximity, fog, marker render) reads through
+  // _posFor() instead of raw h.x/h.y.
+  final Map<String, Offset> _effectivePositions = {};
+
+  Offset _posFor(SceneHotspot h) =>
+      _effectivePositions[h.id] ?? Offset(h.x, h.y);
+
+  // R20 Part C: Reader Mode auto-walk between hotspots. Simple XY tween
+  // over ~500ms. Explorer Mode uses free joystick movement so this is
+  // inert there.
+  late final AnimationController _readerWalkCtrl;
+  Offset _readerWalkStart = Offset.zero;
+  Offset _readerWalkEnd = Offset.zero;
+
+  void _onReaderWalkTick() {
+    final t = Curves.easeInOut.transform(_readerWalkCtrl.value);
+    setState(() {
+      _companionX = _readerWalkStart.dx +
+          (_readerWalkEnd.dx - _readerWalkStart.dx) * t;
+      _companionY = _readerWalkStart.dy +
+          (_readerWalkEnd.dy - _readerWalkStart.dy) * t;
+      _facingDir = _readerWalkEnd.dx >= _readerWalkStart.dx ? 1.0 : -1.0;
+      _isWalking = _readerWalkCtrl.value > 0.02 &&
+          _readerWalkCtrl.value < 0.98;
+    });
+  }
+
+  /// Start a tap-to-advance walk to the given hotspot (Reader Mode).
+  /// The Rawi stops slightly below the hotspot so the marker stays
+  /// visible. Parallax offset follows X naturally on every tick.
+  void _readerAdvanceTo(SceneHotspot hotspot) {
+    if (_explorerMode) return; // should never be called in Explorer
+    final target = _posFor(hotspot);
+    _readerWalkStart = Offset(_companionX, _companionY);
+    _readerWalkEnd = Offset(target.dx, target.dy + 0.08);
+    _readerWalkCtrl
+      ..reset()
+      ..forward();
+    AudioService.playSfx('assets/audio/sfx_footsteps_sand.wav', volume: 0.15);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -169,6 +213,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _scene = sceneConfigs[widget.event.id]!;
     _answers = List.filled(widget.event.questions.length, null);
 
+    // R20 Part B + C: compute effective hotspot positions once for this
+    // event. Completed-event replays keep the stored scene-config positions
+    // so the re-read layout is stable; live runs get the mode-specific
+    // layout.
+    _computeEffectivePositions();
+
     _revealCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 380));
     _revealAnim = CurvedAnimation(parent: _revealCtrl, curve: Curves.easeOut);
@@ -176,11 +226,22 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _phaseCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
 
+    _readerWalkCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500))
+      ..addListener(_onReaderWalkTick);
+
     // Precompute path segment lengths
     _precomputePath();
 
-    // Set initial companion position at path start
-    if (_activeWaypoints.isNotEmpty) {
+    // Set initial companion position.
+    // R20 Part C: Reader Mode starts the Rawi standing next to the first
+    // hotspot (slightly below and to the side) since movement is tap-to-
+    // advance. Explorer Mode and legacy path still spawn at path start.
+    if (!_explorerMode && _scene.hotspots.isNotEmpty) {
+      final firstPos = _posFor(_scene.hotspots.first);
+      _companionX = firstPos.dx;
+      _companionY = firstPos.dy + 0.08; // stand just below the hotspot
+    } else if (_activeWaypoints.isNotEmpty) {
       _companionX = _activeWaypoints.first.dx;
       _companionY = _activeWaypoints.first.dy;
     }
@@ -253,6 +314,89 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
   }
 
+  // ── R20 Part B + C: effective hotspot positions per mode ─────────────
+
+  /// Populate _effectivePositions based on current mode.
+  ///
+  /// Explorer Mode → seeded random quadrant-spread positions.
+  /// Reader Mode   → fixed horizontal row (tap-to-read layout).
+  /// Replay of a completed event → use the stored SceneConfig positions
+  /// (so the layout the user saw when they played is still what they see
+  /// on re-read).
+  void _computeEffectivePositions() {
+    _effectivePositions.clear();
+    if (_alreadyCompleted) {
+      // Replay keeps authored positions — predictable re-read layout.
+      for (final h in _scene.hotspots) {
+        _effectivePositions[h.id] = Offset(h.x, h.y);
+      }
+      return;
+    }
+    if (_explorerMode) {
+      final positions = _generateExplorerPositions(
+          widget.event.id, _scene.hotspots.length);
+      for (int i = 0; i < _scene.hotspots.length; i++) {
+        _effectivePositions[_scene.hotspots[i].id] =
+            i < positions.length ? positions[i] : Offset(_scene.hotspots[i].x, _scene.hotspots[i].y);
+      }
+    } else {
+      // Reader Mode: horizontal row centered vertically at y = 0.50.
+      // EN: left-to-right. AR: right-to-left.
+      const xs = [0.15, 0.38, 0.62, 0.85];
+      for (int i = 0; i < _scene.hotspots.length; i++) {
+        final xIndex = _isAr ? (_scene.hotspots.length - 1 - i) : i;
+        final x = xIndex < xs.length ? xs[xIndex] : 0.50;
+        _effectivePositions[_scene.hotspots[i].id] = Offset(x, 0.50);
+      }
+    }
+  }
+
+  /// Seeded random positions for Explorer Mode. Deterministic on event
+  /// id — same event always produces the same layout for the same user.
+  /// Guarantees quadrant spread and min distance between hotspots.
+  List<Offset> _generateExplorerPositions(String eventId, int count) {
+    final rng = Random(eventId.hashCode);
+    final positions = <Offset>[];
+
+    const quadrants = [
+      Rect.fromLTRB(0.10, 0.20, 0.50, 0.50), // top-left
+      Rect.fromLTRB(0.50, 0.20, 0.90, 0.50), // top-right
+      Rect.fromLTRB(0.10, 0.50, 0.50, 0.80), // bottom-left
+      Rect.fromLTRB(0.50, 0.50, 0.90, 0.80), // bottom-right
+    ];
+
+    bool tooClose(Offset p) {
+      for (final q in positions) {
+        final dx = p.dx - q.dx;
+        final dy = p.dy - q.dy;
+        if (sqrt(dx * dx + dy * dy) < 0.20) return true;
+      }
+      // Also stay away from the Rawi spawn point so nothing is
+      // discoverable the instant the scene loads.
+      final sdx = p.dx - 0.50;
+      final sdy = p.dy - 0.75;
+      if (sqrt(sdx * sdx + sdy * sdy) < 0.15) return true;
+      return false;
+    }
+
+    for (int i = 0; i < count; i++) {
+      final q = quadrants[i % quadrants.length];
+      Offset pos = Offset(q.left + q.width / 2, q.top + q.height / 2);
+      for (int attempts = 0; attempts < 50; attempts++) {
+        final candidate = Offset(
+          q.left + rng.nextDouble() * q.width,
+          q.top + rng.nextDouble() * q.height,
+        );
+        if (!tooClose(candidate)) {
+          pos = candidate;
+          break;
+        }
+      }
+      positions.add(pos);
+    }
+    return positions;
+  }
+
   /// Convert _pathProgress (0-1) to a position on the path.
   Offset _positionOnPath(double progress) {
     final wp = _activeWaypoints;
@@ -318,6 +462,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _figureBounceCtrl.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
+    _readerWalkCtrl.dispose();
     // Fade all audio for smooth exit (LOCKED RULE: no hard cuts)
     AudioService.stopSfx();
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
@@ -525,8 +670,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _isNearUndiscoveredHotspot() {
     for (final h in _scene.hotspots) {
       if (_discovered.contains(h.id) || _pendingDiscovery.contains(h.id)) continue;
-      final dx = _companionX - h.x;
-      final dy = _companionY - h.y;
+      final pos = _posFor(h);
+      final dx = _companionX - pos.dx;
+      final dy = _companionY - pos.dy;
       if (dx * dx + dy * dy < 0.03) return true;
     }
     return false;
@@ -682,8 +828,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     for (final h in _scene.hotspots) {
       if (_explorerMode && h.id != nextId) continue;
 
-      final dx = _companionX - h.x;
-      final dy = _companionY - h.y;
+      final pos = _posFor(h);
+      final dx = _companionX - pos.dx;
+      final dy = _companionY - pos.dy;
       final dist = sqrt(dx * dx + dy * dy);
 
       if (dist < _hotspotRadius && !_discovered.contains(h.id) && !_pendingDiscovery.contains(h.id)) {
@@ -709,8 +856,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         final t = s / samples;
         final px = wp[i].dx + (wp[i + 1].dx - wp[i].dx) * t;
         final py = wp[i].dy + (wp[i + 1].dy - wp[i].dy) * t;
-        final dx = px - hotspot.x;
-        final dy = py - hotspot.y;
+        final hPos = _posFor(hotspot);
+        final dx = px - hPos.dx;
+        final dy = py - hPos.dy;
         final dist = dx * dx + dy * dy;
         final progress = (accumulated + _segLengths[i] * t) / _totalPathLen;
         if (dist < bestDist) {
@@ -1069,8 +1217,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       // Next undiscovered hotspot: distance-based opacity
       // Range extended past the fog cutout (~0.25 normalized) so the marker
       // becomes visible THROUGH the fog as a hint, before entering the lit area.
-      final dx = _companionX - h.x;
-      final dy = _companionY - h.y;
+      final pos = _posFor(h);
+      final dx = _companionX - pos.dx;
+      final dy = _companionY - pos.dy;
       final dist = sqrt(dx * dx + dy * dy);
 
       // Anti-frustration (Explorer Mode): progressively boost visibility
@@ -1136,6 +1285,24 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         0.10 + _discoveredProgress * 0.10,
         duration: const Duration(milliseconds: 500),
       );
+    }
+
+    // R20 Part C: Reader Mode tap-to-advance — after dismissing a
+    // hotspot, walk the Rawi to the next one. Skip for the final
+    // hotspot (verdict takes over) and for branching events whose
+    // branch card is about to appear.
+    if (!_explorerMode && wasNewDiscovery) {
+      final nextId = _nextHotspotId;
+      final willShowBranchCard = _isBranching &&
+          dismissed.id == widget.event.anchorHotspotId &&
+          _branchChoice == null;
+      if (nextId != null && !willShowBranchCard) {
+        final nextHotspot = _scene.hotspots.firstWhere(
+          (h) => h.id == nextId,
+          orElse: () => _scene.hotspots.last,
+        );
+        _readerAdvanceTo(nextHotspot);
+      }
     }
 
     // ── Branching: show branch card after anchor ────────────────────────
@@ -1490,7 +1657,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 rawiY: _companionY,
                 discoveredPositions: _scene.hotspots
                     .where((h) => _discovered.contains(h.id) || _pendingDiscovery.contains(h.id))
-                    .map((h) => Offset(h.x, h.y))
+                    .map((h) => _posFor(h))
                     .toList(),
                 totalHotspots: _scene.hotspots.length,
                 discoveredCount: _discovered.length + _pendingDiscovery.length,
@@ -1521,8 +1688,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               final nextHotspotId = _nextHotspotId;
 
               return _scene.hotspots.map((h) {
-                final hScreenX = h.x * screenW + sceneOffset - 45;
-                final hScreenY = h.y * screenH - 45;
+                final hPos = _posFor(h);
+                final hScreenX = hPos.dx * screenW + sceneOffset - 45;
+                final hScreenY = hPos.dy * screenH - 45;
                 final isDiscovered = _discovered.contains(h.id);
                 final isPending = _pendingDiscovery.contains(h.id);
                 // R20-01: In Reader Mode, EVERY hotspot is accessible and
@@ -1710,7 +1878,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Virtual joystick ───────────────────────────────────────
-          if (_phase == _Phase.explore && _activeHotspot == null)
+          // R20 Part C: hidden in Reader Mode — Reader uses tap-to-advance
+          // instead of free movement.
+          if (_explorerMode && _phase == _Phase.explore && _activeHotspot == null)
             Positioned(
               bottom: bottomPad + 16, left: 20,
               child: VirtualJoystick(
