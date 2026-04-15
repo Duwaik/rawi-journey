@@ -222,6 +222,16 @@ class PrefsService {
   static Future<void> setPassageSeen(int afterEventOrder) async =>
       await _prefs?.setBool('$_keyPassageSeen$afterEventOrder', true);
 
+  // ── JOYSTICK POSITION (R21-04) ────────────────────────────────────────
+  // Explorer Mode joystick placement: 'left' | 'center' | 'right'.
+  static const String _keyJoystickPosition = 'joystickPosition';
+
+  static String get joystickPosition =>
+      _prefs?.getString(_keyJoystickPosition) ?? 'left';
+
+  static Future<void> setJoystickPosition(String pos) async =>
+      await _prefs?.setString(_keyJoystickPosition, pos);
+
   // ── TUTORIAL ──────────────────────────────────────────────────────────
   static bool get isTutorialSeen =>
       _prefs?.getBool(_keyTutorialSeen) ?? false;

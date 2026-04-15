@@ -91,6 +91,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {});
   }
 
+  // R21-04: Joystick position (Explorer Mode only) — left / center / right.
+  String _joystickPos = PrefsService.joystickPosition;
+
+  void _setJoystickPos(String pos) {
+    PrefsService.setJoystickPosition(pos);
+    setState(() => _joystickPos = pos);
+  }
+
   Future<void> _resetJourney() async {
     final confirmed = await showRawiDialog(
       context: context,
@@ -612,6 +620,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : const ['S', 'M', 'L'],
               selected: _textScaleKey,
               onChanged: _setTextSize,
+            ),
+          ),
+          Divider(color: AppColors.gold.withAlpha(20), height: 24),
+          // R21-04: Joystick position (Explorer Mode only).
+          _segmentedPrefRow(
+            icon: Icons.gamepad_rounded,
+            label: _isAr ? 'موقع عصا التحكم' : 'Joystick Position',
+            picker: SegmentedPicker<String>(
+              values: const ['left', 'center', 'right'],
+              labels: _isAr
+                  ? const ['ي', 'و', 'ش']
+                  : const ['L', 'C', 'R'],
+              selected: _joystickPos,
+              onChanged: _setJoystickPos,
             ),
           ),
           Divider(color: AppColors.gold.withAlpha(20), height: 24),

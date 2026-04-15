@@ -1618,7 +1618,42 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         onPointerDown: (event) => _checkSecretTap(
           event.localPosition, screenW, screenH, sceneOffset,
         ),
-        child: Stack(
+        // R21-04: Touch-to-move (Explorer Mode only). Drag the finger
+        // anywhere on the scene to walk the Rawi toward that point.
+        // Coexists with the joystick — the joystick widget wins its own
+        // gesture arena, hotspot taps are onTap (no conflict with pan),
+        // and Reader Mode early-returns since the cards drive movement.
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onPanUpdate: (details) {
+            if (!_explorerMode) return;
+            if (_activeHotspot != null) return;
+            if (_showBranchCard || _phase != _Phase.explore) return;
+            final targetX =
+                (details.localPosition.dx / screenW).clamp(0.05, 0.95);
+            final targetY =
+                (details.localPosition.dy / screenH).clamp(0.15, 0.90);
+            // Smooth lerp toward finger position so taps don't teleport.
+            _companionX += (targetX - _companionX) * 0.15;
+            _companionY += (targetY - _companionY) * 0.15;
+            _parallaxOffset = -(_companionX - 0.5) * 0.8;
+            _facingDir = targetX >= _companionX ? 1.0 : -1.0;
+            // Footprint trail so movement feels grounded.
+            if (_footprints.isEmpty ||
+                (_footprints.last.dx - _companionX).abs() > 0.01 ||
+                (_footprints.last.dy - _companionY).abs() > 0.01) {
+              _footprints.add(Offset(_companionX, _companionY));
+              if (_footprints.length > 80) _footprints.removeAt(0);
+            }
+            setState(() => _isWalking = true);
+            _checkHotspotProximity();
+            _updateHotspotProximity(nextHotspotId: _nextHotspotId);
+          },
+          onPanEnd: (_) {
+            if (!_explorerMode) return;
+            if (mounted) setState(() => _isWalking = false);
+          },
+          child: Stack(
         children: [
           // R19-01b: Reader Mode background gradient (only visible where
           // ground layers don't cover; harmless when they do).
@@ -1984,9 +2019,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           // ── Virtual joystick ───────────────────────────────────────
           // R20 Part C: hidden in Reader Mode — Reader uses tap-to-advance
           // instead of free movement.
+          // R21-04: position is user-configurable (left / center / right).
           if (_explorerMode && _phase == _Phase.explore && _activeHotspot == null)
             Positioned(
-              bottom: bottomPad + 16, left: 20,
+              bottom: bottomPad + 16,
+              left: PrefsService.joystickPosition == 'left'
+                  ? 20
+                  : PrefsService.joystickPosition == 'center'
+                      ? screenW / 2 - 56
+                      : null,
+              right:
+                  PrefsService.joystickPosition == 'right' ? 20 : null,
               child: VirtualJoystick(
                 onMove: (dx, dy) {
                   _joyDx = dx;
@@ -2183,6 +2226,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
         ],
+      ),
       ),
       ),
     ),
