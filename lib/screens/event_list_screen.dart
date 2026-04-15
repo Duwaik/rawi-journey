@@ -327,22 +327,28 @@ class _EventListScreenState extends State<EventListScreen>
       }
     }
 
-    // Bottom motivational text
-    items.add(
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Center(
-          child: Text(
-            isAr ? '36 حدثاً بانتظارك' : '36 events await',
-            style: GoogleFonts.lora(
-              color: AppColors.gold.withAlpha(60),
-              fontSize: 13,
-              fontStyle: isAr ? FontStyle.normal : FontStyle.italic,
+    // Bottom motivational text (R19-12: dynamic count reflecting 155 events)
+    final completedCount = _events
+        .where((e) => PrefsService.isEventCompleted(e.globalOrder))
+        .length;
+    final remaining = _events.length - completedCount;
+    if (remaining > 0) {
+      items.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Center(
+            child: Text(
+              isAr ? '$remaining حدثاً بانتظارك' : '$remaining events await',
+              style: GoogleFonts.lora(
+                color: AppColors.gold.withAlpha(60),
+                fontSize: 13,
+                fontStyle: isAr ? FontStyle.normal : FontStyle.italic,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
 
     return items;
   }

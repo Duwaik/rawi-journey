@@ -85,8 +85,13 @@ class AudioService {
   /// Ducks ambient volume while playing, restores when done.
   /// Skips playback if VO is disabled in preferences.
   static Future<void> playVoiceover(String assetPath, {double volume = 0.7}) async {
+    // R19-07: VO globally disabled until batch regeneration. Lift this
+    // early return when new VO files ship.
+    return;
+    // ignore: dead_code
     if (!PrefsService.voEnabled) return;
     // AR VO disabled until batch regeneration with Jordanian accent
+    // ignore: dead_code
     if (PrefsService.isAr) return;
     // LOCKED RULE: always fade previous VO before starting new (no hard cuts)
     await fadeOutVoiceover(duration: const Duration(milliseconds: 150));

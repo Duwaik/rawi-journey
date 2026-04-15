@@ -6,6 +6,7 @@ import '../character_art.dart';
 import '../data/m1_data.dart';
 import '../main.dart';
 import '../models/rawi_stage.dart';
+import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'event_list_screen.dart';
@@ -44,16 +45,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _toggleMusic(bool v) {
     setState(() => _music = v);
     PrefsService.setMusicEnabled(v);
+    // R19-11: actually stop the ambient when muted (don't just save the pref)
+    if (!v) {
+      AudioService.fadeOut(duration: const Duration(milliseconds: 300));
+    }
   }
 
   void _toggleVo(bool v) {
     setState(() => _vo = v);
     PrefsService.setVoEnabled(v);
+    if (!v) {
+      AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
+    }
   }
 
   void _toggleSfx(bool v) {
     setState(() => _sfx = v);
     PrefsService.setSfxEnabled(v);
+    if (!v) AudioService.stopSfx();
   }
 
   void _cycleLang() {
@@ -195,6 +204,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                       const SizedBox(height: 16),
 
+                      // ── Subscription (placeholder, non-functional) ─────
+                      _buildSectionHeader(
+                          _isAr ? 'الاشتراك' : 'Subscription'),
+                      const SizedBox(height: 8),
+                      _buildSubscriptionCard(),
+
+                      const SizedBox(height: 16),
+
                       // ── 3. Preferences ─────────────────────────────────
                       _buildSectionHeader(
                           _isAr ? 'التفضيلات' : 'Preferences'),
@@ -286,9 +303,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(width: 16),
           Expanded(
             child: Column(
-              crossAxisAlignment: _isAr
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+              // R19-16: `start` respects ambient textDirection from the Row,
+              // so text hugs the side adjacent to the image in both LTR and
+              // RTL (previously inverted, causing a large AR gap).
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   name,
@@ -383,6 +401,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // ── Subscription placeholder (R19-10) ──────────────────────────────────
+
+  Widget _buildSubscriptionCard() {
+    return Container(
+      decoration: _sectionDecoration,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.workspace_premium_rounded,
+                  color: AppColors.gold, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isAr
+                          ? 'RawiJourney Premium — \$9.99'
+                          : 'RawiJourney Premium — \$9.99',
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _isAr
+                          ? 'افتح جميع الأحداث الـ 155'
+                          : 'Unlock all 155 events',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withAlpha(20),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.gold.withAlpha(60)),
+            ),
+            child: Center(
+              child: Text(
+                _isAr ? 'قريباً' : 'Coming Soon',
+                style: GoogleFonts.nunito(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.gold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -649,16 +735,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            _isAr ? 'صُنع بحب في عمّان' : 'Made with love in Amman',
-            style: GoogleFonts.lora(
-              fontSize: 13,
-              fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
-              color: AppColors.gold.withAlpha(140),
-            ),
-            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-          ),
-          const SizedBox(height: 8),
+          // R19-16: "Made with love in Amman" removed.
           Text(
             _isAr
                 ? 'كن شاهداً. احمل الرواية.'

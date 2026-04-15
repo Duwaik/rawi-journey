@@ -670,7 +670,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (_activeHotspot != null) return;
     if (_showBranchCard) return; // Don't trigger hotspots while branch card showing
 
+    // R19-02: In Explorer Mode, only the NEXT hotspot in sequence can be
+    // activated. Prevents discovering HS2/HS3 out of order.
+    final nextId = _explorerMode ? _nextHotspotId : null;
+
     for (final h in _scene.hotspots) {
+      if (_explorerMode && h.id != nextId) continue;
+
       final dx = _companionX - h.x;
       final dy = _companionY - h.y;
       final dist = sqrt(dx * dx + dy * dy);
@@ -1568,7 +1574,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   colors: [Colors.black.withAlpha(180), Colors.transparent],
                 ),
               ),
+              // R19-15: Force LTR on the top bar so the EN/AR toggle and
+              // settings gear are always in the same visual position
+              // regardless of app language. Internal text stays bilingual.
               child: Row(
+                textDirection: TextDirection.ltr,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_rounded,
