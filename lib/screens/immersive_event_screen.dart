@@ -30,7 +30,6 @@ import '../widgets/cinematic/parallax_scene.dart';
 import '../widgets/cinematic/particle_painter.dart';
 import '../widgets/cinematic/scene_hotspot_marker.dart';
 import '../widgets/cinematic/birds_overlay.dart';
-import '../widgets/cinematic/path_route_painter.dart';
 import '../widgets/cinematic/starfield_layer.dart';
 import '../widgets/cinematic/virtual_joystick.dart';
 import '../widgets/cinematic/fog_overlay.dart';
@@ -1619,22 +1618,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
           // ── Birds overlay (Event 2) ────────────────────────────────
           if (_scene.showBirds) BirdsOverlay(count: _scene.birdCount),
-
-          // ── Path route visualization ───────────────────────────────
-          if (_phase == _Phase.explore && _activeWaypoints.length > 1
-              && !_explorerMode)
-            CustomPaint(
-              size: Size(screenW, screenH),
-              painter: PathRoutePainter(
-                waypoints: _activeWaypoints,
-                pathProgress: _pathProgress,
-                screenW: screenW,
-                screenH: screenH,
-                sceneOffset: sceneOffset,
-                discoveredCount: _discovered.length + _pendingDiscovery.length,
-                totalHotspots: _scene.hotspots.length,
-              ),
-            ),
 
           // ── Footprint trail ────────────────────────────────────────
           if (_phase == _Phase.explore && _footprints.isNotEmpty)

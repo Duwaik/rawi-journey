@@ -243,7 +243,7 @@ class _PassageScreenState extends State<PassageScreen>
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            '— ${p.quoteSource} —',
+                            '(${p.quoteSource})',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.nunito(
                               fontSize: 11,

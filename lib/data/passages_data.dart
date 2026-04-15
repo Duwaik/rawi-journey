@@ -24,7 +24,7 @@ const List<PassageMoment> _passages = [
     titleEn: 'The Dawn is Complete',
     titleAr: 'اكتمل الفجر',
     quoteEn:
-        'And those who emigrated for Allah after being wronged — We will surely settle them in a good place in this world.',
+        'And those who emigrated for Allah after being wronged, We will surely settle them in a good place in this world.',
     quoteAr:
         'والذين هاجروا في الله من بعد ما ظُلموا لنبوّئنّهم في الدنيا حسنة',
     quoteSource: 'An-Nahl 16:41',
