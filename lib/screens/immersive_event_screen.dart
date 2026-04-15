@@ -28,6 +28,7 @@ import '../widgets/cinematic/hotspot_progress.dart';
 import '../widgets/cinematic/grain_overlay.dart';
 import '../widgets/cinematic/parallax_scene.dart';
 import '../widgets/cinematic/particle_painter.dart';
+import '../widgets/cinematic/reader_hotspot_card.dart';
 import '../widgets/cinematic/scene_hotspot_marker.dart';
 import '../widgets/cinematic/birds_overlay.dart';
 import '../widgets/cinematic/starfield_layer.dart';
@@ -167,39 +168,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   Offset _posFor(SceneHotspot h) =>
       _effectivePositions[h.id] ?? Offset(h.x, h.y);
 
-  // R20 Part C: Reader Mode auto-walk between hotspots. Simple XY tween
-  // over ~500ms. Explorer Mode uses free joystick movement so this is
-  // inert there.
-  late final AnimationController _readerWalkCtrl;
-  Offset _readerWalkStart = Offset.zero;
-  Offset _readerWalkEnd = Offset.zero;
-
-  void _onReaderWalkTick() {
-    final t = Curves.easeInOut.transform(_readerWalkCtrl.value);
-    setState(() {
-      _companionX = _readerWalkStart.dx +
-          (_readerWalkEnd.dx - _readerWalkStart.dx) * t;
-      _companionY = _readerWalkStart.dy +
-          (_readerWalkEnd.dy - _readerWalkStart.dy) * t;
-      _facingDir = _readerWalkEnd.dx >= _readerWalkStart.dx ? 1.0 : -1.0;
-      _isWalking = _readerWalkCtrl.value > 0.02 &&
-          _readerWalkCtrl.value < 0.98;
-    });
-  }
-
-  /// Start a tap-to-advance walk to the given hotspot (Reader Mode).
-  /// The Rawi stops slightly below the hotspot so the marker stays
-  /// visible. Parallax offset follows X naturally on every tick.
-  void _readerAdvanceTo(SceneHotspot hotspot) {
-    if (_explorerMode) return; // should never be called in Explorer
-    final target = _posFor(hotspot);
-    _readerWalkStart = Offset(_companionX, _companionY);
-    _readerWalkEnd = Offset(target.dx, target.dy + 0.08);
-    _readerWalkCtrl
-      ..reset()
-      ..forward();
-    AudioService.playSfx('assets/audio/sfx_footsteps_sand.wav', volume: 0.15);
-  }
 
   @override
   void initState() {
@@ -225,21 +193,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _phaseCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
 
-    _readerWalkCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500))
-      ..addListener(_onReaderWalkTick);
-
     // Precompute path segment lengths
     _precomputePath();
 
     // Set initial companion position.
-    // R20 Part C: Reader Mode starts the Rawi standing next to the first
-    // hotspot (slightly below and to the side) since movement is tap-to-
-    // advance. Explorer Mode and legacy path still spawn at path start.
-    if (!_explorerMode && _scene.hotspots.isNotEmpty) {
-      final firstPos = _posFor(_scene.hotspots.first);
-      _companionX = firstPos.dx;
-      _companionY = firstPos.dy + 0.08; // stand just below the hotspot
+    // R20 Part C v3: Reader Mode keeps the Rawi stationary at scene
+    // center between the four quadrant cards. Explorer Mode and legacy
+    // path still spawn at path start.
+    if (!_explorerMode) {
+      _companionX = 0.50;
+      _companionY = 0.525;
     } else if (_activeWaypoints.isNotEmpty) {
       _companionX = _activeWaypoints.first.dx;
       _companionY = _activeWaypoints.first.dy;
@@ -339,15 +302,113 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             i < positions.length ? positions[i] : Offset(_scene.hotspots[i].x, _scene.hotspots[i].y);
       }
     } else {
-      // Reader Mode: horizontal row centered vertically at y = 0.50.
-      // EN: left-to-right. AR: right-to-left.
-      const xs = [0.15, 0.38, 0.62, 0.85];
+      // Reader Mode v3: 2x2 quadrant grid with Rawi stationary in center.
+      // Index → quadrant mapping:
+      //   LTR: [0=tl, 1=tr, 2=bl, 3=br]
+      //   AR : [0=tr, 1=tl, 2=br, 3=bl]   (mirrored so 1st card sits on
+      //                                    the side AR readers naturally
+      //                                    look first)
+      // Card centers:
+      //   tl/bl → x = 0.27 ; tr/br → x = 0.73
+      //   tl/tr → y = 0.40 ; bl/br → y = 0.65
+      const positions = {
+        'tl': Offset(0.27, 0.40),
+        'tr': Offset(0.73, 0.40),
+        'bl': Offset(0.27, 0.65),
+        'br': Offset(0.73, 0.65),
+      };
+      final ltrQuads = ['tl', 'tr', 'bl', 'br'];
+      final arQuads = ['tr', 'tl', 'br', 'bl'];
+      final quads = _isAr ? arQuads : ltrQuads;
       for (int i = 0; i < _scene.hotspots.length; i++) {
-        final xIndex = _isAr ? (_scene.hotspots.length - 1 - i) : i;
-        final x = xIndex < xs.length ? xs[xIndex] : 0.50;
-        _effectivePositions[_scene.hotspots[i].id] = Offset(x, 0.50);
+        final q = i < quads.length ? quads[i] : 'tl';
+        _effectivePositions[_scene.hotspots[i].id] =
+            positions[q] ?? const Offset(0.5, 0.5);
       }
     }
+  }
+
+  /// Reader Mode v3 quadrant for a given hotspot index, language-aware.
+  ReaderCardQuadrant _readerQuadrant(int index) {
+    const ltr = [
+      ReaderCardQuadrant.tl,
+      ReaderCardQuadrant.tr,
+      ReaderCardQuadrant.bl,
+      ReaderCardQuadrant.br,
+    ];
+    const ar = [
+      ReaderCardQuadrant.tr,
+      ReaderCardQuadrant.tl,
+      ReaderCardQuadrant.br,
+      ReaderCardQuadrant.bl,
+    ];
+    final list = _isAr ? ar : ltr;
+    return index < list.length ? list[index] : ReaderCardQuadrant.tl;
+  }
+
+  /// Reader Mode v3 card state machine.
+  ///
+  /// Linear events: cards unlock 1 → 2 → 3 → 4. Discovered = done; the
+  /// next undiscovered = active; everything after = locked.
+  ///
+  /// Branching events: anchor → both branch options glow as choice →
+  /// pick one → other branch becomes active → convergence active →
+  /// done. Direct tap on a BRANCH_CHOICE card IS the branch selection
+  /// (no Crossroads overlay in Reader Mode).
+  ReaderCardState _readerCardState(SceneHotspot h) {
+    if (_alreadyCompleted) return ReaderCardState.done;
+    if (_discovered.contains(h.id) || _pendingDiscovery.contains(h.id)) {
+      return ReaderCardState.done;
+    }
+
+    if (!_isBranching) {
+      final firstUndiscoveredIdx = _scene.hotspots.indexWhere(
+        (x) => !_discovered.contains(x.id) && !_pendingDiscovery.contains(x.id),
+      );
+      final myIdx = _scene.hotspots.indexOf(h);
+      return myIdx == firstUndiscoveredIdx
+          ? ReaderCardState.active
+          : ReaderCardState.locked;
+    }
+
+    // ── Branching ────────────────────────────────────────────────────
+    final ev = widget.event;
+    final anchorId = ev.anchorHotspotId;
+    final convergenceId = ev.convergenceHotspotId;
+    final bp = ev.branchPoint;
+    if (anchorId == null || convergenceId == null || bp == null) {
+      return ReaderCardState.locked;
+    }
+    final branchIds = {bp.optionA.targetHotspotId, bp.optionB.targetHotspotId};
+
+    // Anchor not done yet → only anchor is active.
+    if (!_discovered.contains(anchorId)) {
+      return h.id == anchorId
+          ? ReaderCardState.active
+          : ReaderCardState.locked;
+    }
+
+    final branchesDone = branchIds.where(_discovered.contains).toSet();
+
+    // Anchor done, no branch chosen → both branches glow as choice.
+    if (branchesDone.isEmpty) {
+      return branchIds.contains(h.id)
+          ? ReaderCardState.branchChoice
+          : ReaderCardState.locked;
+    }
+
+    // One branch done → the other branch is active.
+    if (branchesDone.length == 1) {
+      if (branchIds.contains(h.id) && !branchesDone.contains(h.id)) {
+        return ReaderCardState.active;
+      }
+      return ReaderCardState.locked;
+    }
+
+    // Both branches done → convergence active.
+    return h.id == convergenceId
+        ? ReaderCardState.active
+        : ReaderCardState.locked;
   }
 
   /// Seeded random positions for Explorer Mode. Deterministic on event
@@ -461,7 +522,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _figureBounceCtrl.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
-    _readerWalkCtrl.dispose();
     // Fade all audio for smooth exit (LOCKED RULE: no hard cuts)
     AudioService.stopSfx();
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
@@ -678,6 +738,30 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   }
 
   // ── Branch choice handler ──────────────────────────────────────────────────
+
+  /// Reader Mode v3 card tap dispatcher.
+  ///
+  /// LOCKED → no-op. DONE / ACTIVE → open the hotspot panel like a
+  /// regular tap. BRANCH_CHOICE → record the branch selection (which
+  /// implicitly turns the OTHER branch into ACTIVE on the next state
+  /// recomputation), then open this card.
+  void _onReaderCardTap(SceneHotspot h, ReaderCardState state) {
+    if (state == ReaderCardState.locked) return;
+    if (state == ReaderCardState.branchChoice) {
+      final bp = widget.event.branchPoint;
+      if (bp != null) {
+        final option = bp.optionA.targetHotspotId == h.id
+            ? bp.optionA
+            : bp.optionB.targetHotspotId == h.id
+                ? bp.optionB
+                : null;
+        if (option != null) {
+          _onBranchSelected(option);
+        }
+      }
+    }
+    _onHotspotTap(h);
+  }
 
   void _onBranchSelected(BranchOption selected) {
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
@@ -1289,23 +1373,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     // R20 Part C: Reader Mode tap-to-advance — after dismissing a
     // hotspot, walk the Rawi to the next one. Skip for the final
     // hotspot (verdict takes over) and for branching events whose
-    // branch card is about to appear.
-    if (!_explorerMode && wasNewDiscovery) {
-      final nextId = _nextHotspotId;
-      final willShowBranchCard = _isBranching &&
-          dismissed.id == widget.event.anchorHotspotId &&
-          _branchChoice == null;
-      if (nextId != null && !willShowBranchCard) {
-        final nextHotspot = _scene.hotspots.firstWhere(
-          (h) => h.id == nextId,
-          orElse: () => _scene.hotspots.last,
-        );
-        _readerAdvanceTo(nextHotspot);
-      }
-    }
+    // R20 Part C v3: Reader Mode keeps the Rawi stationary in the
+    // center of the quadrant grid — no auto-walk. The card state
+    // machine takes over visually (active/branch_choice cards
+    // glow). Branch choice in Reader Mode is made by tapping a
+    // BRANCH_CHOICE card directly (see _onHotspotTap), so the
+    // Crossroads overlay is suppressed below as well.
 
-    // ── Branching: show branch card after anchor ────────────────────────
-    if (_isBranching && dismissed != null &&
+    // ── Branching: show Crossroads card after anchor (Explorer only) ────
+    if (_explorerMode &&
+        _isBranching && dismissed != null &&
         dismissed.id == widget.event.anchorHotspotId &&
         _branchChoice == null) {
       // The Gate just dismissed — show The Crossroads
@@ -1664,58 +1741,82 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── Hotspot markers (all visible, sequential/branching unlock) ──
+          // ── Hotspot markers (Explorer) / cards (Reader v3) ──────────
           if (_phase == _Phase.explore || _phase == _Phase.verdict)
             ...(() {
-              // Determine next hotspot ID to unlock (uses shared getter)
-              final nextHotspotId = _nextHotspotId;
+              if (_explorerMode) {
+                // Explorer: small markers w/ sequential reveal + fog hint.
+                final nextHotspotId = _nextHotspotId;
+                return _scene.hotspots.map((h) {
+                  final hPos = _posFor(h);
+                  final hScreenX = hPos.dx * screenW + sceneOffset - 45;
+                  final hScreenY = hPos.dy * screenH - 45;
+                  final isDiscovered = _discovered.contains(h.id);
+                  final isPending = _pendingDiscovery.contains(h.id);
+                  final isNext =
+                      h.id == nextHotspotId && !isDiscovered && !isPending;
+                  final isLocked =
+                      !isDiscovered && !isPending && h.id != nextHotspotId;
 
-              return _scene.hotspots.map((h) {
+                  final double proximityOpacity;
+                  if (isDiscovered || isPending) {
+                    proximityOpacity = 1.0;
+                  } else if (h.id == nextHotspotId) {
+                    proximityOpacity = _hotspotProximityOpacity[h.id] ?? 0.0;
+                  } else {
+                    proximityOpacity = 0.0;
+                  }
+
+                  final marker = SceneHotspotMarker(
+                    icon: h.icon,
+                    label: _isAr ? h.labelAr : h.label,
+                    discovered: isDiscovered,
+                    active: isNext,
+                    locked: isLocked,
+                    onTap: () => _onHotspotTap(h),
+                  );
+
+                  return Positioned(
+                    left: hScreenX, top: hScreenY,
+                    child: (isDiscovered || isPending)
+                        ? marker
+                        : AnimatedOpacity(
+                            opacity: proximityOpacity,
+                            duration: const Duration(milliseconds: 400),
+                            child: marker,
+                          ),
+                  );
+                });
+              }
+
+              // Reader Mode v3: 4 quadrant cards centered on the
+              // hotspot's quadrant position.
+              const cardW = 140.0;
+              const cardH = 130.0;
+              return _scene.hotspots.asMap().entries.map((entry) {
+                final i = entry.key;
+                final h = entry.value;
                 final hPos = _posFor(h);
-                final hScreenX = hPos.dx * screenW + sceneOffset - 45;
-                final hScreenY = hPos.dy * screenH - 45;
-                final isDiscovered = _discovered.contains(h.id);
-                final isPending = _pendingDiscovery.contains(h.id);
-                // R20-01: In Reader Mode, EVERY hotspot is accessible and
-                // visible at full opacity — no "next", no "locked".
-                // In Explorer Mode the sequential reveal stays intact.
-                final isNext = _explorerMode
-                    ? (h.id == nextHotspotId && !isDiscovered && !isPending)
-                    : (!isDiscovered && !isPending); // Reader: all treated as "next/active"
-                final isLocked = _explorerMode
-                    ? (!isDiscovered && !isPending && h.id != nextHotspotId)
-                    : false; // Reader: never locked
-
-                final double proximityOpacity;
-                if (!_explorerMode) {
-                  // R20-01 / R19-01c: Reader Mode = everything fully visible.
-                  proximityOpacity = 1.0;
-                } else if (isDiscovered || isPending) {
-                  proximityOpacity = 1.0;
-                } else if (h.id == nextHotspotId) {
-                  proximityOpacity = _hotspotProximityOpacity[h.id] ?? 0.0;
-                } else {
-                  proximityOpacity = 0.0; // Explorer: future hotspots hidden
-                }
-
-                final marker = SceneHotspotMarker(
-                  icon: h.icon,
-                  label: _isAr ? h.labelAr : h.label,
-                  discovered: isDiscovered,
-                  active: isNext,
-                  locked: isLocked,
-                  onTap: () => _onHotspotTap(h),
-                );
+                final left =
+                    hPos.dx * screenW + sceneOffset - cardW / 2;
+                final top = hPos.dy * screenH - cardH / 2;
+                final state = _readerCardState(h);
+                final quadrant = _readerQuadrant(i);
 
                 return Positioned(
-                  left: hScreenX, top: hScreenY,
-                  child: (isDiscovered || isPending)
-                      ? marker
-                      : AnimatedOpacity(
-                          opacity: proximityOpacity,
-                          duration: const Duration(milliseconds: 400),
-                          child: marker,
-                        ),
+                  left: left,
+                  top: top,
+                  child: ReaderHotspotCard(
+                    icon: h.icon,
+                    label: _isAr ? h.labelAr : h.label,
+                    index: i,
+                    state: state,
+                    quadrant: quadrant,
+                    isAr: _isAr,
+                    width: cardW,
+                    height: cardH,
+                    onTap: () => _onReaderCardTap(h, state),
+                  ),
                 );
               });
             }()),
