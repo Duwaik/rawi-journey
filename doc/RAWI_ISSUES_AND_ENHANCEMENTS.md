@@ -8,6 +8,25 @@
 
 ---
 
+## STATUS AS OF 2026-04-16 (R20 cycle)
+
+Most items in this list have been fixed across R19-R20 batches. Treat
+as a historical changelog rather than an active punch list.
+
+**Items that are now moot** (superseded by R20 architecture, not just
+fixed):
+- A8 / A9 path-related bugs — `PathRoutePainter` has been removed
+  entirely; neither Explorer nor Reader Mode draws a path now
+- Any "single branch card" references — Explorer keeps the card
+  overlay, Reader Mode dismisses inline via tap-to-advance
+- Joystick-centric behaviors — Reader Mode has no joystick
+
+**For current outstanding work**, see `RAWI_R20_AUDIT_AND_STATUS.md`
+in Downloads/ (Still Outstanding table) and the `project_locked_decisions.md`
+agent memory.
+
+---
+
 ## SECTION A — BUGS (Fix First)
 
 ### A1. Splash Screen White Flash on App Resume

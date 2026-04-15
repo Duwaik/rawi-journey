@@ -7,6 +7,42 @@
 
 ---
 
+## STATUS AS OF 2026-04-16 (R20 cycle)
+
+This plan was written pre-dual-mode. Most of its tactical steps are
+either shipped or superseded. Sections below remain useful as
+historical context, but **do not drive current work from them** —
+the authoritative sources now are:
+
+- **Design decisions (cumulative, 20 locked rules):** see agent memory
+  `project_locked_decisions.md`, synced from
+  `RAWI_R20_AUDIT_AND_STATUS.md` (2026-04-16, in Downloads/).
+- **Outstanding work queue:** see the audit doc's "Still Outstanding"
+  table — dash cleanup, Part D zoomable map, dead-file cleanup,
+  threshold visual polish, asset generation.
+
+### Shipped since this plan was written
+- Dual-mode system (Explorer + Reader) — R19/R20 Parts A-C
+- The Passage / المعبر — 5 cinematic era transitions (R20 Part E)
+- 3-screen registration: Identity, Age+Mode, Language (combined
+  age+mode supersedes the 2-screen flow referenced below)
+- Segmented text size picker (ص/و/ك / S/M/L)
+- Seeded random Explorer positions + quadrant spread
+- Reader horizontal hotspot row, tap-to-advance, auto-walk
+- Joystick hidden in Reader Mode
+- `PathRoutePainter` removed entirely — neither mode draws a path
+- Completed-event replay shows all hotspots discovered
+- Video replay shows AR-localized skip ("تخطّى")
+- `allowBackup: false` on dev builds
+- Gradle heap tuned to 3G (Kotlin 1G) for the 6GB RAM dev machine
+
+### Conflicts in the text below (flagged, not rewritten)
+- "2-screen registration" → now 3-screen
+- "PathRoutePainter" references → painter removed
+- Joystick-centric navigation → Reader Mode has no joystick
+
+---
+
 ## WHAT'S CONFIRMED DONE (Code Verified)
 
 All R5 through R9 items are implemented in code:

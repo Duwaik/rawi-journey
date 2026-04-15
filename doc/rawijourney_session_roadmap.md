@@ -7,6 +7,31 @@ during the product strategy session. Organized by priority phase.
 
 ---
 
+## STATUS AS OF 2026-04-16 (R20 cycle)
+
+This roadmap predates the dual-mode architecture. Treat Phase 1 as
+historical — most items shipped, some were superseded by R20
+decisions. Current source of truth:
+
+- `project_locked_decisions.md` (agent memory) — 20 locked rules
+- `RAWI_R20_AUDIT_AND_STATUS.md` (Downloads/) — latest audit
+
+### Things below that are now WRONG, not just outdated
+- "Moment of Reflection" overlay — removed
+- Single "branch decision card" — still correct for Explorer, but
+  Reader Mode dismisses the card inline via tap-to-advance
+- Joystick-only navigation — Reader Mode has no joystick
+- 2-screen registration — now 3 screens (Identity → Age+Mode → Lang)
+
+### New systems not listed below (shipped R19-R20)
+- Explorer Mode (free-roam + fog + noor + seeded-random hotspots)
+- Reader Mode (tap-to-read, horizontal hotspots, auto-walk)
+- The Passage / المعبر — 5 cinematic era transitions
+- Segmented text size picker (reusable widget)
+- `PathRoutePainter` removed (no drawn path in either mode)
+
+---
+
 ## Phase 1 — MVP Critical (Before Launch)
 
 ### 1.1 Branching System ✅ SPECCED
