@@ -55,11 +55,11 @@ class UnifiedCompletionScreen extends StatefulWidget {
 
 class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     with TickerProviderStateMixin {
-  // ── Parchment / ink palette (matches scroll_writing_screen) ─────────
-  static const _parchment = Color(0xFFF5E6C8);
-  static const _parchmentNested = Color(0xFFE8D6B0);
-  static const _inkDark = Color(0xFF402010);
-  static const _inkMuted = Color(0xFF6B4423);
+  // ── Dark card palette (R19-04: parchment removed for readability) ──
+  static const _cardBg = Color(0xFF0E1A28);
+  static const _cardBgNested = Color(0xFF152234);
+  static const _textWarm = Color(0xFFE8D8B8); // warm white body text
+  static const _textMuted = Color(0xFFA89878); // muted body text
   static const _goldShimmer = Color(0xFFD4A843);
 
   // ── Screen-level fade-in ─────────────────────────────────────────────
@@ -587,18 +587,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: _parchment,
-                  image: DecorationImage(
-                    image: const AssetImage(
-                        'assets/textures/parchment_light.jpg'),
-                    fit: BoxFit.cover,
-                    // R18-03: subtle dark overlay to improve text
-                    // contrast on the crumpled parchment texture (~8%).
-                    colorFilter: ColorFilter.mode(
-                      Colors.black.withAlpha(20),
-                      BlendMode.darken,
-                    ),
-                  ),
+                  color: _cardBg,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
                     color: AppColors.gold.withAlpha(80),
@@ -624,8 +613,8 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                     textDirection:
                         _isAr ? TextDirection.rtl : TextDirection.ltr,
                     style: _isAr
-                        ? GoogleFonts.amiri(color: _inkDark, fontSize: 16)
-                        : GoogleFonts.lora(color: _inkDark, fontSize: 16),
+                        ? GoogleFonts.amiri(color: _textWarm, fontSize: 16)
+                        : GoogleFonts.lora(color: _textWarm, fontSize: 16),
                   )
                 : AnimatedBuilder(
                     animation: Listenable.merge(
@@ -639,8 +628,8 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
 
                       final shimmerV = _scrollShimmerCtrl.value;
                       final inkColor = shimmerV > 0 && !_scrollShimmerDone
-                          ? Color.lerp(_inkDark, _goldShimmer, shimmerV)!
-                          : _inkDark;
+                          ? Color.lerp(_textWarm, _goldShimmer, shimmerV)!
+                          : _textWarm;
 
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -822,18 +811,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                   width: double.infinity,
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: _parchment,
-                    image: DecorationImage(
-                      image: const AssetImage(
-                          'assets/textures/parchment_light.jpg'),
-                      fit: BoxFit.cover,
-                      // R18-03: subtle dark overlay on parchment for
-                      // better text contrast.
-                      colorFilter: ColorFilter.mode(
-                        Colors.black.withAlpha(20),
-                        BlendMode.darken,
-                      ),
-                    ),
+                    color: _cardBg,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color: _dhikrCelebrating
@@ -863,7 +841,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                     card.arabicText,
                     style: GoogleFonts.amiri(
                       fontSize: 22,
-                      color: _inkDark,
+                      color: AppColors.gold,
                       height: 1.8,
                     ),
                     textAlign: TextAlign.center,
@@ -874,7 +852,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                     card.transliteration,
                     style: GoogleFonts.nunito(
                       fontSize: 14,
-                      color: _inkMuted,
+                      color: _textMuted,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -885,7 +863,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                       fontSize: 13,
                       fontStyle:
                           _isAr ? FontStyle.normal : FontStyle.italic,
-                      color: _inkDark,
+                      color: _textWarm,
                     ),
                     textAlign: TextAlign.center,
                     textDirection:
@@ -920,7 +898,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: _parchmentNested,
+                      color: _cardBgNested,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFF8B6F47).withAlpha(60),
@@ -942,7 +920,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                           _isAr ? card.promiseAr : card.promiseEn,
                           style: GoogleFonts.lora(
                             fontSize: 13,
-                            color: _inkDark,
+                            color: _textWarm,
                             height: 1.6,
                           ),
                           textAlign: TextAlign.center,
@@ -955,7 +933,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                           _isAr ? card.sourceRefAr : card.sourceRef,
                           style: GoogleFonts.nunito(
                             fontSize: 11,
-                            color: _inkMuted,
+                            color: _textMuted,
                           ),
                           textDirection: _isAr
                               ? TextDirection.rtl
@@ -964,110 +942,124 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
 
-            // ── Hold-to-complete ring ──────────────────────────────────
-            if (!_dhikrResolved)
-              Column(
-                children: [
-                  Text(
-                    _isAr
-                        ? 'ضع إصبعك واقرأ الذكر'
-                        : 'Hold and recite the dhikr',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      color: _inkMuted,
+                  // R19-08: Hold ring INSIDE the dhikr card, prominent.
+                  const SizedBox(height: 22),
+                  Container(
+                      height: 1,
+                      color: AppColors.gold.withAlpha(40)),
+                  const SizedBox(height: 22),
+
+                  if (!_dhikrResolved) ...[
+                    Text(
+                      _isAr
+                          ? 'ضع إصبعك واقرأ الذكر'
+                          : 'Hold and recite the dhikr',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        color: _textWarm,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textDirection:
+                          _isAr ? TextDirection.rtl : TextDirection.ltr,
                     ),
-                    textDirection:
-                        _isAr ? TextDirection.rtl : TextDirection.ltr,
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onLongPressStart: (_) => _onHoldStart(),
-                    onLongPressEnd: (_) => _onHoldEnd(),
-                    // Also support simple tap-and-hold via down/up
-                    onTapDown: (_) => _onHoldStart(),
-                    onTapUp: (_) => _onHoldEnd(),
-                    onTapCancel: () => _onHoldEnd(),
-                    child: AnimatedBuilder(
-                      animation: _holdRingCtrl,
-                      builder: (context, child) {
-                        return SizedBox(
-                          width: 80,
-                          height: 80,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Background ring
-                              SizedBox(
-                                width: 72,
-                                height: 72,
-                                child: CircularProgressIndicator(
-                                  value: _holdRingCtrl.value,
-                                  strokeWidth: 4,
-                                  backgroundColor:
-                                      AppColors.gold.withAlpha(40),
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.gold,
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onLongPressStart: (_) => _onHoldStart(),
+                      onLongPressEnd: (_) => _onHoldEnd(),
+                      onTapDown: (_) => _onHoldStart(),
+                      onTapUp: (_) => _onHoldEnd(),
+                      onTapCancel: () => _onHoldEnd(),
+                      child: AnimatedBuilder(
+                        animation: _holdRingCtrl,
+                        builder: (context, child) {
+                          return SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Background ring
+                                SizedBox(
+                                  width: 110,
+                                  height: 110,
+                                  child: CircularProgressIndicator(
+                                    value: _holdRingCtrl.value,
+                                    strokeWidth: 6,
+                                    backgroundColor:
+                                        AppColors.gold.withAlpha(50),
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(
+                                      AppColors.gold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              // Center icon
-                              Icon(
-                                _holdRingCtrl.value < 1.0
-                                    ? Icons.touch_app_rounded
-                                    : Icons.check_circle_rounded,
-                                size: 32,
-                                color: _holdRingCtrl.value < 1.0
-                                    ? AppColors.gold.withAlpha(180)
-                                    : AppColors.gold,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                                // Center icon
+                                Icon(
+                                  _holdRingCtrl.value < 1.0
+                                      ? Icons.touch_app_rounded
+                                      : Icons.check_circle_rounded,
+                                  size: 48,
+                                  color: _holdRingCtrl.value < 1.0
+                                      ? AppColors.gold.withAlpha(200)
+                                      : AppColors.gold,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Noor recharge hint (Explorer Mode only)
-                  if (PrefsService.isExplorerMode)
+                    const SizedBox(height: 12),
+                    if (PrefsService.isExplorerMode)
+                      Text(
+                        _isAr ? 'نور +٥٠٪' : 'Noor +50%',
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          color: AppColors.gold.withAlpha(160),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+
+                  // R19-08 skip bug: only show "Light restored" when the
+                  // ring actually completed, not when user skipped.
+                  if (_dhikrResolved && _holdRingComplete) ...[
+                    Icon(Icons.check_circle_rounded,
+                        size: 48, color: AppColors.gold),
+                    const SizedBox(height: 8),
                     Text(
-                      _isAr ? 'نور +٥٠٪' : 'Noor +50%',
+                      PrefsService.isExplorerMode
+                          ? (_isAr ? 'النور يتجدّد' : 'Light restored')
+                          : (_isAr ? 'بارك الله فيك' : 'May Allah bless you'),
                       style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        color: AppColors.gold.withAlpha(140),
-                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      textDirection:
+                          _isAr ? TextDirection.rtl : TextDirection.ltr,
+                    ),
+                  ],
+
+                  // Skipped state: quiet acknowledgement, no noor message.
+                  if (_dhikrResolved && !_holdRingComplete)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(
+                        _isAr ? 'تخطّيت' : 'Skipped',
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          color: _textMuted,
+                        ),
+                        textDirection:
+                            _isAr ? TextDirection.rtl : TextDirection.ltr,
                       ),
                     ),
                 ],
               ),
-
-            // ── Resolved state: golden burst confirmation ──────────────
-            if (_dhikrResolved)
-              Column(
-                children: [
-                  Icon(Icons.check_circle_rounded,
-                      size: 40, color: AppColors.gold),
-                  const SizedBox(height: 6),
-                  Text(
-                    PrefsService.isExplorerMode
-                        ? (_isAr ? 'تمّ — النور يتجدّد' : 'Done — Light restored')
-                        : (_isAr ? 'بارك الله فيك' : 'May Allah bless you'),
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      color: AppColors.gold,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textDirection:
-                        _isAr ? TextDirection.rtl : TextDirection.ltr,
-                  ),
-                ],
-              ),
-
-            const SizedBox(height: 12),
+            ),
+            const SizedBox(height: 14),
 
             // ── Quick "I've said it" button (Reader Mode) ──────────────
             if (!_dhikrResolved && !PrefsService.isExplorerMode)
@@ -1128,7 +1120,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
             text,
             style: GoogleFonts.nunito(
               fontSize: 13,
-              color: _inkDark,
+              color: _textWarm,
             ),
             textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
           ),

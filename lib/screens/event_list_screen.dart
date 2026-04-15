@@ -138,27 +138,24 @@ class _EventListScreenState extends State<EventListScreen>
   }
 
   Future<void> _openEvent(JourneyEvent event) async {
-    // Check for Threshold challenge before this event
+    // R19-09: tapping a Start button must not auto-trigger the Threshold.
+    // The user must interact with the threshold card explicitly. Block the
+    // event open with a quick hint and let them tap the threshold card.
     final threshold = getThresholdBefore(event.globalOrder);
     if (threshold != null && !PrefsService.isThresholdCompleted(event.globalOrder)) {
-      if (!mounted) return;
-      await Navigator.push(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 400),
-          pageBuilder: (ctx, a, s) => FadeTransition(
-            opacity: a,
-            child: ThresholdScreen(
-              challenge: threshold,
-              onUnlocked: () {
-                PrefsService.setThresholdCompleted(event.globalOrder);
-                Navigator.pop(ctx);
-              },
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isAr
+                ? 'أكمل العتبة أولاً'
+                : 'Complete the Threshold first',
+            style: GoogleFonts.nunito(color: const Color(0xFF04060D)),
           ),
+          backgroundColor: AppColors.gold,
+          duration: const Duration(seconds: 2),
         ),
       );
-      if (!mounted) return;
+      return;
     }
 
     // Explorer Mode: deplete noor on event transition (-25%).
@@ -846,8 +843,10 @@ class _EventListScreenState extends State<EventListScreen>
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      // R19-13: scroll viewer pops back with a globalOrder
+                      // when an entry is tapped — open that event.
+                      final result = await Navigator.push<int?>(
                         context,
                         PageRouteBuilder(
                           transitionDuration: const Duration(milliseconds: 350),
@@ -863,6 +862,12 @@ class _EventListScreenState extends State<EventListScreen>
                           ),
                         ),
                       );
+                      if (!mounted || result == null) return;
+                      final ev = _events.firstWhere(
+                        (e) => e.globalOrder == result,
+                        orElse: () => _events.first,
+                      );
+                      _openEvent(ev);
                     },
                     child: Container(
                       width: 34,
@@ -1124,6 +1129,28 @@ class _ThresholdMarkerState extends State<_ThresholdMarker>
                   style: GoogleFonts.nunito(
                     color: AppColors.gold.withAlpha(140),
                     fontSize: 11,
+                  ),
+                ),
+              ],
+              // R19-09: explicit "Begin" / "Unlock" button on the card
+              // so the user knows where to interact.
+              if (isAvailable) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    isAr ? 'ابدأ' : 'Begin',
+                    style: GoogleFonts.nunito(
+                      color: const Color(0xFF04060D),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
               ],
