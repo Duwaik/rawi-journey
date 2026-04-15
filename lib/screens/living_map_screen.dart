@@ -10,11 +10,21 @@ import '../models/journey_event.dart';
 import '../models/map_location.dart';
 import '../services/prefs_service.dart';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Constants (R19-06 dark-ink map palette) ────────────────────────────────
 
-const _inkBrown = Color(0xFF4A3520);
-const _inkBrownFaded = Color(0x554A3520);
-const _inkBrownGhost = Color(0x224A3520);
+/// Dark "aged paper" background — deep navy-black.
+const _mapBg = Color(0xFF070910);
+
+/// Warm gold ink for paths between completed locations.
+const _inkSolid = Color(0xFFD4A843);
+/// Faded gold ink for open paths to revealed (not completed) locations.
+const _inkFaded = Color(0x88D4A843);
+/// Ghost ink for dashed hints to upcoming locations.
+const _inkGhost = Color(0x33D4A843);
+
+/// Warm cream for location labels.
+const _labelText = Color(0xFFE8D8B8);
+
 const _gold = AppColors.gold;
 const _virtualMapWidth = 800.0;
 const _virtualMapHeight = 1100.0;
@@ -118,7 +128,7 @@ class _ParchmentPathPainter extends CustomPainter {
         if (fromOpen && toOpen) {
           // Traveled — solid ink line
           paint = Paint()
-            ..color = _inkBrown
+            ..color = _inkSolid
             ..strokeWidth = 1.7
             ..style = PaintingStyle.stroke
             ..strokeCap = StrokeCap.round;
@@ -126,14 +136,14 @@ class _ParchmentPathPainter extends CustomPainter {
         } else if (fromOpen && toIsRevealed) {
           // Open path to a revealed (not yet completed) location
           paint = Paint()
-            ..color = _inkBrownFaded
+            ..color = _inkFaded
             ..strokeWidth = 1.4
             ..style = PaintingStyle.stroke
             ..strokeCap = StrokeCap.round;
           canvas.drawPath(path, paint);
         } else if (fromOpen && upcomingById.containsKey(toId)) {
           // "Next" path to a yet-to-be-revealed upcoming location: dashed
-          _drawDashedPath(canvas, path, _inkBrownGhost);
+          _drawDashedPath(canvas, path, _inkGhost);
         }
         // Otherwise: invisible
       }
@@ -290,7 +300,7 @@ class _LivingMapScreenState extends State<LivingMapScreen>
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE8D5A8),
+      backgroundColor: _mapBg,
       body: Column(
         children: [
           // ── Header ─────────────────────────────────────────────────────
@@ -343,29 +353,48 @@ class _LivingMapScreenState extends State<LivingMapScreen>
                     ],
                   ),
                 ),
-                Text(
-                  '${visible.length}/${mapLocations.length}',
-                  style: GoogleFonts.nunito(
-                    color: _gold.withAlpha(160),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.0,
-                  ),
+                // R19-06: progress counter — "3 / 22 discovered"
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${visible.length} / ${mapLocations.length}',
+                      style: GoogleFonts.cinzelDecorative(
+                        color: _gold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      isAr ? 'موقع مكتشف' : 'discovered',
+                      style: GoogleFonts.nunito(
+                        color: _gold.withAlpha(140),
+                        fontSize: 9,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
 
-          // ── Parchment map area ─────────────────────────────────────────
+          // ── R19-06: Dark "aged paper" map area ─────────────────────
           Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/textures/parchment_light.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: InteractiveViewer(
+            child: Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment(0.0, -0.2),
+                      radius: 1.2,
+                      colors: [
+                        Color(0xFF151A24), // subtle warm highlight near top-center
+                        _mapBg,            // deep dark at edges
+                      ],
+                    ),
+                  ),
+                  child: InteractiveViewer(
                 transformationController: _viewCtrl,
                 minScale: 0.9,
                 maxScale: 3.5,
@@ -421,7 +450,22 @@ class _LivingMapScreenState extends State<LivingMapScreen>
                 ),
               ),
             ),
-          ),
+            // R19-06: Compass rose — decorative, pinned bottom-right,
+            // outside the InteractiveViewer so it doesn't zoom/pan.
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: IgnorePointer(
+                child: SizedBox(
+                  width: 54,
+                  height: 54,
+                  child: const _CompassRose(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
         ],
       ),
     );
@@ -440,9 +484,12 @@ class _LivingMapScreenState extends State<LivingMapScreen>
           child: Text(
             '?',
             style: GoogleFonts.cinzelDecorative(
-              color: _inkBrownFaded,
-              fontSize: 16,
+              color: _gold.withAlpha(80),
+              fontSize: 18,
               fontWeight: FontWeight.w700,
+              shadows: const [
+                Shadow(color: Colors.black, blurRadius: 3),
+              ],
             ),
           ),
         ),
@@ -450,33 +497,66 @@ class _LivingMapScreenState extends State<LivingMapScreen>
     );
   }
 
+  // R19-06: Material-icon fallback per spec Sprint 3. Each location ID
+  // maps to the most evocative stock icon available — more consistent
+  // than custom-SVG packs and ships in zero new assets.
+  IconData _iconForLocation(String id) {
+    switch (id) {
+      case 'mecca':          return Icons.mosque_rounded;
+      case 'medina':         return Icons.mosque_rounded;
+      case 'quba':           return Icons.mosque_rounded;
+      case 'cave_hira':      return Icons.terrain_rounded;
+      case 'cave_thawr':     return Icons.terrain_rounded;
+      case 'mount_uhud':     return Icons.terrain_rounded;
+      case 'arafat':         return Icons.terrain_rounded;
+      case 'banu_sad':       return Icons.cabin_rounded;
+      case 'al_abwa':        return Icons.park_rounded;
+      case 'taif':           return Icons.account_balance_rounded;
+      case 'abyssinia':      return Icons.sailing_rounded;
+      case 'jerusalem':      return Icons.star_rounded;
+      case 'mina':           return Icons.cabin_rounded;
+      case 'badr':
+      case 'mutah':          return Icons.shield_rounded;
+      case 'raji':           return Icons.gavel_rounded;
+      case 'khandaq':        return Icons.linear_scale_rounded;
+      case 'hudaybiyyah':    return Icons.description_rounded;
+      case 'khaybar':        return Icons.castle_rounded;
+      case 'marr_al_zahran': return Icons.flag_rounded;
+      case 'hunayn':         return Icons.all_inclusive_rounded;
+      case 'tabuk':          return Icons.castle_rounded;
+      default:               return Icons.place_rounded;
+    }
+  }
+
   Widget _buildMarker(
       MapLocation loc, _LocState state, double x, double y, bool isAr) {
     if (state == _LocState.hidden) return const SizedBox.shrink();
 
-    final double dotSize;
-    final Color dotColor;
+    // R19-06: Markers now carry an inked icon on a small gold disk,
+    // sized a bit larger than the old plain dots so the ink silhouette
+    // reads clearly against the dark map.
+    final double markerSize;
+    final double iconSize;
+    final Color iconColor;
+    final double pulseRingSize;
     switch (state) {
       case _LocState.completed:
-        dotSize = 12;
-        dotColor = _gold;
+        markerSize = 28; iconSize = 16; iconColor = _gold; pulseRingSize = 0;
       case _LocState.current:
-        dotSize = 14;
-        dotColor = _gold;
+        markerSize = 32; iconSize = 18; iconColor = _gold; pulseRingSize = 48;
       case _LocState.revealed:
-        dotSize = 10;
-        dotColor = _gold.withAlpha(180);
+        markerSize = 26; iconSize = 15; iconColor = _gold.withAlpha(200); pulseRingSize = 0;
       case _LocState.upcoming:
       case _LocState.hidden:
-        dotSize = 8;
-        dotColor = _inkBrownFaded;
+        markerSize = 22; iconSize = 12; iconColor = _gold.withAlpha(120); pulseRingSize = 0;
     }
 
     final label = isAr ? loc.nameAr : loc.name;
+    final icon = _iconForLocation(loc.id);
 
     return Positioned(
       left: x - 50,
-      top: y - 24,
+      top: y - markerSize / 2,
       width: 100,
       height: 60,
       child: GestureDetector(
@@ -485,49 +565,68 @@ class _LivingMapScreenState extends State<LivingMapScreen>
         child: Stack(
           alignment: Alignment.topCenter,
           children: [
-            // Dot (with pulse for current)
+            // Pulsing halo for current location
             if (state == _LocState.current)
               AnimatedBuilder(
                 animation: _pulseAnim,
                 builder: (context, _) => Container(
-                  width: dotSize + 14,
-                  height: dotSize + 14,
+                  width: pulseRingSize,
+                  height: pulseRingSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _gold.withAlpha((40 * _pulseAnim.value).toInt()),
                   ),
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.only(top: 7),
-              child: Container(
-                width: dotSize,
-                height: dotSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: dotColor,
-                  border: state == _LocState.completed
-                      ? Border.all(color: _inkBrown, width: 1)
-                      : null,
+            // Ink-disk marker with location icon
+            Container(
+              width: markerSize,
+              height: markerSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _mapBg.withAlpha(220),
+                border: Border.all(
+                  color: state == _LocState.current
+                      ? _gold
+                      : _gold.withAlpha(state == _LocState.completed ? 220 : 120),
+                  width: state == _LocState.current ? 2 : 1.5,
                 ),
+                boxShadow: state == _LocState.current
+                    ? [BoxShadow(color: _gold.withAlpha(60), blurRadius: 10, spreadRadius: 1)]
+                    : null,
               ),
+              child: Icon(icon, size: iconSize, color: iconColor),
             ),
 
-            // Hand-sketched ink label
+            // R19-06: Handwritten label on dark background.
             Positioned(
-              top: dotSize + 12,
+              top: markerSize + 6,
               child: Text(
                 label,
                 textAlign: TextAlign.center,
                 textDirection: isAr ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-                style: GoogleFonts.lora(
-                  color: state == _LocState.current ? _inkBrown : _inkBrownFaded,
-                  fontSize: state == _LocState.current ? 11 : 10,
-                  fontWeight: state == _LocState.current
-                      ? FontWeight.w700
-                      : FontWeight.w600,
-                  letterSpacing: 0.3,
-                ),
+                style: isAr
+                    ? GoogleFonts.amiri(
+                        color: state == _LocState.current
+                            ? _gold
+                            : _labelText,
+                        fontSize: state == _LocState.current ? 12 : 11,
+                        fontWeight: FontWeight.w700,
+                        shadows: const [
+                          Shadow(color: Colors.black, blurRadius: 4),
+                        ],
+                      )
+                    : GoogleFonts.caveat(
+                        color: state == _LocState.current
+                            ? _gold
+                            : _labelText,
+                        fontSize: state == _LocState.current ? 15 : 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.4,
+                        shadows: const [
+                          Shadow(color: Colors.black, blurRadius: 4),
+                        ],
+                      ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -537,6 +636,82 @@ class _LivingMapScreenState extends State<LivingMapScreen>
       ),
     );
   }
+}
+
+// ─── Compass rose (R19-06 decorative) ──────────────────────────────────────
+
+class _CompassRose extends StatelessWidget {
+  const _CompassRose();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _CompassRosePainter());
+  }
+}
+
+class _CompassRosePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width / 2, size.height / 2);
+    final r = size.width / 2;
+    const gold = Color(0xFFBA7517);
+
+    // Outer ring
+    final ringPaint = Paint()
+      ..color = gold.withAlpha(80)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    canvas.drawCircle(c, r - 2, ringPaint);
+    canvas.drawCircle(c, r - 8, ringPaint..color = gold.withAlpha(40));
+
+    // Four main points (N/E/S/W) as gold triangles radiating from center
+    final pointPaint = Paint()
+      ..color = gold.withAlpha(160)
+      ..style = PaintingStyle.fill;
+    final thinPaint = Paint()
+      ..color = gold.withAlpha(90)
+      ..style = PaintingStyle.fill;
+
+    // Main cardinals — long thin triangles
+    for (int i = 0; i < 4; i++) {
+      final angle = i * math.pi / 2; // N, E, S, W
+      final tip = Offset(c.dx + math.cos(angle - math.pi / 2) * (r - 4),
+          c.dy + math.sin(angle - math.pi / 2) * (r - 4));
+      final baseA = Offset(c.dx + math.cos(angle - math.pi / 2 + 0.18) * 4,
+          c.dy + math.sin(angle - math.pi / 2 + 0.18) * 4);
+      final baseB = Offset(c.dx + math.cos(angle - math.pi / 2 - 0.18) * 4,
+          c.dy + math.sin(angle - math.pi / 2 - 0.18) * 4);
+      final p = Path()
+        ..moveTo(tip.dx, tip.dy)
+        ..lineTo(baseA.dx, baseA.dy)
+        ..lineTo(baseB.dx, baseB.dy)
+        ..close();
+      canvas.drawPath(p, pointPaint);
+    }
+
+    // Inter-cardinals — shorter faint triangles
+    for (int i = 0; i < 4; i++) {
+      final angle = i * math.pi / 2 + math.pi / 4; // NE, SE, SW, NW
+      final tip = Offset(c.dx + math.cos(angle - math.pi / 2) * (r - 10),
+          c.dy + math.sin(angle - math.pi / 2) * (r - 10));
+      final baseA = Offset(c.dx + math.cos(angle - math.pi / 2 + 0.18) * 3,
+          c.dy + math.sin(angle - math.pi / 2 + 0.18) * 3);
+      final baseB = Offset(c.dx + math.cos(angle - math.pi / 2 - 0.18) * 3,
+          c.dy + math.sin(angle - math.pi / 2 - 0.18) * 3);
+      final p = Path()
+        ..moveTo(tip.dx, tip.dy)
+        ..lineTo(baseA.dx, baseA.dy)
+        ..lineTo(baseB.dx, baseB.dy)
+        ..close();
+      canvas.drawPath(p, thinPaint);
+    }
+
+    // Central dot
+    canvas.drawCircle(c, 2.5, Paint()..color = gold);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CompassRosePainter old) => false;
 }
 
 // ─── Location detail bottom sheet (kept from previous design) ───────────────
