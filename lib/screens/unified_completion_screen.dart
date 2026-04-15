@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../data/dhikr_data.dart';
+import '../data/passages_data.dart';
 import '../data/scroll_entries.dart';
 import '../models/badge_definition.dart';
 import '../models/dhikr_card.dart';
@@ -14,6 +15,7 @@ import '../models/scroll_entry.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import 'event_list_screen.dart';
+import 'passage_screen.dart';
 
 /// R17.2-05: Unified completion screen — replaces 5 separate post-event
 /// overlays (chapter / badge / XP / dhikr / scroll writing) with one
@@ -384,6 +386,38 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     AudioService.fadeOutVoiceover(
         duration: const Duration(milliseconds: 200));
+
+    // R20 Part E: The Passage — cinematic era transition shown once
+    // after 5 pivotal events. Skipped on replays and when already seen.
+    final passage = getPassageAfter(widget.event.globalOrder);
+    final shouldShowPassage = passage != null &&
+        !widget.alreadyCompleted &&
+        !PrefsService.isPassageSeen(widget.event.globalOrder);
+
+    if (shouldShowPassage) {
+      PrefsService.setPassageSeen(widget.event.globalOrder);
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 600),
+          pageBuilder: (ctx, a, s) => FadeTransition(
+            opacity: a,
+            child: PassageScreen(
+              passage: passage,
+              onComplete: () {
+                Navigator.of(ctx).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (_) => const EventListScreen()),
+                  (route) => false,
+                );
+              },
+            ),
+          ),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const EventListScreen()),
       (route) => false,

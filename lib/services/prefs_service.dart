@@ -91,6 +91,7 @@ class PrefsService {
       if (key.startsWith(_keyJourneyCompleted) ||
           key.startsWith(_keyHotspotProgress) ||
           key.startsWith(_keyThresholdCompleted) ||
+          key.startsWith(_keyPassageSeen) ||
           key.startsWith(_keyDhikrCompleted) ||
           key == _keyDiscoveredCollection ||
           key == _keyDiscoveredSecrets) {
@@ -209,6 +210,17 @@ class PrefsService {
 
   static Future<void> setThresholdCompleted(int beforeEventOrder) async =>
       await _prefs?.setBool('$_keyThresholdCompleted$beforeEventOrder', true);
+
+  // ── PASSAGES (R20 Part E) ─────────────────────────────────────────────
+  // Seen once per globalOrder. Used to play "The Passage / المعبر"
+  // cinematic exactly once after events 14/42/47/82/120.
+  static const String _keyPassageSeen = 'passage_seen_';
+
+  static bool isPassageSeen(int afterEventOrder) =>
+      _prefs?.getBool('$_keyPassageSeen$afterEventOrder') ?? false;
+
+  static Future<void> setPassageSeen(int afterEventOrder) async =>
+      await _prefs?.setBool('$_keyPassageSeen$afterEventOrder', true);
 
   // ── TUTORIAL ──────────────────────────────────────────────────────────
   static bool get isTutorialSeen =>
