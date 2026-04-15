@@ -211,10 +211,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     });
 
     if (_alreadyCompleted) {
-      _phase = _Phase.complete;
-      _discovered.addAll(_scene.hotspots.map((h) => h.id));
-      _pathProgress = 1.0;
-      _updateCompanionFromPath();
+      // R19-14: full replay — hotspots are rediscoverable, verdict still
+      // available at the end. XP/badges/noor are already guarded against
+      // re-awarding in the completion paths, so replay is effectively
+      // a read-only walkthrough.
+      _phase = _Phase.explore;
+      // Don't pre-populate _discovered — let the user explore afresh.
+      // _companionX/Y and _pathProgress already initialized to path start.
     } else {
       // Restore any saved hotspot progress (from previous back press)
       final saved = PrefsService.loadHotspotProgress(widget.event.id);

@@ -25,10 +25,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _nameFocus = FocusNode();
   int _currentPage = 0;
   String _selectedGender = 'male';
-  String _selectedAgeRange = '13-22';
+  // R19-05: age is now an integer (4-99), and mode is explicitly chosen.
+  int _selectedAge = 18;
+  String _selectedMode = 'explorer';
+  // Tracks whether the user has explicitly picked a mode (disables auto
+  // pre-selection from age changes once they've made a choice).
+  bool _modeChosen = false;
   late String _selectedLang;
 
-  static const _totalPages = 3;
+  static const _totalPages = 4;
 
   @override
   void initState() {
@@ -62,13 +67,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final name = _nameCtrl.text.trim();
     if (name.isNotEmpty) await PrefsService.setUserName(name);
     await PrefsService.setUserGender(_selectedGender);
-    await PrefsService.setAgeRange(_selectedAgeRange);
-    // Age-driven default mode: 40+ → Reader, everyone else → Explorer
-    final defaultMode =
-        (_selectedAgeRange == '40-59' || _selectedAgeRange == '60+')
-            ? 'reader'
-            : 'explorer';
-    await PrefsService.setJourneyMode(defaultMode);
+    // R19-05: store exact age (int). The mode is user-chosen, not derived.
+    await PrefsService.setUserAge(_selectedAge);
+    await PrefsService.setJourneyMode(_selectedMode);
     await PrefsService.setLanguage(_selectedLang);
     await PrefsService.setOnboardingComplete();
     if (mounted) RawiApp.rebuild(context);
@@ -182,20 +183,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       switchOutCurve: Curves.easeIn,
                       transitionBuilder: (child, animation) =>
                           FadeTransition(opacity: animation, child: child),
-                      child: _currentPage == 0
-                          ? KeyedSubtree(
-                              key: const ValueKey('identity'),
-                              child: _buildIdentityPage(isAr),
-                            )
-                          : _currentPage == 1
-                              ? KeyedSubtree(
-                                  key: const ValueKey('age'),
-                                  child: _buildAgePage(isAr),
-                                )
-                              : KeyedSubtree(
-                                  key: const ValueKey('language'),
-                                  child: _buildLanguagePage(),
-                                ),
+                      child: _pageForIndex(_currentPage, isAr),
                     ),
                   ),
                 ],
@@ -312,18 +300,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // ── Page 2: Age Range ─────────────────────────────────────────────────────
+  // R19-05: page router — keeps the AnimatedSwitcher call site clean.
+  Widget _pageForIndex(int index, bool isAr) {
+    switch (index) {
+      case 0:
+        return KeyedSubtree(
+          key: const ValueKey('identity'),
+          child: _buildIdentityPage(isAr),
+        );
+      case 1:
+        return KeyedSubtree(
+          key: const ValueKey('age'),
+          child: _buildAgePage(isAr),
+        );
+      case 2:
+        return KeyedSubtree(
+          key: const ValueKey('mode'),
+          child: _buildModePage(isAr),
+        );
+      default:
+        return KeyedSubtree(
+          key: const ValueKey('language'),
+          child: _buildLanguagePage(),
+        );
+    }
+  }
 
-  static const _ageRanges = [
-    ('4-12',  'Young Explorer', 'مستكشف صغير'),
-    ('13-22', 'Explorer',       'مستكشف'),
-    ('23-39', 'Explorer',       'مستكشف'),
-    ('40-59', 'Reader',         'قارئ'),
-    ('60+',   'Reader',         'قارئ'),
-  ];
+  // ── Page 2: Age (scroll-wheel number picker) ──────────────────────────────
 
   Widget _buildAgePage(bool isAr) {
-    return SingleChildScrollView(
+    const minAge = 4;
+    const maxAge = 99;
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
@@ -338,83 +346,138 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            isAr
-                ? 'نختار لك الأنسب — يمكنك تغييره لاحقاً'
-                : 'We\u2019ll pick the best experience for you \u2014 you can change it later',
-            textAlign: TextAlign.center,
-            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              color: AppColors.textMuted,
-            ),
-          ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
 
-          // Age range cards
-          ...List.generate(_ageRanges.length, (i) {
-            final (range, labelEn, labelAr) = _ageRanges[i];
-            final selected = _selectedAgeRange == range;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: GestureDetector(
-                onTap: () => setState(() => _selectedAgeRange = range),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    color: selected
-                        ? AppColors.gold.withAlpha(18)
-                        : Colors.white.withAlpha(6),
-                    border: Border.all(
-                      color: selected
-                          ? AppColors.gold
-                          : AppColors.textMuted.withAlpha(40),
-                      width: selected ? 1.5 : 1,
-                    ),
+          // Wheel picker
+          Expanded(
+            child: Center(
+              child: SizedBox(
+                height: 200,
+                child: ListWheelScrollView.useDelegate(
+                  itemExtent: 56,
+                  perspective: 0.003,
+                  diameterRatio: 1.6,
+                  physics: const FixedExtentScrollPhysics(),
+                  controller: FixedExtentScrollController(
+                    initialItem: _selectedAge - minAge,
                   ),
-                  child: Row(
-                    children: [
-                      // Range number
-                      Text(
-                        range,
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: selected
-                              ? AppColors.gold
-                              : AppColors.textMuted,
+                  onSelectedItemChanged: (i) {
+                    setState(() {
+                      _selectedAge = minAge + i;
+                      // Auto pre-select mode until the user makes an
+                      // explicit choice on the next screen.
+                      if (!_modeChosen) {
+                        _selectedMode = _selectedAge < 13
+                            ? 'explorer'
+                            : _selectedAge >= 40
+                                ? 'reader'
+                                : 'explorer';
+                      }
+                    });
+                  },
+                  childDelegate: ListWheelChildBuilderDelegate(
+                    childCount: maxAge - minAge + 1,
+                    builder: (context, index) {
+                      final age = minAge + index;
+                      final isSelected = age == _selectedAge;
+                      return Center(
+                        child: Text(
+                          '$age',
+                          style: GoogleFonts.cinzelDecorative(
+                            fontSize: isSelected ? 44 : 28,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected
+                                ? AppColors.gold
+                                : AppColors.textMuted.withAlpha(120),
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      // Mode label
-                      Text(
-                        isAr ? labelAr : labelEn,
-                        style: GoogleFonts.nunito(
-                          fontSize: 13,
-                          color: selected
-                              ? AppColors.gold.withAlpha(200)
-                              : AppColors.textMuted.withAlpha(120),
-                        ),
-                      ),
-                      if (selected) ...[
-                        const SizedBox(width: 8),
-                        Icon(Icons.check_circle_rounded,
-                            size: 18, color: AppColors.gold),
-                      ],
-                    ],
+                      );
+                    },
                   ),
                 ),
               ),
-            );
-          }),
+            ),
+          ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _nextPage,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: const Color(0xFF04060D),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 0,
+              ),
+              child: Text(
+                isAr ? 'التالي' : 'Continue',
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
 
-          // Continue button
+  // ── Page 3: Experience Mode (Explorer / Reader) ──────────────────────────
+
+  Widget _buildModePage(bool isAr) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        children: [
+          const SizedBox(height: 30),
+          Text(
+            isAr ? 'اختر تجربتك' : 'Choose your experience',
+            textAlign: TextAlign.center,
+            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.cinzelDecorative(
+              fontSize: 20,
+              color: AppColors.gold,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isAr
+                ? 'يمكنك التبديل في أي وقت من الإعدادات'
+                : 'You can switch anytime in Settings',
+            textAlign: TextAlign.center,
+            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          _buildModeCard(
+            mode: 'explorer',
+            icon: Icons.explore_rounded,
+            titleEn: 'Explorer',
+            titleAr: 'المستكشف',
+            lineEn: 'Discover. Explore. Earn light through dhikr.',
+            lineAr: 'استكشف. اكتشف. اكسب النور بالذكر.',
+            isAr: isAr,
+          ),
+          const SizedBox(height: 12),
+          _buildModeCard(
+            mode: 'reader',
+            icon: Icons.auto_stories_rounded,
+            titleEn: 'Reader',
+            titleAr: 'القارئ',
+            lineEn: 'Read. Learn. Reflect at your own pace.',
+            lineAr: 'اقرأ. تعلّم. تأمّل بهدوء.',
+            isAr: isAr,
+          ),
+
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -439,7 +502,87 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // ── Page 3: Language ──────────────────────────────────────────────────────
+  Widget _buildModeCard({
+    required String mode,
+    required IconData icon,
+    required String titleEn,
+    required String titleAr,
+    required String lineEn,
+    required String lineAr,
+    required bool isAr,
+  }) {
+    final selected = _selectedMode == mode;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedMode = mode;
+          _modeChosen = true;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: selected
+              ? AppColors.gold.withAlpha(22)
+              : Colors.white.withAlpha(6),
+          border: Border.all(
+            color: selected
+                ? AppColors.gold
+                : AppColors.textMuted.withAlpha(40),
+            width: selected ? 1.6 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 34,
+              color: selected ? AppColors.gold : AppColors.textMuted,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isAr ? titleAr : titleEn,
+                    style: GoogleFonts.cinzelDecorative(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: selected
+                          ? AppColors.gold
+                          : AppColors.textBody,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isAr ? lineAr : lineEn,
+                    textDirection:
+                        isAr ? TextDirection.rtl : TextDirection.ltr,
+                    style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      color: AppColors.textMuted.withAlpha(200),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 6),
+                child: Icon(Icons.check_circle_rounded,
+                    size: 20, color: AppColors.gold),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Page 4: Language ──────────────────────────────────────────────────────
 
   Widget _buildLanguagePage() {
     return Padding(

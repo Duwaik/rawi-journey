@@ -1,21 +1,26 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 
 import '../app_colors.dart';
 
 /// Full-screen cinematic video intro for special events.
 /// Plays once, then calls onComplete to transition to the game.
-/// Tap to skip after 3 seconds.
+///
+/// R19-14: On a replay (2nd+ entry), a "Skip >" button appears in the
+/// top-right after 1s so the user can skip straight to the scene.
 class VideoIntroScreen extends StatefulWidget {
   final String videoPath;
   final VoidCallback onComplete;
+  final bool canSkip;
 
   const VideoIntroScreen({
     super.key,
     required this.videoPath,
     required this.onComplete,
+    this.canSkip = false,
   });
 
   @override
@@ -98,6 +103,43 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
                       child: VideoPlayer(_controller),
                     ),
                   ),
+                  // R19-14: Skip button on replay (top-right, safe-area aware).
+                  if (widget.canSkip)
+                    Positioned(
+                      top: MediaQuery.of(context).padding.top + 12,
+                      right: 16,
+                      child: GestureDetector(
+                        onTap: _onVideoEnd,
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(140),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: AppColors.gold.withAlpha(120)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Skip',
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.gold,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.chevron_right_rounded,
+                                  size: 16, color: AppColors.gold),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               )
             : const Center(

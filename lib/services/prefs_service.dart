@@ -307,9 +307,44 @@ class PrefsService {
     }
   }
 
-  // ── AGE RANGE (registration) ────────────────────────────────────────────
-  static const String _keyAgeRange = 'userAgeRange';
-  static String get ageRange => _prefs?.getString(_keyAgeRange) ?? '13-22';
+  // ── AGE (registration) ──────────────────────────────────────────────────
+  // R19-05: Switched from `userAgeRange` (String, 5 buckets) to `userAge`
+  // (int, 4-99). Old key kept for backward compat + migration — on first
+  // read post-update, existing users get their range midpoint as `userAge`.
+  static const String _keyAgeRange = 'userAgeRange'; // legacy
+  static const String _keyAge = 'userAge';           // new
+
+  /// User's exact age (4-99). Migrates from the old range bucket on first
+  /// read if only the legacy key is set.
+  static int get userAge {
+    final direct = _prefs?.getInt(_keyAge);
+    if (direct != null) return direct;
+    // Migration: map legacy range → sensible midpoint integer.
+    final range = _prefs?.getString(_keyAgeRange);
+    switch (range) {
+      case '4-12':  return 10;
+      case '13-22': return 18;
+      case '23-39': return 30;
+      case '40-59': return 50;
+      case '60+':   return 65;
+      default:      return 18;
+    }
+  }
+
+  static Future<void> setUserAge(int age) async =>
+      await _prefs?.setInt(_keyAge, age.clamp(4, 99));
+
+  /// Legacy getter — still used in a few places until the full migration.
+  /// Returns a bucket string derived from `userAge` when possible.
+  static String get ageRange {
+    final a = userAge;
+    if (a <= 12) return '4-12';
+    if (a <= 22) return '13-22';
+    if (a <= 39) return '23-39';
+    if (a <= 59) return '40-59';
+    return '60+';
+  }
+
   static Future<void> setAgeRange(String range) async =>
       await _prefs?.setString(_keyAgeRange, range);
 

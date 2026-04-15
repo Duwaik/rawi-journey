@@ -124,17 +124,21 @@ class _EventListScreenState extends State<EventListScreen>
   bool get _isAr => PrefsService.isAr;
 
   /// Returns video intro path for events with cinematic videos.
-  /// Plays only on the very first visit — once the user has discovered
-  /// any hotspot (or finished the event), the video is skipped on
-  /// re-entry. Universal rule, no per-event exceptions.
+  /// R19-14: video plays on every entry. First play = no skip button,
+  /// any subsequent entry (in-progress or completed) = skip button.
+  /// See [_videoIsReplay] for the skip decision.
   String? _getVideoIntro(String eventId, int globalOrder) {
-    if (PrefsService.isEventCompleted(globalOrder)) return null;
-    if (PrefsService.loadHotspotProgress(eventId).isNotEmpty) return null;
     const videoIntros = {
       'j_1_1_2': 'assets/video/event2_intro.mp4',
       // Add more: 'j_1_1_X': 'assets/video/eventX_intro.mp4',
     };
     return videoIntros[eventId];
+  }
+
+  /// True if this is a replay (2nd+ entry) — controls the skip button.
+  bool _videoIsReplay(String eventId, int globalOrder) {
+    return PrefsService.isEventCompleted(globalOrder) ||
+        PrefsService.loadHotspotProgress(eventId).isNotEmpty;
   }
 
   Future<void> _openEvent(JourneyEvent event) async {
@@ -189,6 +193,8 @@ class _EventListScreenState extends State<EventListScreen>
               opacity: animation,
               child: VideoIntroScreen(
                 videoPath: videoPath,
+                // R19-14: allow skip only on replay (2nd+ entry).
+                canSkip: _videoIsReplay(event.id, event.globalOrder),
                 onComplete: () {
                   if (ctx.mounted) {
                     Navigator.pushReplacement(
