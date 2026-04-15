@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 
 import '../app_colors.dart';
+import '../services/prefs_service.dart';
 
 /// Full-screen cinematic video intro for special events.
 /// Plays once, then calls onComplete to transition to the game.
@@ -124,17 +125,25 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Skip',
+                                PrefsService.isAr ? 'تخطّى' : 'Skip',
                                 style: GoogleFonts.nunito(
                                   color: AppColors.gold,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 1.0,
                                 ),
+                                textDirection: PrefsService.isAr
+                                    ? TextDirection.rtl
+                                    : TextDirection.ltr,
                               ),
                               const SizedBox(width: 4),
-                              const Icon(Icons.chevron_right_rounded,
-                                  size: 16, color: AppColors.gold),
+                              Icon(
+                                PrefsService.isAr
+                                    ? Icons.chevron_left_rounded
+                                    : Icons.chevron_right_rounded,
+                                size: 16,
+                                color: AppColors.gold,
+                              ),
                             ],
                           ),
                         ),

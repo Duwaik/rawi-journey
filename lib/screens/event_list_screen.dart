@@ -1181,9 +1181,28 @@ class _ThresholdMarkerState extends State<_ThresholdMarker>
       );
     }
 
+    // R20-05: Thin gold thread segments above and below the card so the
+    // threshold reads as a gate ON the event timeline, not a floating
+    // card between sections.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Center(child: card),
+      child: Column(
+        children: [
+          Container(
+            width: 1.5,
+            height: 14,
+            color: AppColors.gold.withAlpha(isLocked ? 40 : 100),
+          ),
+          const SizedBox(height: 6),
+          card,
+          const SizedBox(height: 6),
+          Container(
+            width: 1.5,
+            height: 14,
+            color: AppColors.gold.withAlpha(isLocked ? 40 : 100),
+          ),
+        ],
+      ),
     );
   }
 }

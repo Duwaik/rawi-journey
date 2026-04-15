@@ -211,13 +211,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     });
 
     if (_alreadyCompleted) {
-      // R19-14: full replay — hotspots are rediscoverable, verdict still
-      // available at the end. XP/badges/noor are already guarded against
-      // re-awarding in the completion paths, so replay is effectively
-      // a read-only walkthrough.
+      // R20-03 (revises R19-14): replay = "read-only walkthrough", not
+      // "explore again". All 4 hotspots start discovered with checkmarks;
+      // the user can tap any to re-read. No fog, no sequential lock. The
+      // verdict stays accessible at the end of the scene. XP/badges/noor
+      // are already guarded elsewhere against re-awarding.
       _phase = _Phase.explore;
-      // Don't pre-populate _discovered — let the user explore afresh.
-      // _companionX/Y and _pathProgress already initialized to path start.
+      _discovered.addAll(_scene.hotspots.map((h) => h.id));
     } else {
       // Restore any saved hotspot progress (from previous back press)
       final saved = PrefsService.loadHotspotProgress(widget.event.id);
@@ -964,9 +964,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         }
       }
       if (hotspot.id == nextHotspotId) {
-        if (_explorerMode && !_isBranching) {
-          // Free-roam: no auto-walk. User walks manually.
-          // Hotspot activates via _checkHotspotProximity().
+        // R20-07: Explorer always free-roam, including branching events.
+        // Auto-walk is the Reader Mode tap-to-advance shortcut.
+        if (_explorerMode) {
           return;
         }
         _autoWalkTo(hotspot);
@@ -1525,17 +1525,26 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 final hScreenY = h.y * screenH - 45;
                 final isDiscovered = _discovered.contains(h.id);
                 final isPending = _pendingDiscovery.contains(h.id);
-                final isNext = h.id == nextHotspotId && !isDiscovered && !isPending;
-                final isLocked = !isDiscovered && !isPending && !isNext;
+                // R20-01: In Reader Mode, EVERY hotspot is accessible and
+                // visible at full opacity — no "next", no "locked".
+                // In Explorer Mode the sequential reveal stays intact.
+                final isNext = _explorerMode
+                    ? (h.id == nextHotspotId && !isDiscovered && !isPending)
+                    : (!isDiscovered && !isPending); // Reader: all treated as "next/active"
+                final isLocked = _explorerMode
+                    ? (!isDiscovered && !isPending && h.id != nextHotspotId)
+                    : false; // Reader: never locked
 
-                // Feature 2: Proximity-based opacity for undiscovered hotspots
                 final double proximityOpacity;
-                if (isDiscovered || isPending) {
-                  proximityOpacity = 1.0; // Always visible
-                } else if (isNext) {
+                if (!_explorerMode) {
+                  // R20-01 / R19-01c: Reader Mode = everything fully visible.
+                  proximityOpacity = 1.0;
+                } else if (isDiscovered || isPending) {
+                  proximityOpacity = 1.0;
+                } else if (h.id == nextHotspotId) {
                   proximityOpacity = _hotspotProximityOpacity[h.id] ?? 0.0;
                 } else {
-                  proximityOpacity = 0.0; // Locked: invisible
+                  proximityOpacity = 0.0; // Explorer: future hotspots hidden
                 }
 
                 final marker = SceneHotspotMarker(
@@ -1605,52 +1614,65 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   colors: [Colors.black.withAlpha(180), Colors.transparent],
                 ),
               ),
-              // R19-15: Force LTR on the top bar so the EN/AR toggle and
-              // settings gear are always in the same visual position
-              // regardless of app language. Internal text stays bilingual.
-              child: Row(
-                textDirection: TextDirection.ltr,
+              // R19-15 / R20-04: Force LTR on the header bar and TRUE-CENTER
+              // the language toggle via a Stack so its horizontal position
+              // is identical regardless of language or side-widget widths.
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_rounded,
-                        color: AppColors.textBody, size: 20),
-                    onPressed: _exitScene,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.bg.withAlpha(200),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _eraColor.withAlpha(120)),
-                    ),
-                    child: Text(
-                      '${widget.event.era.emoji}  ${widget.event.era.label(PrefsService.language)}',
-                      style: GoogleFonts.nunito(color: _eraColor, fontSize: 11,
-                          fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() => _isAr = !_isAr);
-                      PrefsService.setLanguage(_isAr ? 'ar' : 'en');
-                      RawiApp.rebuild(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.card.withAlpha(180),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.divider),
+                  // Center the language toggle
+                  Align(
+                    alignment: Alignment.center,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _isAr = !_isAr);
+                        PrefsService.setLanguage(_isAr ? 'ar' : 'en');
+                        RawiApp.rebuild(context);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.card.withAlpha(180),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.divider),
+                        ),
+                        child: Text(_isAr ? 'EN' : 'AR',
+                            style: GoogleFonts.nunito(
+                                color: AppColors.gold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700)),
                       ),
-                      child: Text(_isAr ? 'EN' : 'AR',
-                          style: GoogleFonts.nunito(color: AppColors.gold,
-                              fontSize: 12, fontWeight: FontWeight.w700)),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _openSettings,
+                  // Side elements: back + era chip (left), settings (right)
+                  Row(
+                    textDirection: TextDirection.ltr,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_rounded,
+                            color: AppColors.textBody, size: 20),
+                        onPressed: _exitScene,
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.bg.withAlpha(200),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _eraColor.withAlpha(120)),
+                        ),
+                        child: Text(
+                          '${widget.event.era.emoji}  ${widget.event.era.label(PrefsService.language)}',
+                          style: GoogleFonts.nunito(
+                              color: _eraColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: _openSettings,
                     child: Container(
                       width: 32, height: 32,
                       decoration: BoxDecoration(
@@ -1662,10 +1684,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                           size: 15, color: AppColors.textMuted),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                    ], // Row children
+                  ),   // Row
+                ],     // Stack children
+              ),       // Stack
+            ),         // Container (header bg)
+          ),           // Positioned (header)
 
           // ── Noor HUD (Explorer Mode only) ────────────────────────
           if (_explorerMode && _phase == _Phase.explore && _activeHotspot == null)

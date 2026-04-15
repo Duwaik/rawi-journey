@@ -33,7 +33,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _modeChosen = false;
   late String _selectedLang;
 
-  static const _totalPages = 4;
+  static const _totalPages = 3;
 
   @override
   void initState() {
@@ -300,7 +300,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // R19-05: page router — keeps the AnimatedSwitcher call site clean.
+  // R20-06: 3-screen flow. Age + mode merged on one screen.
   Widget _pageForIndex(int index, bool isAr) {
     switch (index) {
       case 0:
@@ -310,13 +310,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         );
       case 1:
         return KeyedSubtree(
-          key: const ValueKey('age'),
-          child: _buildAgePage(isAr),
-        );
-      case 2:
-        return KeyedSubtree(
-          key: const ValueKey('mode'),
-          child: _buildModePage(isAr),
+          key: const ValueKey('age_mode'),
+          child: _buildAgeModePage(isAr),
         );
       default:
         return KeyedSubtree(
@@ -326,124 +321,95 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
-  // ── Page 2: Age (scroll-wheel number picker) ──────────────────────────────
+  // ── Page 2: Age + Mode (combined, R20-06) ────────────────────────────────
 
-  Widget _buildAgePage(bool isAr) {
+  Widget _buildAgeModePage(bool isAr) {
     const minAge = 4;
     const maxAge = 99;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
+
+          // ── Age section (compact, top ~30% of screen) ─────────────
           Text(
             isAr ? 'كم عمرك؟' : 'How old are you?',
             textAlign: TextAlign.center,
             textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
             style: GoogleFonts.cinzelDecorative(
-              fontSize: 20,
+              fontSize: 18,
               color: AppColors.gold,
-              height: 1.5,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Wheel picker
-          Expanded(
-            child: Center(
-              child: SizedBox(
-                height: 200,
-                child: ListWheelScrollView.useDelegate(
-                  itemExtent: 56,
-                  perspective: 0.003,
-                  diameterRatio: 1.6,
-                  physics: const FixedExtentScrollPhysics(),
-                  controller: FixedExtentScrollController(
-                    initialItem: _selectedAge - minAge,
-                  ),
-                  onSelectedItemChanged: (i) {
-                    setState(() {
-                      _selectedAge = minAge + i;
-                      // Auto pre-select mode until the user makes an
-                      // explicit choice on the next screen.
-                      if (!_modeChosen) {
-                        _selectedMode = _selectedAge < 13
-                            ? 'explorer'
-                            : _selectedAge >= 40
-                                ? 'reader'
-                                : 'explorer';
-                      }
-                    });
-                  },
-                  childDelegate: ListWheelChildBuilderDelegate(
-                    childCount: maxAge - minAge + 1,
-                    builder: (context, index) {
-                      final age = minAge + index;
-                      final isSelected = age == _selectedAge;
-                      return Center(
-                        child: Text(
-                          '$age',
-                          style: GoogleFonts.cinzelDecorative(
-                            fontSize: isSelected ? 44 : 28,
-                            fontWeight: FontWeight.w700,
-                            color: isSelected
-                                ? AppColors.gold
-                                : AppColors.textMuted.withAlpha(120),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _nextPage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gold,
-                foregroundColor: const Color(0xFF04060D),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                elevation: 0,
+            height: 110,
+            child: ListWheelScrollView.useDelegate(
+              itemExtent: 44,
+              perspective: 0.003,
+              diameterRatio: 1.6,
+              physics: const FixedExtentScrollPhysics(),
+              controller: FixedExtentScrollController(
+                initialItem: _selectedAge - minAge,
               ),
-              child: Text(
-                isAr ? 'التالي' : 'Continue',
-                style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w700, fontSize: 15),
+              onSelectedItemChanged: (i) {
+                setState(() {
+                  _selectedAge = minAge + i;
+                  // Auto-preselect mode from age until the user explicitly
+                  // picks a mode card below.
+                  if (!_modeChosen) {
+                    _selectedMode = _selectedAge < 13
+                        ? 'explorer'
+                        : _selectedAge >= 40
+                            ? 'reader'
+                            : 'explorer';
+                  }
+                });
+              },
+              childDelegate: ListWheelChildBuilderDelegate(
+                childCount: maxAge - minAge + 1,
+                builder: (context, index) {
+                  final age = minAge + index;
+                  final isSelected = age == _selectedAge;
+                  return Center(
+                    child: Text(
+                      '$age',
+                      style: GoogleFonts.cinzelDecorative(
+                        fontSize: isSelected ? 34 : 20,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? AppColors.gold
+                            : AppColors.textMuted.withAlpha(100),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
 
-  // ── Page 3: Experience Mode (Explorer / Reader) ──────────────────────────
+          const SizedBox(height: 18),
+          Container(
+            height: 1,
+            color: AppColors.gold.withAlpha(30),
+          ),
+          const SizedBox(height: 18),
 
-  Widget _buildModePage(bool isAr) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Column(
-        children: [
-          const SizedBox(height: 30),
+          // ── Mode section ───────────────────────────────────────────
           Text(
             isAr ? 'اختر تجربتك' : 'Choose your experience',
             textAlign: TextAlign.center,
             textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
             style: GoogleFonts.cinzelDecorative(
-              fontSize: 20,
+              fontSize: 18,
               color: AppColors.gold,
-              height: 1.5,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             isAr
                 ? 'يمكنك التبديل في أي وقت من الإعدادات'
@@ -451,11 +417,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             textAlign: TextAlign.center,
             textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
             style: GoogleFonts.nunito(
-              fontSize: 12,
+              fontSize: 11,
               color: AppColors.textMuted,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
 
           _buildModeCard(
             mode: 'explorer',
@@ -466,7 +432,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             lineAr: 'استكشف. اكتشف. اكسب النور بالذكر.',
             isAr: isAr,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           _buildModeCard(
             mode: 'reader',
             icon: Icons.auto_stories_rounded,
@@ -477,7 +443,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             isAr: isAr,
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -497,6 +463,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -582,7 +549,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // ── Page 4: Language ──────────────────────────────────────────────────────
+  // ── Page 3: Language ──────────────────────────────────────────────────────
 
   Widget _buildLanguagePage() {
     return Padding(
