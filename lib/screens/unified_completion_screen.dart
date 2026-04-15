@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -100,6 +102,15 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   // ── Dhikr hold-to-complete ring (Explorer & Reader) ─────────────────
   late final AnimationController _holdRingCtrl;
   bool _holdRingComplete = false;
+
+  // R19-08c: First-time Explorer Mode dhikr tutorial card. Shown before
+  // the hold ring on Event 1 only. Auto-fades after 4s or on tap.
+  bool _showDhikrTutorial = false;
+  Timer? _dhikrTutorialTimer;
+
+  // R19-08b: Reader Mode "I've said it" path — distinct from skip and
+  // from hold-ring completion. Used to show the right confirmation msg.
+  bool _saidItPressed = false;
 
   // ── Gating ──────────────────────────────────────────────────────────
   bool _canExit = false;
@@ -217,6 +228,20 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
         }
       });
 
+    // R19-08c: Show first-time dhikr tutorial only when:
+    //   Explorer Mode + Event 1 + has dhikr + tutorial not yet seen.
+    // Auto-fades after 4s; tap dismisses immediately.
+    if (_hasDhikr &&
+        PrefsService.isExplorerMode &&
+        widget.event.globalOrder == 1 &&
+        !PrefsService.isDhikrTutorialSeen) {
+      _showDhikrTutorial = true;
+      PrefsService.setDhikrTutorialSeen();
+      _dhikrTutorialTimer = Timer(const Duration(seconds: 4), () {
+        if (mounted) setState(() => _showDhikrTutorial = false);
+      });
+    }
+
     _runStaggeredIntro();
   }
 
@@ -329,7 +354,10 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   Future<void> _onSaidIt() async {
     if (_dhikrCelebrating) return;
     HapticFeedback.mediumImpact();
-    setState(() => _dhikrCelebrating = true);
+    setState(() {
+      _dhikrCelebrating = true;
+      _saidItPressed = true; // R19-08b: mark as button-confirmed
+    });
     await PrefsService.incrementDhikrCount();
     await PrefsService.setDhikrCompleted(widget.event.id);
     await _dhikrShimmerCtrl.forward();
@@ -378,6 +406,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     _xpStarCtrl.dispose();
     _dhikrShimmerCtrl.dispose();
     _holdRingCtrl.dispose();
+    _dhikrTutorialTimer?.cancel();
     super.dispose();
   }
 
@@ -943,87 +972,25 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                     ),
                   ),
 
-                  // R19-08: Hold ring INSIDE the dhikr card, prominent.
+                  // R19-08: Mode-aware dhikr action area, all INSIDE card.
                   const SizedBox(height: 22),
                   Container(
                       height: 1,
                       color: AppColors.gold.withAlpha(40)),
                   const SizedBox(height: 22),
 
+                  // Active (not yet resolved)
                   if (!_dhikrResolved) ...[
-                    Text(
-                      _isAr
-                          ? 'ضع إصبعك واقرأ الذكر'
-                          : 'Hold and recite the dhikr',
-                      style: GoogleFonts.nunito(
-                        fontSize: 13,
-                        color: _textWarm,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textDirection:
-                          _isAr ? TextDirection.rtl : TextDirection.ltr,
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onLongPressStart: (_) => _onHoldStart(),
-                      onLongPressEnd: (_) => _onHoldEnd(),
-                      onTapDown: (_) => _onHoldStart(),
-                      onTapUp: (_) => _onHoldEnd(),
-                      onTapCancel: () => _onHoldEnd(),
-                      child: AnimatedBuilder(
-                        animation: _holdRingCtrl,
-                        builder: (context, child) {
-                          return SizedBox(
-                            width: 120,
-                            height: 120,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Background ring
-                                SizedBox(
-                                  width: 110,
-                                  height: 110,
-                                  child: CircularProgressIndicator(
-                                    value: _holdRingCtrl.value,
-                                    strokeWidth: 6,
-                                    backgroundColor:
-                                        AppColors.gold.withAlpha(50),
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(
-                                      AppColors.gold,
-                                    ),
-                                  ),
-                                ),
-                                // Center icon
-                                Icon(
-                                  _holdRingCtrl.value < 1.0
-                                      ? Icons.touch_app_rounded
-                                      : Icons.check_circle_rounded,
-                                  size: 48,
-                                  color: _holdRingCtrl.value < 1.0
-                                      ? AppColors.gold.withAlpha(200)
-                                      : AppColors.gold,
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (PrefsService.isExplorerMode)
-                      Text(
-                        _isAr ? 'نور +٥٠٪' : 'Noor +50%',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          color: AppColors.gold.withAlpha(160),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    // R19-08c: First-time tutorial card (Explorer + Event 1)
+                    if (_showDhikrTutorial)
+                      _buildDhikrTutorialCard()
+                    else if (PrefsService.isExplorerMode)
+                      _buildExplorerActionArea()
+                    else
+                      _buildReaderActionArea(),
                   ],
 
-                  // R19-08 skip bug: only show "Light restored" when the
-                  // ring actually completed, not when user skipped.
+                  // Resolved + hold actually completed
                   if (_dhikrResolved && _holdRingComplete) ...[
                     Icon(Icons.check_circle_rounded,
                         size: 48, color: AppColors.gold),
@@ -1042,68 +1009,218 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
                     ),
                   ],
 
-                  // Skipped state: quiet acknowledgement, no noor message.
-                  if (_dhikrResolved && !_holdRingComplete)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Text(
-                        _isAr ? 'تخطّيت' : 'Skipped',
-                        style: GoogleFonts.nunito(
-                          fontSize: 13,
-                          color: _textMuted,
-                        ),
-                        textDirection:
-                            _isAr ? TextDirection.rtl : TextDirection.ltr,
+                  // Resolved + Reader user tapped "I've said it"
+                  if (_dhikrResolved && !_holdRingComplete && _saidItPressed) ...[
+                    Icon(Icons.check_circle_rounded,
+                        size: 40, color: AppColors.gold),
+                    const SizedBox(height: 6),
+                    Text(
+                      _isAr ? 'بارك الله فيك' : 'May Allah bless you',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.w600,
                       ),
+                      textDirection:
+                          _isAr ? TextDirection.rtl : TextDirection.ltr,
                     ),
+                  ],
+
+                  // Skipped: completely silent per R19-08 spec.
+                  // (No "Skipped" text, no checkmark, no message — just
+                  // proceed to Continue button.)
                 ],
               ),
             ),
             const SizedBox(height: 14),
-
-            // ── Quick "I've said it" button (Reader Mode) ──────────────
-            if (!_dhikrResolved && !PrefsService.isExplorerMode)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: _dhikrCelebrating ? null : _onSaidIt,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.gold,
-                      foregroundColor: const Color(0xFF0B1E2D),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      _isAr ? '\u0642\u0644\u062A\u0647\u0627 \u2713' : 'I\'ve said it \u2713',
-                      style: GoogleFonts.nunito(
-                          fontSize: 15, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ),
-              ),
-
-            // ── Skip link ──────────────────────────────────────────────
-            if (!_dhikrResolved)
-              GestureDetector(
-                onTap: _onNotNow,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    _isAr ? 'تخطّي' : 'Skip',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.textMuted.withAlpha(120),
-                    ),
-                    textDirection:
-                        _isAr ? TextDirection.rtl : TextDirection.ltr,
-                  ),
-                ),
-              ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // R19-08c: First-time dhikr tutorial card. Replaces the action area
+  // until tap or 4s timer, then dismissed.
+  Widget _buildDhikrTutorialCard() {
+    return GestureDetector(
+      onTap: () {
+        _dhikrTutorialTimer?.cancel();
+        setState(() => _showDhikrTutorial = false);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withAlpha(18),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.gold.withAlpha(80)),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.lightbulb_rounded,
+                size: 24, color: AppColors.gold.withAlpha(200)),
+            const SizedBox(height: 10),
+            Text(
+              _isAr
+                  ? 'نورك يخفت كلما تقدّمت في الرحلة. الذكر هو ما يبقي نورك حيّاً. أمسك واقرأ: نورك يعتمد عليه.'
+                  : 'Your light fades as you journey deeper. Dhikr is what keeps your نور alive. Hold and recite — your light depends on it.',
+              textAlign: TextAlign.center,
+              textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.lora(
+                fontSize: 13,
+                color: _textWarm,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _isAr ? 'اضغط للمتابعة' : 'Tap to continue',
+              style: GoogleFonts.nunito(
+                fontSize: 10,
+                color: _textMuted,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // R19-08: Explorer Mode action area — hold ring is the hero (120px),
+  // skip link below. No "I've said it" button (must hold).
+  Widget _buildExplorerActionArea() {
+    return Column(
+      children: [
+        Text(
+          _isAr ? 'أمسك واقرأ' : 'Hold and recite',
+          style: GoogleFonts.nunito(
+            fontSize: 13,
+            color: _textWarm,
+            fontWeight: FontWeight.w600,
+          ),
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+        ),
+        const SizedBox(height: 16),
+        _buildHoldRing(size: 120, ringSize: 110, strokeWidth: 6, iconSize: 48),
+        const SizedBox(height: 12),
+        Text(
+          _isAr ? 'نور +٥٠٪' : 'Noor +50%',
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            color: AppColors.gold.withAlpha(160),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildSkipLink(),
+      ],
+    );
+  }
+
+  // R19-08b: Reader Mode action area — "I've said it" button is the hero,
+  // optional 80px hold ring as secondary "Or recite along".
+  Widget _buildReaderActionArea() {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            onPressed: _dhikrCelebrating ? null : _onSaidIt,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: const Color(0xFF0B1E2D),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+            ),
+            child: Text(
+              _isAr ? 'قلتها \u2713' : 'I\u2019ve said it \u2713',
+              style: GoogleFonts.nunito(
+                  fontSize: 15, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          _isAr ? 'أو اقرأ معنا' : 'Or recite along',
+          style: GoogleFonts.nunito(
+            fontSize: 11,
+            color: _textMuted,
+            fontStyle: _isAr ? FontStyle.normal : FontStyle.italic,
+          ),
+        ),
+        const SizedBox(height: 10),
+        _buildHoldRing(size: 80, ringSize: 72, strokeWidth: 4, iconSize: 28),
+        const SizedBox(height: 14),
+        _buildSkipLink(),
+      ],
+    );
+  }
+
+  // Shared hold-ring widget — sized for either mode.
+  Widget _buildHoldRing({
+    required double size,
+    required double ringSize,
+    required double strokeWidth,
+    required double iconSize,
+  }) {
+    return GestureDetector(
+      onLongPressStart: (_) => _onHoldStart(),
+      onLongPressEnd: (_) => _onHoldEnd(),
+      onTapDown: (_) => _onHoldStart(),
+      onTapUp: (_) => _onHoldEnd(),
+      onTapCancel: () => _onHoldEnd(),
+      child: AnimatedBuilder(
+        animation: _holdRingCtrl,
+        builder: (context, child) {
+          return SizedBox(
+            width: size,
+            height: size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: ringSize,
+                  height: ringSize,
+                  child: CircularProgressIndicator(
+                    value: _holdRingCtrl.value,
+                    strokeWidth: strokeWidth,
+                    backgroundColor: AppColors.gold.withAlpha(50),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.gold),
+                  ),
+                ),
+                Icon(
+                  _holdRingCtrl.value < 1.0
+                      ? Icons.touch_app_rounded
+                      : Icons.check_circle_rounded,
+                  size: iconSize,
+                  color: _holdRingCtrl.value < 1.0
+                      ? AppColors.gold.withAlpha(200)
+                      : AppColors.gold,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSkipLink() {
+    return GestureDetector(
+      onTap: _onNotNow,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Text(
+          _isAr ? 'تخطّي' : 'Skip',
+          style: GoogleFonts.nunito(
+            fontSize: 13,
+            color: _textMuted.withAlpha(180),
+          ),
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
         ),
       ),
     );

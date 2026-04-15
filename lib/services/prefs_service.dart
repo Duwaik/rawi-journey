@@ -111,6 +111,7 @@ class PrefsService {
     await prefs.setBool(_keyRawiCallShown, false);
     await prefs.setInt(_keyDhikrCount, 0);
     await setNoorLevel(100);
+    await prefs.setBool(_keyDhikrTutorialSeen, false);
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────
@@ -319,6 +320,13 @@ class PrefsService {
   static bool get isExplorerMode => journeyMode == 'explorer';
   static Future<void> setJourneyMode(String mode) async =>
       await _prefs?.setString(_keyJourneyMode, mode);
+
+  // ── DHIKR TUTORIAL (Explorer Mode, one-time on Event 1) ──────────────
+  static const String _keyDhikrTutorialSeen = 'dhikr_tutorial_seen';
+  static bool get isDhikrTutorialSeen =>
+      _prefs?.getBool(_keyDhikrTutorialSeen) ?? false;
+  static Future<void> setDhikrTutorialSeen() async =>
+      await _prefs?.setBool(_keyDhikrTutorialSeen, true);
 
   // ── NOOR LEVEL (Explorer Mode light mechanic) ──��──────────────────────
   static const String _keyNoorLevel = 'noorLevel';

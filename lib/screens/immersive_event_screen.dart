@@ -367,10 +367,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     // Fixed timestep
     const dt = 0.016; // ~60fps
 
-    // ── FREE-ROAM branch (Explorer Mode, non-branching events) ──────────
-    // Branching events (E1, E2, E12) always use path-guided movement
-    // because the branch mechanic depends on path routing.
-    if (_explorerMode && !_isBranching) {
+    // ── FREE-ROAM branch (Explorer Mode, ALL events incl. branching) ────
+    // R19-01a: Branching events also free-roam now. Branch card still
+    // triggers via discovery (anchor hotspot dismissed → card shown),
+    // and _branchUnlockOrder controls _nextHotspotId so the sequential
+    // hotspot guard (R19-02) keeps the branch flow coherent.
+    if (_explorerMode) {
       final joyNormX = _joyDx / joyMag;
       final joyNormY = _joyDy / joyMag;
       final speed = _moveSpeed * joyMag * dt * 0.6; // slightly slower than path
@@ -1042,6 +1044,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   /// Update proximity opacity map for undiscovered hotspots.
   void _updateHotspotProximity({required String? nextHotspotId}) {
+    // R19-01c: Reader Mode shows ALL hotspots fully visible from start.
+    // No proximity fade, no sequential lock — the user is reading, not
+    // hunting. Clear the opacity map so build uses defaults.
+    if (!_explorerMode) {
+      _hotspotProximityOpacity.clear();
+      return;
+    }
+
     for (final h in _scene.hotspots) {
       if (_discovered.contains(h.id) || _pendingDiscovery.contains(h.id)) {
         // Discovered: always fully visible (handled in build)
@@ -1347,7 +1357,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         _exitScene();
       },
       child: Scaffold(
-      backgroundColor: Colors.black,
+      // R19-01b: Reader Mode uses the same navy gradient as the cinematic
+      // intro for events without rich custom art. Avoids a flat-black scene
+      // that feels dim even though there's no fog.
+      backgroundColor: _explorerMode ? Colors.black : const Color(0xFF04060D),
       body: Listener(
         behavior: HitTestBehavior.deferToChild,
         onPointerDown: (event) => _checkSecretTap(
@@ -1355,6 +1368,21 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         ),
         child: Stack(
         children: [
+          // R19-01b: Reader Mode background gradient (only visible where
+          // ground layers don't cover; harmless when they do).
+          if (!_explorerMode)
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF04060D), Color(0xFF0B1E2D)],
+                  ),
+                ),
+              ),
+            ),
+
           // ── Full-screen parallax scene ──────────────────────────────
           ParallaxScene(
             height: screenH,
@@ -1424,7 +1452,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
           // ── Path route visualization ───────────────────────────────
           if (_phase == _Phase.explore && _activeWaypoints.length > 1
-              && !(_explorerMode && !_isBranching))
+              && !_explorerMode)
             CustomPaint(
               size: Size(screenW, screenH),
               painter: PathRoutePainter(

@@ -441,8 +441,13 @@ class _EventListScreenState extends State<EventListScreen>
 
   Widget _buildEventRow(JourneyEvent event, bool isLast, bool isAr) {
     final completed = PrefsService.isEventCompleted(event.globalOrder);
-    final isNext = event.globalOrder == _currentOrder;
-    final locked = event.globalOrder > _currentOrder;
+    // R19-09b: an event sitting just past an incomplete threshold appears
+    // locked, so the user can't tap "Start" and must use the threshold card.
+    final threshold = getThresholdBefore(event.globalOrder);
+    final blockedByThreshold = threshold != null &&
+        !PrefsService.isThresholdCompleted(event.globalOrder);
+    final isNext = event.globalOrder == _currentOrder && !blockedByThreshold;
+    final locked = event.globalOrder > _currentOrder || blockedByThreshold;
     final hasScene = sceneConfigs.containsKey(event.id);
     final hotspotCount = sceneConfigs[event.id]?.hotspots.length ?? 0;
 
