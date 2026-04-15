@@ -1278,6 +1278,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   /// Update proximity opacity map for undiscovered hotspots.
   void _updateHotspotProximity({required String? nextHotspotId}) {
+    // R21-01: Freeze proximity opacity while a hotspot card is open.
+    // Without this guard the next hotspot can fade in behind the
+    // currently-open card while the user is reading, leaking the
+    // upcoming discovery.
+    if (_activeHotspot != null) return;
+
     // R19-01c: Reader Mode shows ALL hotspots fully visible from start.
     // No proximity fade, no sequential lock — the user is reading, not
     // hunting. Clear the opacity map so build uses defaults.
@@ -1789,19 +1795,25 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 });
               }
 
-              // Reader Mode v3: 4 quadrant cards centered on the
-              // hotspot's quadrant position.
-              const cardW = 140.0;
-              const cardH = 130.0;
+              // Reader Mode v3: 4 quadrant cards arranged so all four
+              // inner corners meet at the exact scene center, where the
+              // Rawi circle sits on top — one connected visual unit
+              // (R21 polish: cards merge with circle, not separate).
+              const cardW = 150.0;
+              const cardH = 138.0;
+              final centerX = screenW / 2;
+              final centerY = screenH / 2;
               return _scene.hotspots.asMap().entries.map((entry) {
                 final i = entry.key;
                 final h = entry.value;
-                final hPos = _posFor(h);
-                final left =
-                    hPos.dx * screenW + sceneOffset - cardW / 2;
-                final top = hPos.dy * screenH - cardH / 2;
                 final state = _readerCardState(h);
                 final quadrant = _readerQuadrant(i);
+                final isLeft = quadrant == ReaderCardQuadrant.tl ||
+                    quadrant == ReaderCardQuadrant.bl;
+                final isTop = quadrant == ReaderCardQuadrant.tl ||
+                    quadrant == ReaderCardQuadrant.tr;
+                final left = isLeft ? centerX - cardW : centerX;
+                final top = isTop ? centerY - cardH : centerY;
 
                 return Positioned(
                   left: left,
@@ -1823,9 +1835,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
           // ── Rawi figure + speech bubble ─────────────────────────────
           if (_phase == _Phase.explore)
+            // Reader Mode v3: Rawi sits at the exact scene center on
+            // top of the four cards' meeting corner — a single visual
+            // unit. Explorer Mode keeps the moving figure tied to the
+            // companion position + parallax.
             Positioned(
-              left: _companionX * screenW + sceneOffset - 32,
-              top: _companionY * screenH - 41,
+              left: _explorerMode
+                  ? _companionX * screenW + sceneOffset - 32
+                  : screenW / 2 - 34,
+              top: _explorerMode
+                  ? _companionY * screenH - 41
+                  : screenH / 2 - 34,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1838,7 +1858,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   Transform.scale(
                     scale: _figureScale,
                     child: RawiFigure(
-                      isWalking: _isWalking,
+                      isWalking: _explorerMode && _isWalking,
                       facingDirection: _facingDir,
                       isAr: _isAr,
                     ),

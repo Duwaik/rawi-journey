@@ -1072,95 +1072,103 @@ class _ThresholdMarkerState extends State<_ThresholdMarker>
     final isLocked = currentOrder < widget.beforeOrder;
     final isAvailable = !isLocked && !isCompleted;
 
-    // Choose icon
     final IconData iconData = isLocked
         ? Icons.lock_rounded
         : isCompleted
             ? Icons.check_circle_rounded
             : Icons.vpn_key_rounded;
 
-    // Title
     final String title = isLocked
         ? '???'
         : (isAr
             ? 'العَتَبة · THE THRESHOLD'
             : 'THE THRESHOLD · العَتَبة');
 
-    // Subtitle
     final String? subtitle = isLocked
         ? null
         : isCompleted
             ? (isAr ? 'مكتمل' : 'Completed')
             : (isAr ? 'أجب لتفتح الطريق' : 'Answer to unlock the path');
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth * 0.70;
-
+    // R21-05: Use the same row layout as event rows — 32px timeline
+    // column with node + line, plus full-width card. So the threshold
+    // reads as a gate ON the event timeline, sized like an event card.
     Widget card = AnimatedBuilder(
       animation: _pulseAnim,
       builder: (context, child) {
         final borderOpacity = isAvailable ? _pulseAnim.value : 0.6;
         return Container(
-          width: cardWidth,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.gold.withAlpha((255 * 0.08).round()),
-            borderRadius: BorderRadius.circular(16),
+            color: isCompleted
+                ? const Color(0xFF141E14).withAlpha(60)
+                : isAvailable
+                    ? AppColors.gold.withAlpha(20)
+                    : AppColors.card,
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: AppColors.gold.withAlpha((255 * borderOpacity).round()),
-              width: 1.5,
+              color: isLocked
+                  ? const Color(0xFF1E3040)
+                  : isCompleted
+                      ? AppColors.gold.withAlpha(64)
+                      : AppColors.gold.withAlpha((255 * borderOpacity).round()),
+              width: isAvailable ? 1.5 : 0.5,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.gold.withAlpha(25),
-                blurRadius: 8,
-              ),
-            ],
+            boxShadow: isAvailable
+                ? [
+                    BoxShadow(
+                      color: AppColors.gold.withAlpha(40),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : null,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(iconData, size: 22, color: AppColors.gold),
-              const SizedBox(height: 8),
               Text(
                 title,
-                textAlign: TextAlign.center,
                 style: GoogleFonts.lora(
-                  color: AppColors.gold,
+                  color: isLocked
+                      ? AppColors.textMuted.withAlpha(140)
+                      : AppColors.gold,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
+                textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  textAlign: TextAlign.center,
                   style: GoogleFonts.nunito(
                     color: AppColors.gold.withAlpha(140),
                     fontSize: 11,
                   ),
+                  textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
                 ),
               ],
-              // R19-09: explicit "Begin" / "Unlock" button on the card
-              // so the user knows where to interact.
               if (isAvailable) ...[
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    isAr ? 'ابدأ' : 'Begin',
-                    style: GoogleFonts.nunito(
-                      color: const Color(0xFF04060D),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      isAr ? 'ابدأ' : 'Begin',
+                      style: GoogleFonts.nunito(
+                        color: const Color(0xFF04060D),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
                     ),
                   ),
                 ),
@@ -1171,9 +1179,7 @@ class _ThresholdMarkerState extends State<_ThresholdMarker>
       },
     );
 
-    if (isLocked) {
-      card = Opacity(opacity: 0.5, child: card);
-    } else {
+    if (!isLocked) {
       card = GestureDetector(
         onTap: widget.onTap,
         behavior: HitTestBehavior.opaque,
@@ -1181,27 +1187,75 @@ class _ThresholdMarkerState extends State<_ThresholdMarker>
       );
     }
 
-    // R20-05: Thin gold thread segments above and below the card so the
-    // threshold reads as a gate ON the event timeline, not a floating
-    // card between sections.
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        children: [
-          Container(
-            width: 1.5,
-            height: 14,
-            color: AppColors.gold.withAlpha(isLocked ? 40 : 100),
-          ),
-          const SizedBox(height: 6),
-          card,
-          const SizedBox(height: 6),
-          Container(
-            width: 1.5,
-            height: 14,
-            color: AppColors.gold.withAlpha(isLocked ? 40 : 100),
-          ),
-        ],
+      padding: const EdgeInsets.only(bottom: 8),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Timeline column (32px) — matches event rows ──────────
+            SizedBox(
+              width: 32,
+              child: Column(
+                children: [
+                  const SizedBox(height: 14),
+                  // Gate node — same dot vocabulary as event nodes,
+                  // with the gate/key/lock icon centered inside.
+                  Container(
+                    width: isAvailable ? 22 : 18,
+                    height: isAvailable ? 22 : 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isCompleted
+                          ? AppColors.gold
+                          : isAvailable
+                              ? AppColors.bg
+                              : const Color(0xFF1E3040),
+                      border: Border.all(
+                        color: isLocked
+                            ? const Color(0xFF2A4050)
+                            : AppColors.gold,
+                        width: isAvailable ? 2 : 1.5,
+                      ),
+                      boxShadow: isAvailable
+                          ? [
+                              BoxShadow(
+                                  color: AppColors.gold.withAlpha(60),
+                                  blurRadius: 8,
+                                  spreadRadius: 1)
+                            ]
+                          : null,
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      iconData,
+                      size: isAvailable ? 12 : 10,
+                      color: isCompleted
+                          ? AppColors.bg
+                          : isLocked
+                              ? AppColors.textMuted
+                              : AppColors.gold,
+                    ),
+                  ),
+                  // Vertical line continuing the timeline.
+                  Expanded(
+                    child: Container(
+                      width: 1.5,
+                      color: isLocked
+                          ? const Color(0xFF1E3040)
+                          : AppColors.gold.withAlpha(120),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child:
+                  isLocked ? Opacity(opacity: 0.5, child: card) : card,
+            ),
+          ],
+        ),
       ),
     );
   }
