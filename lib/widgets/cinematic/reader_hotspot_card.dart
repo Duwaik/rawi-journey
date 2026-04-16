@@ -102,18 +102,22 @@ class _ReaderHotspotCardState extends State<ReaderHotspotCard>
     final interactive = isActive || isBranch || isDone;
 
     final Color borderColor = isDone
-        ? AppColors.gold.withAlpha(115)
+        ? AppColors.gold.withAlpha(140)
         : (isActive || isBranch)
             ? AppColors.gold
-            : Colors.white.withAlpha(13);
+            : Colors.white.withAlpha(30);
 
+    // R21A-04: Cards use a near-opaque dark base so labels stay
+    // readable over bright scenes (E2 desert, E3 night). The scene
+    // shows through the thin gap between cards and behind the Rawi
+    // circle; the cards themselves are ~92% opaque.
     final Color bgColor = isDone
-        ? AppColors.gold.withAlpha(13)
+        ? const Color(0xEE0E1A28)
         : isActive
-            ? AppColors.gold.withAlpha(26)
+            ? const Color(0xEE14223A)
             : isBranch
-                ? AppColors.gold.withAlpha(20)
-                : Colors.white.withAlpha(4);
+                ? const Color(0xEE14223A)
+                : const Color(0xCC060910);
 
     final radius = _radiusForQuadrant();
 
@@ -188,7 +192,7 @@ class _ReaderHotspotCardState extends State<ReaderHotspotCard>
                               ? AppColors.gold
                               : (isActive || isBranch)
                                   ? AppColors.textPrimary
-                                  : AppColors.textMuted.withAlpha(120),
+                                  : AppColors.textMuted.withAlpha(180),
                         ),
                       ),
                     ],

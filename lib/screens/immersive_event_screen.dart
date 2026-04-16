@@ -201,8 +201,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     // center between the four quadrant cards. Explorer Mode and legacy
     // path still spawn at path start.
     if (!_explorerMode) {
+      // R21A-02: Rawi stays at exact scene center in Reader Mode.
+      // These values are set ONCE and never updated — no game loop,
+      // no auto-walk, no bubble-driven shifts.
       _companionX = 0.50;
-      _companionY = 0.525;
+      _companionY = 0.50;
     } else if (_activeWaypoints.isNotEmpty) {
       _companionX = _activeWaypoints.first.dx;
       _companionY = _activeWaypoints.first.dy;
@@ -666,6 +669,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // 7. App pause/settings: stop ALL VO immediately
 
   void _showBubble(String text, {String? voPath}) {
+    // R21A-02/03: Reader Mode has no bubbles. The Rawi figure is
+    // frozen at center and never speaks — all narration is in the
+    // tapped card itself. Early-return so the bubble doesn't fire
+    // or change state (which would shift the figure's Column layout
+    // and make it appear to move).
+    if (!_explorerMode) return;
+
     // Failsafe: zero all movement state when showing any bubble
     _joyDx = 0;
     _joyDy = 0;
@@ -1618,41 +1628,40 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         onPointerDown: (event) => _checkSecretTap(
           event.localPosition, screenW, screenH, sceneOffset,
         ),
-        // R21-04: Touch-to-move (Explorer Mode only). Drag the finger
-        // anywhere on the scene to walk the Rawi toward that point.
-        // Coexists with the joystick — the joystick widget wins its own
-        // gesture arena, hotspot taps are onTap (no conflict with pan),
-        // and Reader Mode early-returns since the cards drive movement.
+        // R21-04 / R21A-01: Touch-to-move for Explorer. In Reader Mode
+        // we pass null callbacks so the GestureDetector doesn't claim
+        // any pan gestures, and card taps reach their handlers
+        // instantly (no gesture-arena delay / no tap-eating).
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onPanUpdate: (details) {
-            if (!_explorerMode) return;
-            if (_activeHotspot != null) return;
-            if (_showBranchCard || _phase != _Phase.explore) return;
-            final targetX =
-                (details.localPosition.dx / screenW).clamp(0.05, 0.95);
-            final targetY =
-                (details.localPosition.dy / screenH).clamp(0.15, 0.90);
-            // Smooth lerp toward finger position so taps don't teleport.
-            _companionX += (targetX - _companionX) * 0.15;
-            _companionY += (targetY - _companionY) * 0.15;
-            _parallaxOffset = -(_companionX - 0.5) * 0.8;
-            _facingDir = targetX >= _companionX ? 1.0 : -1.0;
-            // Footprint trail so movement feels grounded.
-            if (_footprints.isEmpty ||
-                (_footprints.last.dx - _companionX).abs() > 0.01 ||
-                (_footprints.last.dy - _companionY).abs() > 0.01) {
-              _footprints.add(Offset(_companionX, _companionY));
-              if (_footprints.length > 80) _footprints.removeAt(0);
-            }
-            setState(() => _isWalking = true);
-            _checkHotspotProximity();
-            _updateHotspotProximity(nextHotspotId: _nextHotspotId);
-          },
-          onPanEnd: (_) {
-            if (!_explorerMode) return;
-            if (mounted) setState(() => _isWalking = false);
-          },
+          onPanUpdate: _explorerMode
+              ? (details) {
+                  if (_activeHotspot != null) return;
+                  if (_showBranchCard || _phase != _Phase.explore) return;
+                  final targetX = (details.localPosition.dx / screenW)
+                      .clamp(0.05, 0.95);
+                  final targetY = (details.localPosition.dy / screenH)
+                      .clamp(0.15, 0.90);
+                  _companionX += (targetX - _companionX) * 0.15;
+                  _companionY += (targetY - _companionY) * 0.15;
+                  _parallaxOffset = -(_companionX - 0.5) * 0.8;
+                  _facingDir = targetX >= _companionX ? 1.0 : -1.0;
+                  if (_footprints.isEmpty ||
+                      (_footprints.last.dx - _companionX).abs() > 0.01 ||
+                      (_footprints.last.dy - _companionY).abs() > 0.01) {
+                    _footprints.add(Offset(_companionX, _companionY));
+                    if (_footprints.length > 80) _footprints.removeAt(0);
+                  }
+                  setState(() => _isWalking = true);
+                  _checkHotspotProximity();
+                  _updateHotspotProximity(nextHotspotId: _nextHotspotId);
+                }
+              : null,
+          onPanEnd: _explorerMode
+              ? (_) {
+                  if (mounted) setState(() => _isWalking = false);
+                }
+              : null,
           child: Stack(
         children: [
           // R19-01b: Reader Mode background gradient (only visible where
@@ -1830,12 +1839,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 });
               }
 
-              // Reader Mode v3: 4 quadrant cards arranged so all four
-              // inner corners meet at the exact scene center, where the
-              // Rawi circle sits on top — one connected visual unit
-              // (R21 polish: cards merge with circle, not separate).
+              // Reader Mode v3: 4 quadrant cards with a small gap
+              // (R21A-06) so the Rawi circle sits IN the intersection
+              // rather than on top of perfectly-butted corners. The
+              // circle's 2.5px gold border meets each card's inner
+              // corner through the gap — one connected visual unit.
               const cardW = 150.0;
               const cardH = 138.0;
+              const halfGap = 3.0; // 6px total gap → circle fits in it
               final centerX = screenW / 2;
               final centerY = screenH / 2;
               return _scene.hotspots.asMap().entries.map((entry) {
@@ -1847,8 +1858,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     quadrant == ReaderCardQuadrant.bl;
                 final isTop = quadrant == ReaderCardQuadrant.tl ||
                     quadrant == ReaderCardQuadrant.tr;
-                final left = isLeft ? centerX - cardW : centerX;
-                final top = isTop ? centerY - cardH : centerY;
+                final left =
+                    isLeft ? centerX - cardW - halfGap : centerX + halfGap;
+                final top =
+                    isTop ? centerY - cardH - halfGap : centerY + halfGap;
 
                 return Positioned(
                   left: left,
@@ -1870,36 +1883,48 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
           // ── Rawi figure + speech bubble ─────────────────────────────
           if (_phase == _Phase.explore)
-            // Reader Mode v3: Rawi sits at the exact scene center on
-            // top of the four cards' meeting corner — a single visual
-            // unit. Explorer Mode keeps the moving figure tied to the
-            // companion position + parallax.
-            Positioned(
-              left: _explorerMode
-                  ? _companionX * screenW + sceneOffset - 32
-                  : screenW / 2 - 34,
-              top: _explorerMode
-                  ? _companionY * screenH - 41
-                  : screenH / 2 - 34,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RawiSpeechBubble(
-                    text: _bubbleText,
-                    visible: _bubbleVisible,
+            // R21A-02/03: Reader Mode renders JUST the Rawi figure
+            // — no Column, no bubble, no layout shifts — positioned
+            // by its own center at the scene center so the gold
+            // border sits exactly in the card grid intersection.
+            // Explorer Mode keeps the full column (bubble above
+            // walking figure) tied to the companion position.
+            if (!_explorerMode)
+              Positioned(
+                left: screenW / 2 - 34,
+                top: screenH / 2 - 32,
+                child: Transform.scale(
+                  scale: _figureScale,
+                  child: RawiFigure(
+                    isWalking: false,
+                    facingDirection: 0.0,
                     isAr: _isAr,
                   ),
-                  const SizedBox(height: 4),
-                  Transform.scale(
-                    scale: _figureScale,
-                    child: RawiFigure(
-                      isWalking: _explorerMode && _isWalking,
-                      facingDirection: _facingDir,
+                ),
+              )
+            else
+              Positioned(
+                left: _companionX * screenW + sceneOffset - 32,
+                top: _companionY * screenH - 41,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RawiSpeechBubble(
+                      text: _bubbleText,
+                      visible: _bubbleVisible,
                       isAr: _isAr,
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 4),
+                    Transform.scale(
+                      scale: _figureScale,
+                      child: RawiFigure(
+                        isWalking: _isWalking,
+                        facingDirection: _facingDir,
+                        isAr: _isAr,
+                      ),
+                    ),
+                  ],
+                ),
             ),
 
           // ── Dim overlay ────────────────────────────────────────────
