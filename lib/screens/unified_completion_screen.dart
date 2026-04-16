@@ -14,8 +14,8 @@ import '../models/journey_event.dart';
 import '../models/scroll_entry.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
-import 'event_list_screen.dart';
 import 'passage_screen.dart';
+import 'rawi_tent_screen.dart';
 
 /// R17.2-05: Unified completion screen — replaces 5 separate post-event
 /// overlays (chapter / badge / XP / dhikr / scroll writing) with one
@@ -406,7 +406,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
               onComplete: () {
                 Navigator.of(ctx).pushAndRemoveUntil(
                   MaterialPageRoute(
-                      builder: (_) => const EventListScreen()),
+                      builder: (_) => const RawiTentScreen()),
                   (route) => false,
                 );
               },
@@ -419,7 +419,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     }
 
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const EventListScreen()),
+      MaterialPageRoute(builder: (_) => const RawiTentScreen()),
       (route) => false,
     );
   }

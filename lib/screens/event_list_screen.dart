@@ -13,7 +13,7 @@ import 'event_intro_screen.dart';
 import 'immersive_event_screen.dart';
 import 'legacy_event_screen.dart';
 import 'scroll_viewer_screen.dart';
-import 'living_map_screen.dart';
+import 'seerah_sky_screen.dart';
 import 'settings_screen.dart';
 import 'threshold_screen.dart';
 import 'video_intro_screen.dart';
@@ -903,7 +903,7 @@ class _EventListScreenState extends State<EventListScreen>
                           reverseTransitionDuration:
                               const Duration(milliseconds: 250),
                           pageBuilder: (c, a, s) =>
-                              const LivingMapScreen(),
+                              const SeerahSkyScreen(),
                           transitionsBuilder: (c, a, s, child) =>
                               FadeTransition(
                             opacity: CurvedAnimation(

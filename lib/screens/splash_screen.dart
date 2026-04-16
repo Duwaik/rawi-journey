@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
-import 'event_list_screen.dart';
+import 'rawi_tent_screen.dart';
 import 'intro_cinematic_screen.dart';
 
 /// Branded splash screen — first thing the player sees on every launch.
@@ -54,8 +54,9 @@ class _SplashScreenState extends State<SplashScreen>
   void _navigate() {
     if (!mounted) return;
 
+    // R22 Part 3: Tent is the home screen after onboarding.
     final destination = PrefsService.isOnboardingComplete
-        ? const EventListScreen()
+        ? const RawiTentScreen()
         : const IntroCinematicScreen();
 
     Navigator.of(context).pushReplacement(
