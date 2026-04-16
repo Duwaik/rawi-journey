@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../character_art.dart';
-import '../main.dart';
 import '../data/scene_configs.dart';
 import '../models/journey_event.dart';
 import '../models/scene_config.dart';
@@ -360,13 +359,19 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   /// (no Crossroads overlay in Reader Mode).
   ReaderCardState _readerCardState(SceneHotspot h) {
     if (_alreadyCompleted) return ReaderCardState.done;
-    if (_discovered.contains(h.id) || _pendingDiscovery.contains(h.id)) {
-      return ReaderCardState.done;
-    }
+
+    // R21B-03/06: Only items in _discovered (card closed) are "done".
+    // Items in _pendingDiscovery (card still open) show as "active"
+    // so the NEXT card stays locked until the current card is dismissed.
+    if (_discovered.contains(h.id)) return ReaderCardState.done;
+    if (_pendingDiscovery.contains(h.id)) return ReaderCardState.active;
+
+    // While any card is being read, no new card unlocks.
+    if (_pendingDiscovery.isNotEmpty) return ReaderCardState.locked;
 
     if (!_isBranching) {
       final firstUndiscoveredIdx = _scene.hotspots.indexWhere(
-        (x) => !_discovered.contains(x.id) && !_pendingDiscovery.contains(x.id),
+        (x) => !_discovered.contains(x.id),
       );
       final myIdx = _scene.hotspots.indexOf(h);
       return myIdx == firstUndiscoveredIdx
@@ -384,7 +389,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
     final branchIds = {bp.optionA.targetHotspotId, bp.optionB.targetHotspotId};
 
-    // Anchor not done yet → only anchor is active.
     if (!_discovered.contains(anchorId)) {
       return h.id == anchorId
           ? ReaderCardState.active
@@ -393,14 +397,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
     final branchesDone = branchIds.where(_discovered.contains).toSet();
 
-    // Anchor done, no branch chosen → both branches glow as choice.
     if (branchesDone.isEmpty) {
       return branchIds.contains(h.id)
           ? ReaderCardState.branchChoice
           : ReaderCardState.locked;
     }
 
-    // One branch done → the other branch is active.
     if (branchesDone.length == 1) {
       if (branchIds.contains(h.id) && !branchesDone.contains(h.id)) {
         return ReaderCardState.active;
@@ -408,7 +410,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       return ReaderCardState.locked;
     }
 
-    // Both branches done → convergence active.
     return h.id == convergenceId
         ? ReaderCardState.active
         : ReaderCardState.locked;
@@ -1288,11 +1289,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   /// Update proximity opacity map for undiscovered hotspots.
   void _updateHotspotProximity({required String? nextHotspotId}) {
-    // R21-01: Freeze proximity opacity while a hotspot card is open.
-    // Without this guard the next hotspot can fade in behind the
-    // currently-open card while the user is reading, leaking the
-    // upcoming discovery.
-    if (_activeHotspot != null) return;
+    // R21B-06: Freeze proximity during the ENTIRE discovery window —
+    // both the 400ms activation delay (_pendingDiscovery non-empty but
+    // _activeHotspot still null) AND while the card is open.
+    if (_activeHotspot != null || _pendingDiscovery.isNotEmpty) return;
 
     // R19-01c: Reader Mode shows ALL hotspots fully visible from start.
     // No proximity fade, no sequential lock — the user is reading, not
@@ -1428,7 +1428,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       return;
     }
 
-    if (_allDiscovered && _phase == _Phase.explore) {
+    // R21B-04: In replay mode, don't auto-trigger verdict. The user
+    // can re-read any card freely and use explicit buttons at the
+    // bottom to open the verdict or return to the event list.
+    if (_allDiscovered && _phase == _Phase.explore && !_alreadyCompleted) {
       // ── Feature 6: All-done celebration bounce ────────────────────
       _triggerFigureBounce(celebration: true);
 
@@ -1928,7 +1931,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Dim overlay ────────────────────────────────────────────
-          if (_phase == _Phase.verdict || _phase == _Phase.complete || _phase == _Phase.verdict)
+          if (_phase == _Phase.verdict || _phase == _Phase.complete)
             AnimatedOpacity(
               opacity: _phase != _Phase.explore ? 0.35 : 0.0,
               duration: const Duration(milliseconds: 500),
@@ -1946,39 +1949,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   colors: [Colors.black.withAlpha(180), Colors.transparent],
                 ),
               ),
-              // R19-15 / R20-04: Force LTR on the header bar and TRUE-CENTER
-              // the language toggle via a Stack so its horizontal position
-              // is identical regardless of language or side-widget widths.
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Center the language toggle
-                  Align(
-                    alignment: Alignment.center,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() => _isAr = !_isAr);
-                        PrefsService.setLanguage(_isAr ? 'ar' : 'en');
-                        RawiApp.rebuild(context);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.card.withAlpha(180),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.divider),
-                        ),
-                        child: Text(_isAr ? 'EN' : 'AR',
-                            style: GoogleFonts.nunito(
-                                color: AppColors.gold,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700)),
-                      ),
-                    ),
-                  ),
-                  // Side elements: back + era chip (left), settings (right)
-                  Row(
+              // R21B-05: Language toggle removed from scene header — language
+              // changes only via Settings or Registration. The header now
+              // has just the back + era chip on the left and settings on
+              // the right.
+              child: Row(
                     textDirection: TextDirection.ltr,
                     children: [
                       IconButton(
@@ -2016,10 +1991,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                           size: 15, color: AppColors.textMuted),
                     ),
                   ),
-                    ], // Row children
-                  ),   // Row
-                ],     // Stack children
-              ),       // Stack
+                    ],
+                  ),
             ),         // Container (header bg)
           ),           // Positioned (header)
 
@@ -2075,6 +2048,66 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     _footstepPlaying = false;
                   }
                 },
+              ),
+            ),
+
+          // ── R21B-04: Replay mode buttons (Verdict + Back) ─────────
+          if (_alreadyCompleted && _phase == _Phase.explore && _activeHotspot == null)
+            Positioned(
+              bottom: bottomPad + 20,
+              left: 24,
+              right: 24,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _continue,
+                      child: Container(
+                        height: 46,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withAlpha(15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: AppColors.gold.withAlpha(120)),
+                        ),
+                        child: Text(
+                          _isAr ? 'العودة للأحداث' : 'Back to Events',
+                          style: GoogleFonts.nunito(
+                            color: AppColors.gold,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _phase = _Phase.verdict);
+                        _phaseCtrl.forward();
+                      },
+                      child: Container(
+                        height: 46,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.gold,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          _isAr ? 'الحكم' : 'The Verdict',
+                          style: GoogleFonts.nunito(
+                            color: AppColors.bg,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -2537,27 +2570,24 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                         child: SizedBox(
                           width: double.infinity,
                           height: 50,
-                          child: ElevatedButton(
-                            onPressed: _alreadyCompleted ? _continue : _completeAndPop,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _alreadyCompleted
-                                  ? AppColors.card
-                                  : AppColors.gold,
-                              foregroundColor: _alreadyCompleted
-                                  ? AppColors.textMuted
-                                  : AppColors.bg,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14)),
-                              elevation: 0,
-                            ),
-                            child: Text(
-                              _alreadyCompleted
-                                  ? (_isAr ? 'العودة للأحداث  ←' : 'Back to Events  →')
-                                  : (_isAr ? 'أكمل الرحلة  ←' : 'Continue Journey  →'),
-                              style: GoogleFonts.nunito(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
+                          child: GestureDetector(
+                            onTap: _alreadyCompleted ? _continue : _completeAndPop,
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: AppColors.gold,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                _alreadyCompleted
+                                    ? (_isAr ? 'العودة للأحداث' : 'Back to Events')
+                                    : (_isAr ? 'أكمل الرحلة' : 'Continue Journey'),
+                                style: GoogleFonts.nunito(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.bg,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
                             ),
                           ),

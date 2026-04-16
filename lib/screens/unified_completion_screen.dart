@@ -1244,15 +1244,18 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   }
 
   Widget _buildSkipLink() {
+    // R21B-07: Minimum 44px touch target so the skip link is
+    // comfortable to tap on all devices.
     return GestureDetector(
       onTap: _onNotNow,
+      behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         child: Text(
           _isAr ? 'تخطّي' : 'Skip',
           style: GoogleFonts.nunito(
-            fontSize: 13,
-            color: _textMuted.withAlpha(180),
+            fontSize: 14,
+            color: _textMuted.withAlpha(200),
           ),
           textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
         ),

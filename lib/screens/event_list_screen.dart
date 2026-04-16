@@ -1078,11 +1078,9 @@ class _ThresholdMarkerState extends State<_ThresholdMarker>
             ? Icons.check_circle_rounded
             : Icons.vpn_key_rounded;
 
-    final String title = isLocked
-        ? '???'
-        : (isAr
-            ? 'العَتَبة · THE THRESHOLD'
-            : 'THE THRESHOLD · العَتَبة');
+    final String title = isAr
+        ? 'العَتَبة · THE THRESHOLD'
+        : 'THE THRESHOLD · العَتَبة';
 
     final String? subtitle = isLocked
         ? null
