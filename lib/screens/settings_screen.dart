@@ -227,7 +227,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                       const SizedBox(height: 16),
 
-                      // ── 5. Reset Journey ───────────────────────────────
+                      // ── 5. Coming Soon (flagged features) ──────────────
+                      _buildSectionHeader(
+                          _isAr ? 'قريباً' : 'Coming Soon'),
+                      const SizedBox(height: 8),
+                      _buildComingSoonCard(),
+
+                      const SizedBox(height: 16),
+
+                      // ── 6. Reset Journey ───────────────────────────────
                       _buildSectionHeader(
                           _isAr ? 'إعادة الرحلة' : 'Reset Journey'),
                       const SizedBox(height: 8),
@@ -799,7 +807,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ── 5. Reset Journey card ───────────────────────────────────────────────
+  // ── 5. Coming Soon (R23 feature flags) ───────────────────────────────
+
+  static const _comingSoonFeatures = [
+    (icon: Icons.child_care_rounded, en: 'Little Rawi Mode', ar: 'وضع الراوي الصغير', descEn: 'Simplified content for ages 4-10', descAr: 'محتوى مبسّط للأعمار ٤-١٠'),
+    (icon: Icons.translate_rounded, en: 'More Languages', ar: 'لغات إضافية', descEn: 'Turkish, Urdu, Bahasa, French', descAr: 'تركي، أوردو، بهاسا، فرنسي'),
+    (icon: Icons.timer_rounded, en: 'Challenge Mode', ar: 'وضع التحدّي', descEn: 'Timed quiz on mastered content', descAr: 'اختبار سريع على ما أتقنته'),
+    (icon: Icons.map_rounded, en: 'Mastery Map', ar: 'خريطة الإتقان', descEn: 'Visualize your Seerah knowledge', descAr: 'تصوّر معرفتك بالسيرة'),
+    (icon: Icons.auto_stories_rounded, en: 'Manuscripts', ar: 'المخطوطات', descEn: 'Collectible historical documents', descAr: 'وثائق تاريخية قابلة للجمع'),
+  ];
+
+  Widget _buildComingSoonCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: _sectionDecoration,
+      child: Column(
+        children: [
+          for (int i = 0; i < _comingSoonFeatures.length; i++) ...[
+            if (i > 0)
+              Divider(color: AppColors.gold.withAlpha(20), height: 20),
+            _comingSoonRow(_comingSoonFeatures[i]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _comingSoonRow(
+      ({IconData icon, String en, String ar, String descEn, String descAr}) f) {
+    return Row(
+      textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+      children: [
+        Icon(f.icon, size: 20, color: AppColors.gold.withAlpha(120)),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _isAr ? f.ar : f.en,
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+                textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _isAr ? f.descAr : f.descEn,
+                style: GoogleFonts.nunito(
+                  fontSize: 11,
+                  color: AppColors.textMuted.withAlpha(160),
+                ),
+                textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: AppColors.gold.withAlpha(15),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.gold.withAlpha(50)),
+          ),
+          child: Text(
+            _isAr ? 'قريباً' : 'Soon',
+            style: GoogleFonts.nunito(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: AppColors.gold.withAlpha(180),
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── 6. Reset Journey card ───────────────────────────────────────────────
 
   Widget _buildResetCard() {
     return Container(

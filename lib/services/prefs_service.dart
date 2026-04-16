@@ -232,6 +232,24 @@ class PrefsService {
   static Future<void> setJoystickPosition(String pos) async =>
       await _prefs?.setString(_keyJoystickPosition, pos);
 
+  // ── FEATURE FLAGS (R23 — all default false, flip when ready) ──────────
+  static const String _keyLittleRawi = 'ff_little_rawi';
+  static const String _keyAdditionalLangs = 'ff_additional_langs';
+  static const String _keyChallengeMode = 'ff_challenge_mode';
+  static const String _keyMasteryMap = 'ff_mastery_map';
+  static const String _keyManuscripts = 'ff_manuscripts';
+
+  static bool get littleRawiEnabled =>
+      _prefs?.getBool(_keyLittleRawi) ?? false;
+  static bool get additionalLanguagesEnabled =>
+      _prefs?.getBool(_keyAdditionalLangs) ?? false;
+  static bool get challengeModeEnabled =>
+      _prefs?.getBool(_keyChallengeMode) ?? false;
+  static bool get masteryMapEnabled =>
+      _prefs?.getBool(_keyMasteryMap) ?? false;
+  static bool get manuscriptsEnabled =>
+      _prefs?.getBool(_keyManuscripts) ?? false;
+
   // ── TUTORIAL ──────────────────────────────────────────────────────────
   static bool get isTutorialSeen =>
       _prefs?.getBool(_keyTutorialSeen) ?? false;
