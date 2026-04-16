@@ -1628,66 +1628,39 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       backgroundColor: _explorerMode ? Colors.black : const Color(0xFF04060D),
       body: Listener(
         behavior: HitTestBehavior.deferToChild,
-        onPointerDown: (event) => _checkSecretTap(
-          event.localPosition, screenW, screenH, sceneOffset,
-        ),
-        // R21-04 / R21A-01: Touch-to-move for Explorer. In Reader Mode
-        // we pass null callbacks so the GestureDetector doesn't claim
-        // any pan gestures, and card taps reach their handlers
-        // instantly (no gesture-arena delay / no tap-eating).
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onPanUpdate: _explorerMode
-              ? (details) {
-                  if (_activeHotspot != null) return;
-                  if (_showBranchCard || _phase != _Phase.explore) return;
-                  final targetX = (details.localPosition.dx / screenW)
-                      .clamp(0.05, 0.95);
-                  final targetY = (details.localPosition.dy / screenH)
-                      .clamp(0.15, 0.90);
-                  _companionX += (targetX - _companionX) * 0.15;
-                  _companionY += (targetY - _companionY) * 0.15;
-                  _parallaxOffset = -(_companionX - 0.5) * 0.8;
-                  _facingDir = targetX >= _companionX ? 1.0 : -1.0;
-                  if (_footprints.isEmpty ||
-                      (_footprints.last.dx - _companionX).abs() > 0.01 ||
-                      (_footprints.last.dy - _companionY).abs() > 0.01) {
-                    _footprints.add(Offset(_companionX, _companionY));
-                    if (_footprints.length > 80) _footprints.removeAt(0);
-                  }
-                  setState(() => _isWalking = true);
-                  _checkHotspotProximity();
-                  _updateHotspotProximity(nextHotspotId: _nextHotspotId);
-                }
-              : null,
-          onPanEnd: _explorerMode
-              ? (_) {
-                  if (mounted) setState(() => _isWalking = false);
-                }
-              : null,
-          child: Stack(
+        onPointerDown: _explorerMode
+            ? (event) => _checkSecretTap(
+                event.localPosition, screenW, screenH, sceneOffset)
+            : null,
+        // R22 Part 1: NO GestureDetector wrapping the Stack. In Reader
+        // Mode this was causing tap-eating even with null callbacks —
+        // a GestureDetector with HitTestBehavior.translucent still
+        // registers in the gesture arena. Touch-to-move is now a
+        // Positioned.fill child INSIDE the Stack, Explorer-only.
+        child: Stack(
         children: [
-          // R19-01b: Reader Mode background gradient (only visible where
-          // ground layers don't cover; harmless when they do).
+          // R19-01b: Reader Mode background gradient.
           if (!_explorerMode)
             const Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF04060D), Color(0xFF0B1E2D)],
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF04060D), Color(0xFF0B1E2D)],
+                    ),
                   ),
                 ),
               ),
             ),
 
-          // ── Full-screen parallax scene ──────────────────────────────
-          ParallaxScene(
+          // ── Full-screen parallax scene (non-interactive) ───────────
+          IgnorePointer(child: ParallaxScene(
             height: screenH,
             layers: _scene.groundLayers,
             externalOffset: sceneOffset,
-          ),
+          )),
 
           // ── Feature 5: Sky gradient shift (warm overlay with progress) ──
           if (_discoveredProgress > 0 && _phase == _Phase.explore)
@@ -1736,22 +1709,20 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             );
           }),
 
-          // ── Atmospheric overlays ───────────────────────────────────
-          if (_scene.showStars) const StarfieldLayer(),
-          if (_scene.showMoon) CrescentMoon(position: _scene.moonPosition),
-          // Feature 5: Particle density increases with discovery progress (~50% at full)
+          // ── Atmospheric overlays (all non-interactive) ─────────────
+          if (_scene.showStars) const IgnorePointer(child: StarfieldLayer()),
+          if (_scene.showMoon) IgnorePointer(child: CrescentMoon(position: _scene.moonPosition)),
           if (_scene.particleType != ParticleType.none)
-            ParticleField(type: _scene.particleType,
+            IgnorePointer(child: ParticleField(type: _scene.particleType,
                 count: (_scene.particleCount * (1.0 + _discoveredProgress * 0.5)).round(),
-                color: _scene.particleColor),
-          if (_scene.showGrain) const GrainOverlay(),
+                color: _scene.particleColor)),
+          if (_scene.showGrain) const IgnorePointer(child: GrainOverlay()),
 
-          // ── Birds overlay (Event 2) ────────────────────────────────
-          if (_scene.showBirds) BirdsOverlay(count: _scene.birdCount),
+          if (_scene.showBirds) IgnorePointer(child: BirdsOverlay(count: _scene.birdCount)),
 
-          // ── Footprint trail ────────────────────────────────────────
+          // ── Footprint trail (non-interactive) ──────────────────────
           if (_phase == _Phase.explore && _footprints.isNotEmpty)
-            CustomPaint(
+            IgnorePointer(child: CustomPaint(
               size: Size(screenW, screenH),
               painter: _FootprintPainter(
                 footprints: _footprints,
@@ -1759,13 +1730,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 screenH: screenH,
                 sceneOffset: sceneOffset,
               ),
-            ),
+            )),
 
-          // ── Fog of War overlay ──────────────────────────────────────
-          // ── Fog of War: Explorer Mode only (Option A — Reader has no fog).
+          // ── Fog of War (Explorer only, non-interactive) ────────────
           if (_phase == _Phase.explore && !_alreadyCompleted && _explorerMode)
             Positioned.fill(
-              child: FogOverlay(
+              child: IgnorePointer(child: FogOverlay(
                 rawiX: _companionX,
                 rawiY: _companionY,
                 discoveredPositions: _scene.hotspots
@@ -1776,10 +1746,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 discoveredCount: _discovered.length + _pendingDiscovery.length,
                 sceneRevealed: _fogSceneRevealed,
                 sceneOffset: sceneOffset,
-                rawiLightRadius: _explorerMode
-                    ? 25.0 + (PrefsService.noorLevel / 100.0) * 95.0
-                    : 100.0, // Reader Mode: fixed legacy radius
-              ),
+                rawiLightRadius: 25.0 + (PrefsService.noorLevel / 100.0) * 95.0,
+              )),
             ),
 
           // ── Golden tint on full reveal ────────────────────────────────
@@ -1884,24 +1852,57 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               });
             }()),
 
+          // ── Touch-to-move (Explorer only, inside Stack) ─────────────
+          // R22 Part 1: placed INSIDE the Stack so it doesn't wrap the
+          // whole tree. Sits behind hotspot markers in z-order so
+          // markers' onTap wins the gesture arena.
+          if (_explorerMode && _phase == _Phase.explore)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onPanUpdate: (details) {
+                  if (_activeHotspot != null || _showBranchCard) return;
+                  final targetX = (details.localPosition.dx / screenW)
+                      .clamp(0.05, 0.95);
+                  final targetY = (details.localPosition.dy / screenH)
+                      .clamp(0.15, 0.90);
+                  _companionX += (targetX - _companionX) * 0.15;
+                  _companionY += (targetY - _companionY) * 0.15;
+                  _parallaxOffset = -(_companionX - 0.5) * 0.8;
+                  _facingDir = targetX >= _companionX ? 1.0 : -1.0;
+                  if (_footprints.isEmpty ||
+                      (_footprints.last.dx - _companionX).abs() > 0.01 ||
+                      (_footprints.last.dy - _companionY).abs() > 0.01) {
+                    _footprints.add(Offset(_companionX, _companionY));
+                    if (_footprints.length > 80) _footprints.removeAt(0);
+                  }
+                  setState(() => _isWalking = true);
+                  _checkHotspotProximity();
+                  _updateHotspotProximity(nextHotspotId: _nextHotspotId);
+                },
+                onPanEnd: (_) {
+                  if (mounted) setState(() => _isWalking = false);
+                },
+              ),
+            ),
+
           // ── Rawi figure + speech bubble ─────────────────────────────
           if (_phase == _Phase.explore)
-            // R21A-02/03: Reader Mode renders JUST the Rawi figure
-            // — no Column, no bubble, no layout shifts — positioned
-            // by its own center at the scene center so the gold
-            // border sits exactly in the card grid intersection.
-            // Explorer Mode keeps the full column (bubble above
-            // walking figure) tied to the companion position.
+            // Reader: IgnorePointer (stationary, non-interactive, sits
+            // in the card grid gap). Explorer: interactive column with
+            // bubble above the walking figure.
             if (!_explorerMode)
               Positioned(
                 left: screenW / 2 - 34,
                 top: screenH / 2 - 32,
-                child: Transform.scale(
-                  scale: _figureScale,
-                  child: RawiFigure(
-                    isWalking: false,
-                    facingDirection: 0.0,
-                    isAr: _isAr,
+                child: IgnorePointer(
+                  child: Transform.scale(
+                    scale: _figureScale,
+                    child: RawiFigure(
+                      isWalking: false,
+                      facingDirection: 0.0,
+                      isAr: _isAr,
+                    ),
                   ),
                 ),
               )
@@ -2284,7 +2285,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
         ],
-      ),
       ),
       ),
     ),
