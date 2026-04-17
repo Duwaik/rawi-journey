@@ -104,7 +104,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   // Auto-walk state (tap-to-walk)
   bool _autoWalking = false;
-  double _autoWalkTarget = 0.0;
 
   // Parallax offset
   double _parallaxOffset = 0.0;
@@ -514,10 +513,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   @override
   void dispose() {
     _idleTimer?.cancel();
-    if (_autoWalking) {
-      _gameLoop.removeListener(_onAutoWalkFrame);
-      _autoWalking = false;
-    }
+    _autoWalking = false;
     _verdictScrollCtrl.dispose();
     // _reflectionScrollCtrl removed
     WidgetsBinding.instance.removeObserver(this);
@@ -936,89 +932,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   // ── Auto-walk (tap-to-walk) ─────────────────────────────────────────────
 
-  /// Find the path progress value closest to a hotspot position.
-  double _pathProgressForHotspot(SceneHotspot hotspot) {
-    final wp = _activeWaypoints;
-    if (wp.length < 2) return _pathProgress;
-    double bestProgress = 0.0;
-    double bestDist = double.infinity;
-    double accumulated = 0.0;
-    for (int i = 0; i < wp.length - 1; i++) {
-      // Check several points along each segment
-      const samples = 10;
-      for (int s = 0; s <= samples; s++) {
-        final t = s / samples;
-        final px = wp[i].dx + (wp[i + 1].dx - wp[i].dx) * t;
-        final py = wp[i].dy + (wp[i + 1].dy - wp[i].dy) * t;
-        final hPos = _posFor(hotspot);
-        final dx = px - hPos.dx;
-        final dy = py - hPos.dy;
-        final dist = dx * dx + dy * dy;
-        final progress = (accumulated + _segLengths[i] * t) / _totalPathLen;
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestProgress = progress;
-        }
-      }
-      accumulated += _segLengths[i];
-    }
-    return bestProgress.clamp(0.0, 1.0);
-  }
-
-  void _autoWalkTo(SceneHotspot hotspot) {
-    if (_autoWalking) return;
-    final targetProgress = _pathProgressForHotspot(hotspot);
-    if ((targetProgress - _pathProgress).abs() < 0.01) {
-      // Already at hotspot — activate directly
-      _activateHotspot(hotspot);
-      return;
-    }
-    _autoWalkTarget = targetProgress;
-    _autoWalking = true;
-    _joyDx = 0;
-    _joyDy = 0;
-    if (!_gameLoop.isAnimating) _gameLoop.repeat();
-    _gameLoop.addListener(_onAutoWalkFrame);
-  }
-
-  void _onAutoWalkFrame() {
-    if (!_autoWalking) return;
-    // Same freeze guard as _onFrame — stop during ANY overlay
-    if (_activeHotspot != null || _showBranchCard || _showSettings ||
-        _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
-        _showTutorial ||
-        _phase == _Phase.verdict ||
-        _phase == _Phase.complete) {
-      _stopAutoWalk();
-      return;
-    }
-    const dt = 0.016;
-    final dir = _autoWalkTarget > _pathProgress ? 1.0 : -1.0;
-    final step = _moveSpeed * 0.7 * dt / _totalPathLen * dir;
-    final newProgress = (_pathProgress + step).clamp(0.0, 1.0);
-
-    final oldX = _companionX;
-    _pathProgress = newProgress;
-    _updateCompanionFromPath();
-
-    final moveDx = _companionX - oldX;
-    if (moveDx.abs() > 0.001) {
-      _facingDir = moveDx > 0 ? 1.0 : -1.0;
-    }
-
-    setState(() => _isWalking = true);
-    _updateHotspotProximity(nextHotspotId: _nextHotspotId);
-
-    // Check if arrived
-    if ((_pathProgress - _autoWalkTarget).abs() < 0.015) {
-      _stopAutoWalk();
-      _checkHotspotProximity();
-    }
-  }
-
   void _stopAutoWalk() {
     _autoWalking = false;
-    _gameLoop.removeListener(_onAutoWalkFrame);
     _gameLoop.stop();
     _gameLoop.reset();
     if (mounted) setState(() => _isWalking = false);
@@ -1160,7 +1075,19 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   void _onHotspotTap(SceneHotspot hotspot) {
     if (_activeHotspot != null) return;
-    if (_autoWalking) return; // Don't interrupt auto-walk
+
+    // ── Reader Mode: direct activation, no sequential checks. ──────
+    // The card state machine (_readerCardState) already gates which
+    // cards are tappable. If the user could tap it, they should see
+    // the content. Period. No auto-walk, no path progress, no revisit
+    // limiters — those are Explorer-only mechanics.
+    if (!_explorerMode) {
+      _activateHotspot(hotspot);
+      return;
+    }
+
+    // ── Explorer Mode below ────────────────────────────────────────
+    if (_autoWalking) return;
 
     final isNew = !_discovered.contains(hotspot.id) &&
         !_pendingDiscovery.contains(hotspot.id);
@@ -1182,12 +1109,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             voPath: _companionVoPath(lid));
         return;
       }
-      // 1st-2nd revisit: re-open panel silently
     }
 
-    // New hotspot: auto-walk the figure to it instead of instant discovery
+    // New hotspot: check sequential unlock + auto-walk
     if (isNew) {
-      // Check if this is the next active hotspot (same logic as rendering)
       String? nextHotspotId;
       if (_isBranching && _branchUnlockOrder.isNotEmpty) {
         nextHotspotId = _branchUnlockOrder.firstWhere(
@@ -1205,16 +1130,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           nextHotspotId = null;
         }
       }
-      if (hotspot.id == nextHotspotId) {
-        // R20-07: Explorer always free-roam, including branching events.
-        // Auto-walk is the Reader Mode tap-to-advance shortcut.
-        if (_explorerMode) {
-          return;
-        }
-        _autoWalkTo(hotspot);
-        return;
+      if (hotspot.id != nextHotspotId) {
+        return; // Locked hotspot — ignore tap
       }
-      return; // Locked hotspot — ignore tap
+      // Explorer: proximity-based activation happens in _checkHotspotProximity,
+      // not here. Return silently — the user needs to walk closer.
+      return;
     }
 
     // Revisit (1st-2nd): re-open panel from anywhere
