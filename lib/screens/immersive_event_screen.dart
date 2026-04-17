@@ -1638,6 +1638,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // registers in the gesture arena. Touch-to-move is now a
         // Positioned.fill child INSIDE the Stack, Explorer-only.
         child: Stack(
+        fit: StackFit.expand,
         children: [
           // R19-01b: Reader Mode background gradient.
           if (!_explorerMode)
@@ -1656,11 +1657,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Full-screen parallax scene (non-interactive) ───────────
-          IgnorePointer(child: ParallaxScene(
-            height: screenH,
-            layers: _scene.groundLayers,
-            externalOffset: sceneOffset,
-          )),
+          Positioned.fill(
+            child: IgnorePointer(child: ParallaxScene(
+              height: screenH,
+              layers: _scene.groundLayers,
+              externalOffset: sceneOffset,
+            )),
+          ),
 
           // ── Feature 5: Sky gradient shift (warm overlay with progress) ──
           if (_discoveredProgress > 0 && _phase == _Phase.explore)
