@@ -52,12 +52,9 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
 
   int get _completedCount {
     int c = 0;
+    // B-01 pattern: count ALL completions (no sequential break).
     for (final e in m1Events) {
-      if (PrefsService.isEventCompleted(e.globalOrder)) {
-        c++;
-      } else {
-        break;
-      }
+      if (PrefsService.isEventCompleted(e.globalOrder)) c++;
     }
     return c;
   }
@@ -87,6 +84,9 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     final completed = _completedCount;
     final currentStage = RawiStage.getStage(completed);
     final percent = (completed / m1Events.length * 100).toStringAsFixed(1);
+    // C-01: Tent state flags
+    final isStart = completed == 0;
+    final isComplete = completed >= m1Events.length;
 
     return PopScope(
       canPop: false,
@@ -247,7 +247,11 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                           const Text('🚶', style: TextStyle(fontSize: 14)),
                           const SizedBox(width: 8),
                           Text(
-                            _isAr ? 'تابع الرحلة' : 'Continue Journey',
+                            isStart
+                                ? (_isAr ? 'ابدأ الرحلة' : 'Begin Journey')
+                                : isComplete
+                                    ? (_isAr ? 'أعد زيارة الرحلة' : 'Revisit the Journey')
+                                    : (_isAr ? 'تابع الرحلة' : 'Continue Journey'),
                             style: GoogleFonts.nunito(
                               color: AppColors.gold,
                               fontSize: 13,
@@ -291,9 +295,15 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                           ),
                           const Spacer(),
                           Text(
-                            '$completed / ${m1Events.length}  ($percent%)',
+                            isStart
+                                ? (_isAr ? 'رحلتك تنتظر' : 'Your journey awaits')
+                                : isComplete
+                                    ? 'Journey complete ✦'
+                                    : '$completed / ${m1Events.length}  ($percent%)',
                             style: GoogleFonts.nunito(
-                              color: AppColors.gold.withAlpha(100),
+                              color: isComplete
+                                  ? AppColors.gold
+                                  : AppColors.gold.withAlpha(100),
                               fontSize: 9,
                             ),
                           ),

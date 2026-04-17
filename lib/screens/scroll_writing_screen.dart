@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../data/scroll_entries.dart';
 import '../models/scroll_entry.dart';
 import '../services/prefs_service.dart';
-import 'event_list_screen.dart';
+import 'rawi_tent_screen.dart';
 
 /// Cinematic scroll-writing screen shown after dhikr, before event list.
 /// Reveals the new scroll line with a progressive character animation.
@@ -106,7 +106,7 @@ class _ScrollWritingScreenState extends State<ScrollWritingScreen>
 
   void _goToEventList() {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const EventListScreen()),
+      MaterialPageRoute(builder: (_) => const RawiTentScreen()),
       (route) => false,
     );
   }

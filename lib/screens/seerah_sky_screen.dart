@@ -52,31 +52,26 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
       duration: const Duration(milliseconds: 2500),
     )..repeat(reverse: true);
 
-    _completedCount = 0;
-    for (final e in m1Events) {
-      if (PrefsService.isEventCompleted(e.globalOrder)) {
-        _completedCount++;
-      } else {
-        break;
-      }
-    }
+    // B-01: Count ALL completions, not sequential (break was wrong).
+    _completedCount = m1Events
+        .where((e) => PrefsService.isEventCompleted(e.globalOrder))
+        .length;
 
-    _totalHeight = m1Events.length * _starSpacing + 200;
+    _totalHeight = m1Events.length * _starSpacing + 340;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCurrentStar();
     });
   }
 
-  List<Offset> _generatePositions(double screenW) {
+  List<Offset> _generatePositions(double screenW, double bottomPad) {
     final positions = <Offset>[];
     final centerX = screenW / 2;
     final amplitude = screenW * 0.28;
+    // B-02: 140px bottom allowance so Event 1 clears the bottom bar.
+    final bottomAllowance = 140.0 + bottomPad;
     for (int i = 0; i < m1Events.length; i++) {
-      // R24 B-01: Event 1 at BOTTOM (highest y), Event 155 at TOP
-      // (lowest y). User sees their current star immediately via
-      // auto-scroll, then scrolls UP toward future stars.
-      final y = _totalHeight - (100.0 + i * _starSpacing);
+      final y = _totalHeight - (bottomAllowance + i * _starSpacing);
       final wave = sin(i * 0.6 + 0.3) * amplitude;
       final jitter = sin(i * 2.1) * 15;
       positions.add(Offset(centerX + wave + jitter, y));
@@ -123,7 +118,7 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
     final screenW = MediaQuery.of(context).size.width;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
-    _positions = _generatePositions(screenW);
+    _positions = _generatePositions(screenW, bottomPad);
     final currentOrder = _completedCount + 1;
 
     return Scaffold(

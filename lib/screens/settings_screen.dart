@@ -22,6 +22,9 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  // C-02: Collapsible sections — only Profile expanded by default.
+  final Map<String, bool> _expanded = {'profile': true};
+
   bool _music = PrefsService.musicEnabled;
   bool _vo = PrefsService.voEnabled;
   bool _sfx = PrefsService.sfxEnabled;
@@ -176,71 +179,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 12),
 
                 // ── Scrollable sections ──────────────────────────────────
+                // C-02: Collapsible sections, reordered by frequency.
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     children: [
-                      // ── 1. Profile ─────────────────────────────────────
-                      _buildSectionHeader(
-                          _isAr ? 'الملف الشخصي' : 'Profile'),
-                      const SizedBox(height: 8),
-                      _buildProfileCard(),
-
-                      const SizedBox(height: 16),
-
-                      // ── 2. Journey Mode ───────────────────────────────
-                      _buildSectionHeader(
-                          _isAr ? 'نمط الرحلة' : 'Journey Mode'),
-                      const SizedBox(height: 8),
-                      _buildJourneyModeCard(),
-
-                      const SizedBox(height: 16),
-
-                      // ── 3. Journey Stats ───────────────────────────────
-                      _buildSectionHeader(
-                          _isAr ? 'إحصائيات الرحلة' : 'Journey Stats'),
-                      const SizedBox(height: 8),
-                      _buildJourneyStatsCard(),
-
-                      const SizedBox(height: 16),
-
-                      // ── Subscription (placeholder, non-functional) ─────
-                      _buildSectionHeader(
-                          _isAr ? 'الاشتراك' : 'Subscription'),
-                      const SizedBox(height: 8),
-                      _buildSubscriptionCard(),
-
-                      const SizedBox(height: 16),
-
-                      // ── 3. Preferences ─────────────────────────────────
-                      _buildSectionHeader(
-                          _isAr ? 'التفضيلات' : 'Preferences'),
-                      const SizedBox(height: 8),
-                      _buildPreferencesCard(),
-
-                      const SizedBox(height: 16),
-
-                      // ── 4. About ───────────────────────────────────────
-                      _buildSectionHeader(_isAr ? 'حول' : 'About'),
-                      const SizedBox(height: 8),
-                      _buildAboutCard(),
-
-                      const SizedBox(height: 16),
-
-                      // ── 5. Coming Soon (flagged features) ──────────────
-                      _buildSectionHeader(
-                          _isAr ? 'قريباً' : 'Coming Soon'),
-                      const SizedBox(height: 8),
-                      _buildComingSoonCard(),
-
-                      const SizedBox(height: 16),
-
-                      // ── 6. Reset Journey ───────────────────────────────
-                      _buildSectionHeader(
-                          _isAr ? 'إعادة الرحلة' : 'Reset Journey'),
-                      const SizedBox(height: 8),
-                      _buildResetCard(),
-
+                      _collapsibleSection(
+                        key: 'profile',
+                        label: _isAr ? 'الملف الشخصي' : 'Profile',
+                        child: _buildProfileCard(),
+                      ),
+                      _collapsibleSection(
+                        key: 'preferences',
+                        label: _isAr ? 'التفضيلات' : 'Preferences',
+                        child: _buildPreferencesCard(),
+                      ),
+                      _collapsibleSection(
+                        key: 'journey_mode',
+                        label: _isAr ? 'نمط الرحلة' : 'Journey Mode',
+                        child: _buildJourneyModeCard(),
+                      ),
+                      _collapsibleSection(
+                        key: 'journey_stats',
+                        label: _isAr ? 'إحصائيات الرحلة' : 'Journey Stats',
+                        child: _buildJourneyStatsCard(),
+                      ),
+                      _collapsibleSection(
+                        key: 'coming_soon',
+                        label: _isAr ? 'قريباً' : 'Coming Soon',
+                        child: _buildComingSoonCard(),
+                      ),
+                      _collapsibleSection(
+                        key: 'subscription',
+                        label: _isAr ? 'الاشتراك' : 'Subscription',
+                        child: _buildSubscriptionCard(),
+                      ),
+                      _collapsibleSection(
+                        key: 'about',
+                        label: _isAr ? 'حول' : 'About',
+                        child: _buildAboutCard(),
+                      ),
+                      _collapsibleSection(
+                        key: 'reset',
+                        label: _isAr ? 'إعادة الرحلة' : 'Reset Journey',
+                        child: _buildResetCard(),
+                      ),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -250,6 +233,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // ── Collapsible section wrapper (C-02) ──────────────────────────────────
+
+  Widget _collapsibleSection({
+    required String key,
+    required String label,
+    required Widget child,
+  }) {
+    final isExpanded = _expanded[key] ?? false;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _expanded[key] = !isExpanded),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                Expanded(child: _buildSectionHeader(label)),
+                AnimatedRotation(
+                  turns: isExpanded ? 0.25 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.gold.withAlpha(130),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox(width: double.infinity, height: 0),
+          secondChild: Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 8),
+            child: child,
+          ),
+          crossFadeState: isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 250),
+        ),
+      ],
     );
   }
 

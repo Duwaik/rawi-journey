@@ -35,7 +35,7 @@ import '../widgets/cinematic/virtual_joystick.dart';
 import '../widgets/cinematic/fog_overlay.dart';
 import '../widgets/settings_overlay.dart';
 import '../widgets/tutorial_overlay.dart';
-import 'event_list_screen.dart';
+import 'rawi_tent_screen.dart';
 import 'unified_completion_screen.dart';
 
 enum _Phase { explore, verdict, complete }
@@ -1518,7 +1518,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const EventListScreen()),
+      MaterialPageRoute(builder: (_) => const RawiTentScreen()),
       (route) => false,
     );
   }

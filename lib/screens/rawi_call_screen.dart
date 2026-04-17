@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../character_art.dart';
 import '../services/prefs_service.dart';
-import 'event_list_screen.dart';
+import 'rawi_tent_screen.dart';
 
 /// One-time story moment after registration, before the event list.
 /// Sets context for what the user is about to do. Plays ONCE.
@@ -93,7 +93,7 @@ class _RawiCallScreenState extends State<RawiCallScreen> {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const EventListScreen(),
+            const RawiTentScreen(),
         transitionsBuilder: (context, anim, secondaryAnimation, child) =>
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 800),
