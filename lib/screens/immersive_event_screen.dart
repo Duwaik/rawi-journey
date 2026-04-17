@@ -1576,16 +1576,29 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── Full-screen parallax scene ───────────────────────────────
-          // Restored to plain Stack child (no IgnorePointer, no
-          // Positioned.fill). ParallaxScene's internal GestureDetector
-          // has null handlers when externally driven, so it doesn't
-          // compete for taps. Wrapping it was breaking rendering.
-          ParallaxScene(
-            height: screenH,
-            layers: _scene.groundLayers,
-            externalOffset: sceneOffset,
-          ),
+          // ── Scene background image (direct render) ────────────────────
+          // ParallaxScene's complex pipeline (SizedBox → GestureDetector
+          // → ClipRect → inner Stack → Positioned with negative offsets
+          // → Transform.translate → Image.asset) failed to render on
+          // device across 4 attempts. Bypassing entirely with a simple
+          // Positioned.fill Image.asset that guarantees the scene is
+          // visible. Parallax panning sacrificed for a working BG.
+          if (_scene.groundLayers.isNotEmpty)
+            Positioned.fill(
+              child: Image.asset(
+                _scene.groundLayers.first.assetPath,
+                fit: BoxFit.cover,
+                errorBuilder: (_, error, _) => Container(
+                  color: const Color(0xFF0A0E14),
+                  child: Center(
+                    child: Text(
+                      'BG load failed: $error',
+                      style: const TextStyle(color: Colors.red, fontSize: 10),
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
           // ── Feature 5: Sky gradient shift (warm overlay with progress) ──
           if (_discoveredProgress > 0 && _phase == _Phase.explore)
