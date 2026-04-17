@@ -582,7 +582,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (_explorerMode) {
       final joyNormX = _joyDx / joyMag;
       final joyNormY = _joyDy / joyMag;
-      final speed = _moveSpeed * joyMag * dt * 0.6; // slightly slower than path
+      final speed = _moveSpeed * joyMag * dt; // R24 #23: restored full speed
 
       final oldX = _companionX;
       _companionX = (_companionX + joyNormX * speed).clamp(0.05, 0.95);
@@ -1559,7 +1559,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // registers in the gesture arena. Touch-to-move is now a
         // Positioned.fill child INSIDE the Stack, Explorer-only.
         child: Stack(
-        fit: StackFit.expand,
         children: [
           // R19-01b: Reader Mode background gradient.
           if (!_explorerMode)
@@ -1577,13 +1576,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── Full-screen parallax scene (non-interactive) ───────────
-          Positioned.fill(
-            child: IgnorePointer(child: ParallaxScene(
-              height: screenH,
-              layers: _scene.groundLayers,
-              externalOffset: sceneOffset,
-            )),
+          // ── Full-screen parallax scene ───────────────────────────────
+          // Restored to plain Stack child (no IgnorePointer, no
+          // Positioned.fill). ParallaxScene's internal GestureDetector
+          // has null handlers when externally driven, so it doesn't
+          // compete for taps. Wrapping it was breaking rendering.
+          ParallaxScene(
+            height: screenH,
+            layers: _scene.groundLayers,
+            externalOffset: sceneOffset,
           ),
 
           // ── Feature 5: Sky gradient shift (warm overlay with progress) ──
@@ -1816,6 +1817,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             // Reader: IgnorePointer (stationary, non-interactive, sits
             // in the card grid gap). Explorer: interactive column with
             // bubble above the walking figure.
+            // ── Reader: stationary figure at center (IgnorePointer) ────
             if (!_explorerMode)
               Positioned(
                 left: screenW / 2 - 34,
@@ -1830,31 +1832,33 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     ),
                   ),
                 ),
-              )
-            else
+              ),
+            // ── Explorer: figure at companion position ──────────────
+            if (_explorerMode)
               Positioned(
                 left: _companionX * screenW + sceneOffset - 32,
                 top: _companionY * screenH - 41,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    RawiSpeechBubble(
-                      text: _bubbleText,
-                      visible: _bubbleVisible,
-                      isAr: _isAr,
-                    ),
-                    const SizedBox(height: 4),
-                    Transform.scale(
-                      scale: _figureScale,
-                      child: RawiFigure(
-                        isWalking: _isWalking,
-                        facingDirection: _facingDir,
-                        isAr: _isAr,
-                      ),
-                    ),
-                  ],
+                child: Transform.scale(
+                  scale: _figureScale,
+                  child: RawiFigure(
+                    isWalking: _isWalking,
+                    facingDirection: _facingDir,
+                    isAr: _isAr,
+                  ),
                 ),
-            ),
+              ),
+            // ── Explorer: speech bubble above figure (separate
+            // Positioned so it doesn't push the figure down) ────────
+            if (_explorerMode)
+              Positioned(
+                left: _companionX * screenW + sceneOffset - 60,
+                top: _companionY * screenH - 100,
+                child: RawiSpeechBubble(
+                  text: _bubbleText,
+                  visible: _bubbleVisible,
+                  isAr: _isAr,
+                ),
+              ),
 
           // ── Dim overlay (non-interactive) ──────────────────────────
           if (_phase == _Phase.verdict || _phase == _Phase.complete)
