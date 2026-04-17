@@ -124,10 +124,19 @@ class _ReaderHotspotCardState extends State<ReaderHotspotCard>
     final badgeOnLeft = widget.quadrant == ReaderCardQuadrant.tl ||
         widget.quadrant == ReaderCardQuadrant.bl;
 
-    return GestureDetector(
-      onTap: interactive ? widget.onTap : null,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedOpacity(
+    // R24 D-01: Material wrapper for ripple feedback on tap.
+    // The GestureDetector was correct but users couldn't tell the
+    // card registered their tap. The ripple gives instant visual
+    // confirmation.
+    return Material(
+      color: Colors.transparent,
+      borderRadius: radius,
+      child: InkWell(
+        onTap: interactive ? widget.onTap : null,
+        borderRadius: radius,
+        splashColor: AppColors.gold.withAlpha(30),
+        highlightColor: AppColors.gold.withAlpha(15),
+        child: AnimatedOpacity(
         opacity: isLocked ? 0.2 : 1,
         duration: const Duration(milliseconds: 350),
         child: AnimatedScale(
@@ -268,6 +277,7 @@ class _ReaderHotspotCardState extends State<ReaderHotspotCard>
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -73,11 +73,10 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
     final centerX = screenW / 2;
     final amplitude = screenW * 0.28;
     for (int i = 0; i < m1Events.length; i++) {
-      // Path winds from BOTTOM (Event 1) upward. In scroll coords,
-      // y increases downward, but we render Event 1 near the bottom
-      // of the scroll area and Event 155 near the top.
-      final idx = m1Events.length - 1 - i;
-      final y = 100.0 + idx * _starSpacing;
+      // R24 B-01: Event 1 at BOTTOM (highest y), Event 155 at TOP
+      // (lowest y). User sees their current star immediately via
+      // auto-scroll, then scrolls UP toward future stars.
+      final y = _totalHeight - (100.0 + i * _starSpacing);
       final wave = sin(i * 0.6 + 0.3) * amplitude;
       final jitter = sin(i * 2.1) * 15;
       positions.add(Offset(centerX + wave + jitter, y));
@@ -87,9 +86,8 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
 
   void _scrollToCurrentStar() {
     if (!_scrollCtrl.hasClients) return;
-    final targetIdx = m1Events.length - 1 - _completedCount;
-    if (targetIdx < 0 || targetIdx >= m1Events.length) return;
-    final targetY = 100.0 + targetIdx * _starSpacing;
+    if (_completedCount >= m1Events.length) return;
+    final targetY = _positions[_completedCount].dy;
     final viewportH = _scrollCtrl.position.viewportDimension;
     final scrollTo = (targetY - viewportH / 2).clamp(
       _scrollCtrl.position.minScrollExtent,
@@ -186,7 +184,7 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
                     ),
                   ),
 
-                  // Tap targets on stars
+                  // Tap targets on stars (direct index mapping)
                   for (int i = 0; i < m1Events.length; i++)
                     Positioned(
                       left: _positions[i].dx - 22,
@@ -194,9 +192,8 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          final eventIdx = m1Events.length - 1 - i;
-                          if (eventIdx < _completedCount) {
-                            setState(() => _selectedIdx = eventIdx);
+                          if (i < _completedCount) {
+                            setState(() => _selectedIdx = i);
                           }
                         },
                         child: const SizedBox(width: 44, height: 44),
@@ -599,11 +596,9 @@ class _SkyPainter extends CustomPainter {
     for (int i = 1; i < total; i++) {
       final p0 = positions[i - 1];
       final p1 = positions[i];
-      final idx0 = total - 1 - (i - 1);
-      final idx1 = total - 1 - i;
-      final done0 = idx0 < completedCount;
-      final done1 = idx1 < completedCount;
-      final isCurrent = idx1 == completedCount;
+      final done0 = (i - 1) < completedCount;
+      final done1 = i < completedCount;
+      final isCurrent = i == completedCount;
       final bothDone = done0 && (done1 || isCurrent);
 
       final paint = Paint()
@@ -618,14 +613,14 @@ class _SkyPainter extends CustomPainter {
       canvas.drawLine(p0, p1, paint);
     }
 
-    // ── Stars ───────────────────────────────────────────────────────
+    // ── Stars + labels ─────────────────────────────────────────────
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
     for (int i = 0; i < total; i++) {
       final pos = positions[i];
-      final eventIdx = total - 1 - i;
-      final globalOrder = eventIdx + 1;
-      final isDone = eventIdx < completedCount;
-      final isCurrent = eventIdx == completedCount;
-      final isNext = eventIdx == completedCount + 1;
+      final globalOrder = i + 1;
+      final isDone = i < completedCount;
+      final isCurrent = i == completedCount;
+      final isNext = i == completedCount + 1;
       final isMajor = majorEvents.contains(globalOrder);
 
       double radius;
@@ -689,6 +684,49 @@ class _SkyPainter extends CustomPainter {
             Offset(pos.dx, pos.dy - 12), Offset(pos.dx, pos.dy + 12), sparkle);
         canvas.drawLine(
             Offset(pos.dx - 12, pos.dy), Offset(pos.dx + 12, pos.dy), sparkle);
+      }
+
+      // R24 B-03: Event labels on completed/current stars
+      if (isDone || isCurrent) {
+        final event = events[i];
+        final label = isAr ? event.titleAr : event.title;
+        final isRight = pos.dx > 180;
+        final labelX = isRight ? pos.dx - 16 : pos.dx + 16;
+
+        textPainter
+          ..text = TextSpan(
+            text: label,
+            style: TextStyle(
+              color: Color(isCurrent ? 0xFFE8D8B8 : 0x73E8D8B8),
+              fontSize: isCurrent ? 9 : 8,
+              fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
+              fontFamily: 'Georgia',
+            ),
+          )
+          ..textDirection = isAr ? TextDirection.rtl : TextDirection.ltr
+          ..layout(maxWidth: 120);
+        final textOffset = Offset(
+          isRight ? labelX - textPainter.width : labelX,
+          pos.dy - textPainter.height / 2 - 6,
+        );
+        textPainter.paint(canvas, textOffset);
+
+        // Date below label
+        textPainter
+          ..text = TextSpan(
+            text: '${event.year} CE',
+            style: const TextStyle(
+              color: Color(0x33D4A843),
+              fontSize: 7,
+              fontFamily: 'sans-serif',
+            ),
+          )
+          ..layout(maxWidth: 80);
+        final dateOffset = Offset(
+          isRight ? labelX - textPainter.width : labelX,
+          textOffset.dy + 12,
+        );
+        textPainter.paint(canvas, dateOffset);
       }
     }
   }

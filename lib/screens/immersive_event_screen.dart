@@ -1762,6 +1762,41 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
+          // ── Touch-to-move (Explorer only, BEHIND markers) ────────
+          // R24 fix: MUST be before hotspot markers in the children
+          // list so markers render on top and win hit tests. The
+          // previous position (after markers) caused the Positioned.fill
+          // GestureDetector to sit ABOVE cards, eating their taps.
+          if (_explorerMode && _phase == _Phase.explore)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onPanUpdate: (details) {
+                  if (_activeHotspot != null || _showBranchCard) return;
+                  final targetX = (details.localPosition.dx / screenW)
+                      .clamp(0.05, 0.95);
+                  final targetY = (details.localPosition.dy / screenH)
+                      .clamp(0.15, 0.90);
+                  _companionX += (targetX - _companionX) * 0.15;
+                  _companionY += (targetY - _companionY) * 0.15;
+                  _parallaxOffset = -(_companionX - 0.5) * 0.8;
+                  _facingDir = targetX >= _companionX ? 1.0 : -1.0;
+                  if (_footprints.isEmpty ||
+                      (_footprints.last.dx - _companionX).abs() > 0.01 ||
+                      (_footprints.last.dy - _companionY).abs() > 0.01) {
+                    _footprints.add(Offset(_companionX, _companionY));
+                    if (_footprints.length > 80) _footprints.removeAt(0);
+                  }
+                  setState(() => _isWalking = true);
+                  _checkHotspotProximity();
+                  _updateHotspotProximity(nextHotspotId: _nextHotspotId);
+                },
+                onPanEnd: (_) {
+                  if (mounted) setState(() => _isWalking = false);
+                },
+              ),
+            ),
+
           // ── Hotspot markers (Explorer) / cards (Reader v3) ──────────
           if (_phase == _Phase.explore || _phase == _Phase.verdict)
             ...(() {
@@ -1852,40 +1887,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               });
             }()),
 
-          // ── Touch-to-move (Explorer only, inside Stack) ─────────────
-          // R22 Part 1: placed INSIDE the Stack so it doesn't wrap the
-          // whole tree. Sits behind hotspot markers in z-order so
-          // markers' onTap wins the gesture arena.
-          if (_explorerMode && _phase == _Phase.explore)
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onPanUpdate: (details) {
-                  if (_activeHotspot != null || _showBranchCard) return;
-                  final targetX = (details.localPosition.dx / screenW)
-                      .clamp(0.05, 0.95);
-                  final targetY = (details.localPosition.dy / screenH)
-                      .clamp(0.15, 0.90);
-                  _companionX += (targetX - _companionX) * 0.15;
-                  _companionY += (targetY - _companionY) * 0.15;
-                  _parallaxOffset = -(_companionX - 0.5) * 0.8;
-                  _facingDir = targetX >= _companionX ? 1.0 : -1.0;
-                  if (_footprints.isEmpty ||
-                      (_footprints.last.dx - _companionX).abs() > 0.01 ||
-                      (_footprints.last.dy - _companionY).abs() > 0.01) {
-                    _footprints.add(Offset(_companionX, _companionY));
-                    if (_footprints.length > 80) _footprints.removeAt(0);
-                  }
-                  setState(() => _isWalking = true);
-                  _checkHotspotProximity();
-                  _updateHotspotProximity(nextHotspotId: _nextHotspotId);
-                },
-                onPanEnd: (_) {
-                  if (mounted) setState(() => _isWalking = false);
-                },
-              ),
-            ),
-
           // ── Rawi figure + speech bubble ─────────────────────────────
           if (_phase == _Phase.explore)
             // Reader: IgnorePointer (stationary, non-interactive, sits
@@ -1931,12 +1932,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 ),
             ),
 
-          // ── Dim overlay ────────────────────────────────────────────
+          // ── Dim overlay (non-interactive) ──────────────────────────
           if (_phase == _Phase.verdict || _phase == _Phase.complete)
-            AnimatedOpacity(
-              opacity: _phase != _Phase.explore ? 0.35 : 0.0,
-              duration: const Duration(milliseconds: 500),
-              child: Container(color: Colors.black),
+            IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _phase != _Phase.explore ? 0.35 : 0.0,
+                duration: const Duration(milliseconds: 500),
+                child: Container(color: Colors.black),
+              ),
             ),
 
           // ── Header ─────────────────────────────────────────────────
