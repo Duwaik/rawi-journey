@@ -10,6 +10,7 @@ import '../data/scene_configs.dart';
 import '../models/journey_event.dart';
 import '../models/scene_config.dart';
 import '../services/audio_service.dart';
+import '../services/debug_log_service.dart';
 import '../services/prefs_service.dart';
 import '../data/rawi_dialogue.dart';
 import '../models/branch_point.dart';
@@ -58,7 +59,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _showContinueButton = false;
   bool _showXpAnimation = false;
   bool _showBadgeOverlay = false;
-  bool _showEventQTooltip = false; // B12c: first-time Event Question tooltip
   int _previousXp = 0;
   List<BadgeDefinition> _newBadges = [];
   BadgeDefinition? _currentBadge;
@@ -319,6 +319,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (_pendingDiscovery.isNotEmpty) {
       final stale = _pendingDiscovery.toList();
       debugPrint('[B1 safety net] Healing stale pending discoveries: $stale');
+      DebugLogService.log('hotspot',
+          'healed stale pending discoveries: $stale (event ${widget.event.id})');
       setState(() {
         _discovered.addAll(stale);
         _pendingDiscovery.clear();
@@ -334,6 +336,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         _branchUnlockOrder.isEmpty &&
         !_showBranchCard) {
       debugPrint('[B1 safety net] Restoring missing Crossroads card');
+      DebugLogService.log('hotspot',
+          'restored missing Crossroads card (event ${widget.event.id})');
       setState(() => _showBranchCard = true);
       return;
     }
@@ -345,6 +349,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       debugPrint(
           '[B1 safety net] Linear event has null _nextHotspotId with '
           '${_discovered.length}/${_scene.hotspots.length} discovered');
+      DebugLogService.log('hotspot',
+          'null next id, ${_discovered.length}/${_scene.hotspots.length} discovered (event ${widget.event.id})');
     }
   }
 
@@ -1458,10 +1464,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // NO tutorial here — tutorial was shown at the branch card
         Future.delayed(const Duration(milliseconds: 400), () {
           if (mounted) {
-            setState(() {
-              _phase = _Phase.verdict;
-              if (!PrefsService.isEventQTooltipSeen) _showEventQTooltip = true;
-            });
+            setState(() => _phase = _Phase.verdict);
             _phaseCtrl.forward();
             _playChoiceVo('q');
           }
@@ -1474,10 +1477,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             voPath: _companionVoPath(adLid));
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
-            setState(() {
-              _phase = _Phase.verdict;
-              if (!PrefsService.isEventQTooltipSeen) _showEventQTooltip = true;
-            });
+            setState(() => _phase = _Phase.verdict);
             _phaseCtrl.forward();
             _playChoiceVo('q');
           }
@@ -2035,6 +2035,57 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),         // Container (header bg)
           ),           // Positioned (header)
 
+          // ── B16: Event title banner (scroll-style, distinct from dots)
+          Positioned(
+            top: topPad + 50,
+            left: 0, right: 0,
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.75,
+                ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 18, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF2A1810).withAlpha(220),
+                      const Color(0xFF1A0F08).withAlpha(240),
+                      const Color(0xFF2A1810).withAlpha(220),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(3),
+                  border: Border(
+                    top: BorderSide(
+                        color: AppColors.gold.withAlpha(120), width: 1),
+                    bottom: BorderSide(
+                        color: AppColors.gold.withAlpha(120), width: 1),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withAlpha(120),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Text(
+                  _isAr ? widget.event.titleAr : widget.event.title,
+                  textAlign: TextAlign.center,
+                  textDirection:
+                      _isAr ? TextDirection.rtl : TextDirection.ltr,
+                  style: GoogleFonts.cinzelDecorative(
+                    color: AppColors.gold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ),
+
           // ── Noor HUD (Explorer Mode only) ────────────────────────
           if (_explorerMode && _phase == _Phase.explore && _activeHotspot == null)
             Positioned(
@@ -2042,10 +2093,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               child: _NoorHud(noorLevel: PrefsService.noorLevel),
             ),
 
-          // ── Hotspot progress (top, below era bar) ─────────────────
+          // ── Hotspot progress (top, below event title banner) ──────
           if (_phase == _Phase.explore && _activeHotspot == null)
             Positioned(
-              top: topPad + 52, left: 0, right: 0,
+              top: topPad + 86, left: 0, right: 0,
               child: Center(
                 child: HotspotProgress(
                   total: _scene.hotspots.length,
@@ -2124,10 +2175,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        setState(() {
-                          _phase = _Phase.verdict;
-                          if (!PrefsService.isEventQTooltipSeen) _showEventQTooltip = true;
-                        });
+                        setState(() => _phase = _Phase.verdict);
                         _phaseCtrl.forward();
                       },
                       child: Container(
@@ -2168,15 +2216,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               centerMode: true),
 
           // ── The Verdict (all events — unified gold card UI) ────────
+          // B24: Event Question tooltip moved to DhikrScreen (was here
+          // before; it obscured the question content).
           if ((_phase == _Phase.verdict || _phase == _Phase.complete)
               && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
             _buildConvergenceQuestion(bottomPad),
-
-          // ── B12c: Event Question first-time tooltip ─────────────────
-          if (_showEventQTooltip
-              && (_phase == _Phase.verdict || _phase == _Phase.complete)
-              && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
-            _buildEventQTooltip(),
 
           // ── The Crossroads (choice card after The Gate) ────────────
           if (_showBranchCard && widget.event.branchPoint != null)
@@ -2651,79 +2695,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     );
   }
 
-  // B12c: First-time tooltip shown over the Event Question screen.
-  // Dismisses on tap, sets pref so it never appears again.
-  Widget _buildEventQTooltip() {
-    return Positioned.fill(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          PrefsService.setEventQTooltipSeen();
-          setState(() => _showEventQTooltip = false);
-        },
-        child: Container(
-          color: Colors.black.withAlpha(200),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 36),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 72, height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.gold.withAlpha(30),
-                      border: Border.all(
-                          color: AppColors.gold.withAlpha(120), width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.gold.withAlpha(60),
-                          blurRadius: 20, spreadRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: Icon(Icons.quiz_rounded,
-                        size: 32, color: AppColors.gold),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    _isAr ? 'سؤال الحدث' : 'Event Question',
-                    textAlign: TextAlign.center,
-                    textDirection:
-                        _isAr ? TextDirection.rtl : TextDirection.ltr,
-                    style: GoogleFonts.cinzelDecorative(
-                      fontSize: 18, color: AppColors.gold, height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _isAr
-                        ? 'اختر الإجابة التي تظنها صحيحة. ستظهر الإجابة الصحيحة وشرحها، ثم يمكنك المتابعة.'
-                        : 'Choose the answer you think is correct. The correct answer and its explanation will be revealed, then you can continue.',
-                    textAlign: TextAlign.center,
-                    textDirection:
-                        _isAr ? TextDirection.rtl : TextDirection.ltr,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14, color: AppColors.textBody, height: 1.55,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    _isAr ? 'انقر للمتابعة' : 'Tap to continue',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.textMuted.withAlpha(140),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ── Footprint trail painter ──────────────────────────────────────────────────

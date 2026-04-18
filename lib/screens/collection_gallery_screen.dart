@@ -43,12 +43,29 @@ class CollectionGalleryScreen extends StatelessWidget {
         children: [
           // Progress
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
             child: Text(
               '$found/$total ${isAr ? "اكتُشف" : "discovered"}',
               style: GoogleFonts.nunito(
                 color: AppColors.textMuted,
                 fontSize: 13,
+              ),
+            ),
+          ),
+          // B23: Guidance text — visible when nothing is discovered yet,
+          // muted but still readable once user has started unlocking.
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, left: 24, right: 24),
+            child: Text(
+              isAr
+                  ? 'العب الأحداث لفتح عناصر المجموعة'
+                  : 'Play events to unlock collection items',
+              textAlign: TextAlign.center,
+              textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.nunito(
+                color: AppColors.textMuted.withAlpha(found == 0 ? 200 : 140),
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
               ),
             ),
           ),

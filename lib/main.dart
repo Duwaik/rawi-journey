@@ -6,6 +6,7 @@ import 'app_colors.dart';
 import 'screens/splash_screen.dart';
 import 'services/audio_service.dart';
 import 'services/prefs_service.dart';
+import 'widgets/debug_reporter_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -126,7 +127,9 @@ class _RawiAppState extends State<RawiApp> with WidgetsBindingObserver {
             data: data.copyWith(
               textScaler: TextScaler.linear(scale),
             ),
-            child: child!,
+            // B27: debug overlay wraps every route so the reporter FAB is
+            // visible on ALL screens during testing.
+            child: DebugReporterOverlay(child: child!),
           ),
         );
       },

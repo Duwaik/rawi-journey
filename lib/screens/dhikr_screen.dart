@@ -24,6 +24,8 @@ class _DhikrScreenState extends State<DhikrScreen>
   bool _celebrating = false;
   late final AnimationController _shimmerCtrl;
   late final Animation<double> _shimmerAnim;
+  // B24: first-time tooltip explaining the dhikr → Event Question flow
+  bool _showFirstTimeTooltip = false;
 
   @override
   void initState() {
@@ -34,6 +36,15 @@ class _DhikrScreenState extends State<DhikrScreen>
       duration: const Duration(milliseconds: 300),
     );
     _shimmerAnim = CurvedAnimation(parent: _shimmerCtrl, curve: Curves.easeOut);
+    // B24: show tooltip on first-ever dhikr encounter only
+    if (!PrefsService.isEventQTooltipSeen) {
+      _showFirstTimeTooltip = true;
+    }
+  }
+
+  void _dismissTooltip() {
+    PrefsService.setEventQTooltipSeen();
+    setState(() => _showFirstTimeTooltip = false);
   }
 
   @override
@@ -78,66 +89,148 @@ class _DhikrScreenState extends State<DhikrScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF04060D),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF04060D),
-              Color(0xFF0B1E2D),
-              Color(0xFF04060D),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-
-                // ── Title ───────────────────────────────────────────
-                Text(
-                  _isAr ? 'اكسب حسنات' : 'Earn Hasanat',
-                  style: GoogleFonts.cinzelDecorative(
-                    fontSize: 22,
-                    color: AppColors.gold,
-                  ),
-                  textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-                ),
-
-                const SizedBox(height: 24),
-
-                // ── Standalone dhikr card (elevated, centered) ─────
-                _buildStandaloneCard(),
-
-                const SizedBox(height: 32),
-
-                // ── "I've said it" button ───────────────────────────
-                _buildSaidItButton(),
-
-                const SizedBox(height: 12),
-
-                // ── "Not now" link ──────────────────────────────────
-                GestureDetector(
-                  onTap: _onNotNow,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text(
-                      _isAr ? 'ليس الآن' : 'Not now',
-                      style: GoogleFonts.nunito(
-                        fontSize: 14,
-                        color: AppColors.textMuted,
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF04060D),
+                  Color(0xFF0B1E2D),
+                  Color(0xFF04060D),
+                ],
+              ),
+            ),
+            // B25: tight vertical layout — content sits naturally around the
+            // button, no pre-allocated blank space below it.
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                child: Column(
+                  children: [
+                    // ── Title ───────────────────────────────────────────
+                    Text(
+                      _isAr ? 'اكسب حسنات' : 'Earn Hasanat',
+                      style: GoogleFonts.cinzelDecorative(
+                        fontSize: 22,
+                        color: AppColors.gold,
                       ),
                       textDirection:
                           _isAr ? TextDirection.rtl : TextDirection.ltr,
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 20),
-              ],
+                    const SizedBox(height: 20),
+
+                    // ── Standalone dhikr card (elevated, centered) ─────
+                    _buildStandaloneCard(),
+
+                    const SizedBox(height: 24),
+
+                    // ── "I've said it" button ───────────────────────────
+                    _buildSaidItButton(),
+
+                    const SizedBox(height: 10),
+
+                    // ── "Not now" link ──────────────────────────────────
+                    GestureDetector(
+                      onTap: _onNotNow,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Text(
+                          _isAr ? 'ليس الآن' : 'Not now',
+                          style: GoogleFonts.nunito(
+                            fontSize: 14,
+                            color: AppColors.textMuted,
+                          ),
+                          textDirection:
+                              _isAr ? TextDirection.rtl : TextDirection.ltr,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // ── B24: First-time tooltip (explains upcoming Event Question) ─
+          if (_showFirstTimeTooltip) _buildFirstTimeTooltip(),
+        ],
+      ),
+    );
+  }
+
+  /// B24: One-time tooltip on first dhikr encounter. Explains that after
+  /// dhikr, the user will answer an Event Question. Tap anywhere to dismiss.
+  Widget _buildFirstTimeTooltip() {
+    return Positioned.fill(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _dismissTooltip,
+        child: Container(
+          color: Colors.black.withAlpha(210),
+          child: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 36),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 72, height: 72,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.gold.withAlpha(30),
+                        border: Border.all(
+                            color: AppColors.gold.withAlpha(120), width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppColors.gold.withAlpha(60),
+                              blurRadius: 20,
+                              spreadRadius: 4),
+                        ],
+                      ),
+                      child: const Icon(Icons.auto_stories_rounded,
+                          size: 32, color: AppColors.gold),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      _isAr ? 'الذكر ثم سؤال الحدث' : 'Dhikr, then Event Question',
+                      textAlign: TextAlign.center,
+                      textDirection:
+                          _isAr ? TextDirection.rtl : TextDirection.ltr,
+                      style: GoogleFonts.cinzelDecorative(
+                        fontSize: 18,
+                        color: AppColors.gold,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      _isAr
+                          ? 'بعد الذكر، ستجيب على سؤال الحدث لتختبر ما تعلّمته.'
+                          : 'After your dhikr, you\'ll answer an Event Question to test what you learned.',
+                      textAlign: TextAlign.center,
+                      textDirection:
+                          _isAr ? TextDirection.rtl : TextDirection.ltr,
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        color: AppColors.textBody,
+                        height: 1.55,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      _isAr ? 'انقر للمتابعة' : 'Tap to continue',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        color: AppColors.textMuted.withAlpha(160),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

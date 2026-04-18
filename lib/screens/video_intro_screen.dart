@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +8,7 @@ import 'package:video_player/video_player.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
+import '../services/debug_log_service.dart';
 
 /// Full-screen cinematic video intro for special events.
 /// Plays once, then calls onComplete to transition to the game.
@@ -32,6 +35,12 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
   late VideoPlayerController _controller;
   bool _disposed = false;
   bool _completed = false;
+  // B26: timeout fallback — video must not freeze the journey.
+  Timer? _initTimeout;
+  Timer? _stallWatchdog;
+  Duration _lastPos = Duration.zero;
+  DateTime _lastPosTime = DateTime.now();
+  bool _showUnavailable = false;
 
   @override
   void initState() {
@@ -41,11 +50,58 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
     _controller = VideoPlayerController.asset(widget.videoPath)
       ..initialize().then((_) {
         if (_disposed) return;
+        _initTimeout?.cancel();
         setState(() {});
         _controller.play();
+        _startStallWatchdog();
+      }).catchError((e, st) {
+        developer.log('video init failed', error: e, stackTrace: st);
+        DebugLogService.log(
+            'video', 'init failed for ${widget.videoPath}: $e');
+        _failGracefully(reason: 'init_error');
       });
 
     _controller.addListener(_checkEnd);
+
+    // B26: if init doesn't complete in 10s, skip gracefully.
+    _initTimeout = Timer(const Duration(seconds: 10), () {
+      if (_disposed || _completed) return;
+      if (!_controller.value.isInitialized) {
+        DebugLogService.log('video',
+            'init timeout (10s) for ${widget.videoPath} — skipping');
+        _failGracefully(reason: 'init_timeout');
+      }
+    });
+  }
+
+  void _startStallWatchdog() {
+    // B26: if position doesn't advance for 6s while playing, treat as stall.
+    _stallWatchdog?.cancel();
+    _stallWatchdog = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (_disposed || _completed) return;
+      final pos = _controller.value.position;
+      if (pos == _lastPos && _controller.value.isPlaying) {
+        final stallSecs = DateTime.now().difference(_lastPosTime).inSeconds;
+        if (stallSecs >= 6) {
+          DebugLogService.log('video',
+              'stall watchdog fired at pos=$pos (${widget.videoPath}) — skipping');
+          _failGracefully(reason: 'stall');
+        }
+      } else {
+        _lastPos = pos;
+        _lastPosTime = DateTime.now();
+      }
+    });
+  }
+
+  void _failGracefully({required String reason}) {
+    if (_completed || _disposed) return;
+    setState(() => _showUnavailable = true);
+    // Brief visible notice, then proceed to the scene.
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (!mounted) return;
+      _onVideoEnd();
+    });
   }
 
   void _checkEnd() {
@@ -60,6 +116,8 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
   void _onVideoEnd() {
     if (_completed || _disposed) return;
     _completed = true;
+    _initTimeout?.cancel();
+    _stallWatchdog?.cancel();
     _controller.removeListener(_checkEnd);
     widget.onComplete();
   }
@@ -69,6 +127,8 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
   @override
   void dispose() {
     _disposed = true;
+    _initTimeout?.cancel();
+    _stallWatchdog?.cancel();
     _controller.removeListener(_checkEnd);
     _controller.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -151,10 +211,28 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
                     ),
                 ],
               )
-            : const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.gold,
-                ),
+            : Center(
+                child: _showUnavailable
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          PrefsService.isAr
+                              ? 'الفيديو غير متوفّر — المتابعة إلى المشهد'
+                              : 'Video unavailable — continuing to the scene',
+                          textAlign: TextAlign.center,
+                          textDirection: PrefsService.isAr
+                              ? TextDirection.rtl
+                              : TextDirection.ltr,
+                          style: GoogleFonts.nunito(
+                            color: AppColors.gold.withAlpha(200),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    : const CircularProgressIndicator(
+                        color: AppColors.gold,
+                      ),
               ),
       ),
     );

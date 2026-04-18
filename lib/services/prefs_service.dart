@@ -34,6 +34,7 @@ class PrefsService {
   static const String _keyChoiceTutSeen    = 'choice_tutorial_seen';
   static const String _keyEventQTooltipSeen = 'event_q_tooltip_seen';
   static const String _keyAgeTier          = 'age_tier';
+  static const String _keyDebugOverlay     = 'debug_overlay_enabled';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
   static String get language => _prefs?.getString(_keyLanguage) ?? 'en';
@@ -273,6 +274,13 @@ class PrefsService {
       _prefs?.getBool(_keyEventQTooltipSeen) ?? false;
   static Future<void> setEventQTooltipSeen() async =>
       await _prefs?.setBool(_keyEventQTooltipSeen, true);
+
+  // B27: persistent debug overlay toggle. Default ON during testing,
+  // turn OFF for production via Settings triple-tap or pref.
+  static bool get isDebugOverlayEnabled =>
+      _prefs?.getBool(_keyDebugOverlay) ?? true;
+  static Future<void> setDebugOverlayEnabled(bool v) async =>
+      await _prefs?.setBool(_keyDebugOverlay, v);
 
   // ── TEXT SCALE (Accessibility) ─────────────────────────────────────────────
   static double get textScale =>

@@ -797,42 +797,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ── 4. About card ───────────────────────────────────────────────────────
 
   Widget _buildAboutCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: _sectionDecoration,
-      child: Column(
-        children: [
-          Text(
-            'RAWI',
-            style: GoogleFonts.cinzelDecorative(
-              fontSize: 18,
-              color: AppColors.gold,
-              letterSpacing: 3,
+    // B30: SizedBox(width: infinity) so the card fills its container width
+    // matching other settings section widths.
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: _sectionDecoration,
+        child: Column(
+          children: [
+            Text(
+              'RAWI',
+              style: GoogleFonts.cinzelDecorative(
+                fontSize: 18,
+                color: AppColors.gold,
+                letterSpacing: 3,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'v1.0.0',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              color: AppColors.textMuted,
+            const SizedBox(height: 4),
+            // B27: triple-tap the version number to toggle the debug overlay.
+            GestureDetector(
+              onTap: _onVersionTap,
+              behavior: HitTestBehavior.opaque,
+              child: Text(
+                'v1.0.0',
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          // R19-16: "Made with love in Amman" removed.
-          Text(
-            _isAr
-                ? 'كن شاهداً. احمل الرواية.'
-                : 'Witness history. Carry the story.',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              color: AppColors.textMuted,
+            const SizedBox(height: 12),
+            // R19-16: "Made with love in Amman" removed.
+            Text(
+              _isAr
+                  ? 'كن شاهداً. احمل الرواية.'
+                  : 'Witness history. Carry the story.',
+              style: GoogleFonts.nunito(
+                fontSize: 12,
+                color: AppColors.textMuted,
+              ),
+              textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
             ),
-            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  // B27: triple-tap detection for version text → toggles debug overlay.
+  int _versionTapCount = 0;
+  DateTime _versionFirstTap = DateTime.fromMillisecondsSinceEpoch(0);
+
+  void _onVersionTap() {
+    final now = DateTime.now();
+    if (now.difference(_versionFirstTap).inMilliseconds > 1200) {
+      _versionTapCount = 1;
+      _versionFirstTap = now;
+      return;
+    }
+    _versionTapCount++;
+    if (_versionTapCount >= 3) {
+      _versionTapCount = 0;
+      final newVal = !PrefsService.isDebugOverlayEnabled;
+      PrefsService.setDebugOverlayEnabled(newVal);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(newVal
+              ? 'Debug overlay enabled'
+              : 'Debug overlay disabled'),
+          duration: const Duration(milliseconds: 1000),
+        ),
+      );
+      setState(() {});
+    }
   }
 
   // ── 5. Coming Soon (R23 feature flags) ───────────────────────────────

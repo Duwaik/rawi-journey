@@ -3,13 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
-import '../character_art.dart';
 import '../data/dhikr_data.dart';
 import '../data/m1_data.dart';
 import '../models/rawi_stage.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import 'collection_gallery_screen.dart';
+import 'dhikr_collection_screen.dart';
 import 'event_list_screen.dart';
 import 'scroll_viewer_screen.dart';
 import 'seerah_sky_screen.dart';
@@ -61,18 +61,36 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     return c;
   }
 
+  /// B8: title of the event the CTA will launch next.
+  String _nextEventTitle(int completed, bool isComplete) {
+    if (isComplete) {
+      return _isAr ? 'اكتملت الرحلة' : 'Journey complete';
+    }
+    final idx = completed.clamp(0, m1Events.length - 1);
+    final ev = m1Events[idx];
+    return _isAr ? ev.titleAr : ev.title;
+  }
+
   @override
   void initState() {
     super.initState();
-    AudioService.playAmbient(
-      'assets/audio/ambient/ambient_intro.mp3',
-      volume: 0.12,
-    );
+    _startTentAmbient();
   }
 
-  void _openSheet(String name) {
-    HapticFeedback.lightImpact();
-    setState(() => _activeSheet = _activeSheet == name ? null : name);
+  /// B13: Campfire ambient on the tent, looping. Fades in via playAmbient's
+  /// built-in cross-fade. Falls back to ambient_intro.mp3 until Khaled
+  /// provides the fire track (asset may be missing — try/catch handles it).
+  Future<void> _startTentAmbient() async {
+    final ok = await AudioService.playAmbient(
+      'assets/audio/ambient/ambient_tent_fire.mp3',
+      volume: 0.14,
+    );
+    if (!ok) {
+      await AudioService.playAmbient(
+        'assets/audio/ambient/ambient_intro.mp3',
+        volume: 0.12,
+      );
+    }
   }
 
   void _closeSheet() => setState(() => _activeSheet = null);
@@ -82,9 +100,7 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
     final screenH = MediaQuery.of(context).size.height;
-    final screenW = MediaQuery.of(context).size.width;
     final completed = _completedCount;
-    final currentStage = RawiStage.getStage(completed);
     final percent = (completed / m1Events.length * 100).toStringAsFixed(1);
     // C-01: Tent state flags
     final isStart = completed == 0;
@@ -116,30 +132,8 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
               ),
             ),
 
-            // ── Rawi character (beside fire, MVP: walking pose) ──────
-            Positioned(
-              bottom: screenH * 0.30,
-              left: screenW * 0.18,
-              child: Container(
-                width: 60, height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                      color: AppColors.gold.withAlpha(100), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.orange.withAlpha(20), blurRadius: 20),
-                  ],
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    CharacterArt.portrait(),
-                    width: 56, height: 56,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
+            // B5: Rawi figure circle removed — character is already in the
+            // tent visual, a separate avatar circle is redundant.
 
             // ── Greeting (top center) ────────────────────────────────
             Positioned(
@@ -167,7 +161,12 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    RawiStage.stageName(currentStage, isAr: _isAr),
+                    // B21: age + gender based rank title
+                    RawiStage.ageGenderTitle(
+                      age: PrefsService.userAge,
+                      gender: PrefsService.userGender,
+                      isAr: _isAr,
+                    ),
                     style: GoogleFonts.lora(
                       color: AppColors.gold,
                       fontSize: 11,
@@ -180,8 +179,9 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
             ),
 
             // ── Noor + XP (top left, below greeting) ─────────────────
-            // B7: larger + labeled so users recognize them as progression
-            // indicators, not decorative chips.
+            // B7: label-first pills, matched width
+            // B11: Reader mode uses plain labels ("Events Completed") — no
+            // gaming jargon. Same visual treatment, elder-friendly terms.
             Positioned(
               top: topPad + 110,
               left: 12,
@@ -191,13 +191,19 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                   _statPill(
                     emoji: '✦',
                     value: '${PrefsService.noorLevel}%',
-                    label: _isAr ? 'نورك' : 'Your Light',
+                    label: PrefsService.isExplorerMode
+                        ? (_isAr ? 'نورك' : 'Your Light')
+                        : (_isAr ? 'المعرفة' : 'Knowledge'),
                   ),
                   const SizedBox(height: 8),
                   _statPill(
                     emoji: '★',
-                    value: '${PrefsService.xp}',
-                    label: _isAr ? 'خبرتك' : 'Experience',
+                    value: PrefsService.isExplorerMode
+                        ? '${PrefsService.xp}'
+                        : '$completed',
+                    label: PrefsService.isExplorerMode
+                        ? (_isAr ? 'خبرتك' : 'Experience')
+                        : (_isAr ? 'الأحداث المكتملة' : 'Events Completed'),
                   ),
                 ],
               ),
@@ -229,7 +235,10 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                     }),
                     const SizedBox(height: 8),
                     _navIcon('🤲', _isAr ? 'الذكر' : 'Dhikr', () {
-                      _openSheet('dhikr');
+                      // B10: full dhikr collection screen (Dhikr of the Day
+                      // + all unlocked + locked silhouettes).
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const DhikrCollectionScreen()));
                     }),
                     const SizedBox(height: 8),
                     _navIcon('🏛️', _isAr ? 'المجموعات' : 'Collections', () {
@@ -262,169 +271,168 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                 ),
               ),
 
-            // ── Continue Journey CTA (center, above fire) ────────────
-            // B3: tapping launches the next event DIRECTLY via EventList's
-            // autoOpenEventOrder — preserves threshold + video-intro flow.
+            // B8/B19/B20: standalone Continue Journey CTA removed.
+            // The progress card below is now the single tappable action zone.
+
+            // ── Journey label (above progress card, language-aligned) ─
             if (_activeSheet == null)
               Positioned(
-                bottom: screenH * 0.18,
-                left: 0, right: 0,
-                child: Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      if (isComplete) {
-                        Navigator.push(context, MaterialPageRoute(
-                            builder: (_) => const EventListScreen()));
-                        return;
-                      }
-                      final targetOrder = completed + 1;
-                      Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => EventListScreen(
-                              autoOpenEventOrder: targetOrder)));
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(170),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: AppColors.gold.withAlpha(65), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                              color: AppColors.gold.withAlpha(15),
-                              blurRadius: 20),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        textDirection:
-                            _isAr ? TextDirection.rtl : TextDirection.ltr,
-                        children: [
-                          // B6: icon is on the TRAILING side of the text.
-                          // In a Row with LTR: text first, icon after.
-                          // In RTL: Flutter mirrors the order so icon still
-                          // sits on the trailing (visual left) side.
-                          Text(
-                            isStart
-                                ? (_isAr ? 'ابدأ الرحلة' : 'Begin Journey')
-                                : isComplete
-                                    ? (_isAr ? 'أعد زيارة الرحلة' : 'Revisit the Journey')
-                                    : (_isAr ? 'تابع الرحلة' : 'Continue Journey'),
-                            style: GoogleFonts.nunito(
-                              color: AppColors.gold,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textDirection:
-                                _isAr ? TextDirection.rtl : TextDirection.ltr,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text('🚶', style: TextStyle(fontSize: 14)),
-                        ],
-                      ),
-                    ),
+                bottom: bottomPad + 120,
+                left: 16, right: 16,
+                child: Text(
+                  _isAr ? 'رحلتك' : 'Your Journey',
+                  textAlign: _isAr ? TextAlign.right : TextAlign.left,
+                  style: GoogleFonts.nunito(
+                    color: AppColors.gold.withAlpha(180),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2,
                   ),
                 ),
               ),
 
-            // ── Progress bar (bottom) ────────────────────────────────
+            // ── Progress card (bottom, integrated CTA) ───────────────
             if (_activeSheet == null)
               Positioned(
                 bottom: bottomPad + 16,
                 left: 16, right: 16,
-                // B8: prominent progress card — big numbers, bigger bar,
-                // label line above. Feels like a proud achievement display.
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withAlpha(185),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: AppColors.gold.withAlpha(70), width: 1.2),
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppColors.gold.withAlpha(15),
-                          blurRadius: 14),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        _isAr ? 'رحلتك' : 'Your Journey',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.nunito(
-                          color: AppColors.gold.withAlpha(160),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (isStart)
-                        Text(
-                          _isAr ? 'رحلتك تنتظر' : 'Your journey awaits',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.lora(
-                            color: AppColors.gold,
-                            fontSize: 16,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        )
-                      else if (isComplete)
-                        Text(
-                          _isAr ? 'اكتملت الرحلة ✦' : 'Journey complete ✦',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.cinzelDecorative(
-                            color: AppColors.gold,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            shadows: [
-                              Shadow(
-                                  color: AppColors.gold.withAlpha(120),
-                                  blurRadius: 12),
-                            ],
-                          ),
-                        )
-                      else
+                // B8: progress card is the single tappable action zone.
+                // Row: current/next event name + Start/Continue label.
+                // Progress count uses matched sizes (no big/small split).
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    if (isComplete) {
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const EventListScreen()));
+                      return;
+                    }
+                    final targetOrder = completed + 1;
+                    Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => EventListScreen(
+                            autoOpenEventOrder: targetOrder)));
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(185),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: AppColors.gold.withAlpha(90), width: 1.4),
+                      boxShadow: [
+                        BoxShadow(
+                            color: AppColors.gold.withAlpha(20),
+                            blurRadius: 18),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Row 1: Event name (left/trailing) + CTA (right/leading)
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                          textDirection:
+                              _isAr ? TextDirection.rtl : TextDirection.ltr,
                           children: [
-                            Text(
-                              '$completed',
-                              style: GoogleFonts.cinzelDecorative(
-                                color: AppColors.gold,
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                height: 1.0,
-                              ),
-                            ),
-                            Text(
-                              ' / ${m1Events.length}',
-                              style: GoogleFonts.nunito(
-                                color: AppColors.gold.withAlpha(140),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                _nextEventTitle(completed, isComplete),
+                                textDirection:
+                                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                                style: GoogleFonts.lora(
+                                  color: AppColors.gold,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  fontStyle: _isAr
+                                      ? FontStyle.normal
+                                      : FontStyle.italic,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 10),
-                            Text(
-                              '·  $percent%',
-                              style: GoogleFonts.nunito(
-                                color: AppColors.gold.withAlpha(180),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.gold,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                textDirection: _isAr
+                                    ? TextDirection.rtl
+                                    : TextDirection.ltr,
+                                children: [
+                                  Text(
+                                    isStart
+                                        ? (_isAr ? 'ابدأ' : 'Start')
+                                        : isComplete
+                                            ? (_isAr ? 'عد' : 'Revisit')
+                                            : (_isAr ? 'تابع' : 'Continue'),
+                                    style: GoogleFonts.nunito(
+                                      color: AppColors.bg,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Text('🚶',
+                                      style: TextStyle(fontSize: 13)),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      if (!isStart) ...[
+                        // Row 2: count · percent (same size/brightness)
+                        if (!isComplete) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            textDirection: _isAr
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
+                            children: [
+                              Text(
+                                '$completed / ${m1Events.length}',
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.gold,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                '·  $percent%',
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.gold,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            _isAr
+                                ? 'اكتملت الرحلة ✦'
+                                : 'Journey complete ✦',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.cinzelDecorative(
+                              color: AppColors.gold,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              shadows: [
+                                Shadow(
+                                    color: AppColors.gold.withAlpha(120),
+                                    blurRadius: 12),
+                              ],
+                            ),
+                          ),
+                        ],
+                        // Progress bar
                         const SizedBox(height: 10),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
@@ -438,7 +446,7 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -490,61 +498,59 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     );
   }
 
-  /// B7: bigger, labeled stat pill. Emoji + large value + muted label line.
+  /// B7: horizontal stat row — label THEN emoji THEN value.
+  /// Reads "نورك ✦ 100%" / "Your Light ✦ 100%" left-to-right per language.
   Widget _statPill({
     required String emoji,
     required String value,
     required String label,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.black.withAlpha(170),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.gold.withAlpha(60), width: 1.2),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            emoji,
-            style: TextStyle(
-              fontSize: 18,
-              color: AppColors.gold,
-              shadows: [
-                Shadow(color: AppColors.gold.withAlpha(90), blurRadius: 8),
-              ],
+    return SizedBox(
+      width: 150, // fixed width — both pills match
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.black.withAlpha(170),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.gold.withAlpha(60), width: 1.2),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold.withAlpha(180),
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+              ),
+              textDirection:
+                  _isAr ? TextDirection.rtl : TextDirection.ltr,
             ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: GoogleFonts.nunito(
-                  color: AppColors.gold,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                ),
+            const SizedBox(width: 8),
+            Text(
+              emoji,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.gold,
+                shadows: [
+                  Shadow(color: AppColors.gold.withAlpha(90), blurRadius: 8),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: GoogleFonts.nunito(
-                  color: AppColors.gold.withAlpha(130),
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.3,
-                ),
-                textDirection:
-                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              value,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

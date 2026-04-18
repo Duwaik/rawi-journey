@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
@@ -16,7 +15,6 @@ import 'threshold_screen.dart';
 import 'video_intro_screen.dart';
 import 'witness_moment_screen.dart';
 import '../widgets/cinematic/fly_transition.dart';
-import '../widgets/rawi_dialog.dart';
 
 // ── Chapter metadata ────────────────────────────────────────────────────────
 
@@ -796,24 +794,9 @@ class _EventListScreenState extends State<EventListScreen>
     final isAr = _isAr;
     final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        final confirmed = await showRawiDialog(
-          context: context,
-          title: isAr ? 'مغادرة اللعبة؟' : 'Exit Game?',
-          body: isAr ? 'هل أنت متأكد أنك تريد الخروج؟' : 'Are you sure you want to exit?',
-          cancelLabel: isAr ? 'البقاء' : 'Stay',
-          confirmLabel: isAr ? 'خروج' : 'Exit',
-          isAr: isAr,
-          confirmDanger: true,
-        );
-        if (confirmed == true) {
-          SystemNavigator.pop(); // Close the app cleanly
-        }
-      },
-      child: Scaffold(
+    // B22: Events list is a secondary screen — back should pop to tent,
+    // no "Exit Game" dialog. Exit confirm only applies mid-event.
+    return Scaffold(
         backgroundColor: Colors.transparent,
         body: Stack(
           fit: StackFit.expand,
@@ -912,7 +895,6 @@ class _EventListScreenState extends State<EventListScreen>
         ),
           ],
         ),
-      ),
     );
   }
 }

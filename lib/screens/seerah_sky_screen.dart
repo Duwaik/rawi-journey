@@ -39,6 +39,7 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
 
   static const double _starSpacing = 65.0;
   late final double _totalHeight;
+  late final int _rowCount;
   late final List<Offset> _positions;
   late int _completedCount;
   int? _selectedIdx;
@@ -57,24 +58,61 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
         .where((e) => PrefsService.isEventCompleted(e.globalOrder))
         .length;
 
-    _totalHeight = m1Events.length * _starSpacing + 340;
+    // B17: count unique year groups — same-year events share one row.
+    _rowCount = _countYearRows();
+    _totalHeight = _rowCount * _starSpacing + 340;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCurrentStar();
     });
   }
 
+  int _countYearRows() {
+    int rows = 0;
+    int i = 0;
+    while (i < m1Events.length) {
+      int j = i;
+      while (j < m1Events.length && m1Events[j].year == m1Events[i].year) {
+        j++;
+      }
+      rows++;
+      i = j;
+    }
+    return rows;
+  }
+
+  // B17: Same-year events share a Y (one constellation row), spread across
+  // X symmetrically around the centerline. Different years step up normally.
   List<Offset> _generatePositions(double screenW, double bottomPad) {
-    final positions = <Offset>[];
+    final positions = List<Offset>.filled(m1Events.length, Offset.zero);
     final centerX = screenW / 2;
     final amplitude = screenW * 0.28;
-    // B-02: 140px bottom allowance so Event 1 clears the bottom bar.
     final bottomAllowance = 140.0 + bottomPad;
-    for (int i = 0; i < m1Events.length; i++) {
-      final y = _totalHeight - (bottomAllowance + i * _starSpacing);
-      final wave = sin(i * 0.6 + 0.3) * amplitude;
-      final jitter = sin(i * 2.1) * 15;
-      positions.add(Offset(centerX + wave + jitter, y));
+    final clusterSpread = screenW * 0.18;
+
+    int row = 0;
+    int i = 0;
+    while (i < m1Events.length) {
+      int j = i;
+      while (j < m1Events.length && m1Events[j].year == m1Events[i].year) {
+        j++;
+      }
+      final clusterSize = j - i;
+      final y = _totalHeight - (bottomAllowance + row * _starSpacing);
+      final wave = sin(row * 0.6 + 0.3) * amplitude;
+      final baseX = centerX + wave;
+
+      if (clusterSize == 1) {
+        final jitter = sin(row * 2.1) * 15;
+        positions[i] = Offset(baseX + jitter, y);
+      } else {
+        for (int k = 0; k < clusterSize; k++) {
+          final offsetX = (k - (clusterSize - 1) / 2.0) * clusterSpread;
+          positions[i + k] = Offset(centerX + offsetX, y);
+        }
+      }
+      row++;
+      i = j;
     }
     return positions;
   }
@@ -97,13 +135,6 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
       if (globalOrder <= era.range) return _isAr ? era.ar : era.en;
     }
     return _isAr ? _eras.last.ar : _eras.last.en;
-  }
-
-  int _eraIndex(int globalOrder) {
-    for (int i = 0; i < _eras.length; i++) {
-      if (globalOrder <= _eras[i].range) return i;
-    }
-    return _eras.length - 1;
   }
 
   @override
@@ -272,31 +303,24 @@ class _SeerahSkyScreenState extends State<SeerahSkyScreen>
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Era bar
-                  Row(
-                    children: [
-                      for (int i = 0; i < _eras.length; i++)
-                        Expanded(
-                          child: Container(
-                            height: 2,
-                            margin: EdgeInsets.only(
-                                right: i < _eras.length - 1 ? 4 : 0),
-                            decoration: BoxDecoration(
-                              color: i <= _eraIndex(currentOrder)
-                                  ? AppColors.gold.withAlpha(100)
-                                  : AppColors.gold.withAlpha(20),
-                              borderRadius: BorderRadius.circular(1),
-                            ),
-                          ),
-                        ),
-                    ],
+                  // B28: continuous gold progress bar matches tent style
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: (_completedCount / m1Events.length)
+                          .clamp(0.0, 1.0),
+                      minHeight: 8,
+                      backgroundColor: AppColors.gold.withAlpha(25),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.gold),
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     _eraForEvent(currentOrder),
                     style: GoogleFonts.nunito(
-                      color: AppColors.gold.withAlpha(90),
-                      fontSize: 9,
+                      color: AppColors.gold.withAlpha(120),
+                      fontSize: 10,
                       letterSpacing: 1,
                     ),
                   ),
@@ -655,30 +679,43 @@ class _SkyPainter extends CustomPainter {
         canvas.drawCircle(pos, pulseRadius, pulsePaint);
       }
 
-      // Star core
-      canvas.drawCircle(pos, radius, Paint()..color = color);
-
-      // Border on done stars
-      if (isDone) {
-        canvas.drawCircle(
-          pos,
-          radius,
-          Paint()
-            ..color = const Color(0xFFD4A843).withAlpha(150)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 0.5,
-        );
+      // B17: major events draw as 4-point stars, regular events as circles.
+      if (isMajor) {
+        _drawStar(canvas, pos, radius * 1.6, Paint()..color = color);
+        if (isDone) {
+          _drawStar(
+            canvas,
+            pos,
+            radius * 1.6,
+            Paint()
+              ..color = const Color(0xFFD4A843).withAlpha(150)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 0.7,
+          );
+        }
+      } else {
+        canvas.drawCircle(pos, radius, Paint()..color = color);
+        if (isDone) {
+          canvas.drawCircle(
+            pos,
+            radius,
+            Paint()
+              ..color = const Color(0xFFD4A843).withAlpha(150)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 0.5,
+          );
+        }
       }
 
-      // Cross sparkle on major done stars
+      // Cross sparkle on major done stars (kept — enhances star glyph)
       if (isMajor && isDone) {
         final sparkle = Paint()
           ..color = const Color(0xFFD4A843).withAlpha(80)
           ..strokeWidth = 0.5;
         canvas.drawLine(
-            Offset(pos.dx, pos.dy - 12), Offset(pos.dx, pos.dy + 12), sparkle);
+            Offset(pos.dx, pos.dy - 14), Offset(pos.dx, pos.dy + 14), sparkle);
         canvas.drawLine(
-            Offset(pos.dx - 12, pos.dy), Offset(pos.dx + 12, pos.dy), sparkle);
+            Offset(pos.dx - 14, pos.dy), Offset(pos.dx + 14, pos.dy), sparkle);
       }
 
       // R24 B-03: Event labels on completed/current stars
@@ -731,4 +768,21 @@ class _SkyPainter extends CustomPainter {
       old.completedCount != completedCount ||
       old.pulseValue != pulseValue ||
       old.isAr != isAr;
+
+  // B17: 4-point star glyph — major events render as stars.
+  // Outer points along axes, inner points at 45° with inset radius.
+  void _drawStar(Canvas canvas, Offset c, double r, Paint paint) {
+    final inner = r * 0.38;
+    final path = Path()
+      ..moveTo(c.dx, c.dy - r)
+      ..lineTo(c.dx + inner, c.dy - inner)
+      ..lineTo(c.dx + r, c.dy)
+      ..lineTo(c.dx + inner, c.dy + inner)
+      ..lineTo(c.dx, c.dy + r)
+      ..lineTo(c.dx - inner, c.dy + inner)
+      ..lineTo(c.dx - r, c.dy)
+      ..lineTo(c.dx - inner, c.dy - inner)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
 }

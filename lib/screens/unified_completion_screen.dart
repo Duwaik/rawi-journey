@@ -1152,27 +1152,28 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     );
   }
 
-  // R19-08b: Reader Mode action area — "I've said it" button is the hero,
-  // optional 80px hold ring as secondary "Or recite along".
+  // R19-08b: Reader Mode action area — "I've said it" button is the hero.
+  // B29: button + hold ring sized to parity with Explorer mode — dhikr is
+  // equally important regardless of journey mode.
   Widget _buildReaderActionArea() {
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
-          height: 48,
+          height: 58,
           child: ElevatedButton(
             onPressed: _dhikrCelebrating ? null : _onSaidIt,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.gold,
               foregroundColor: const Color(0xFF0B1E2D),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(16)),
               elevation: 0,
             ),
             child: Text(
               _isAr ? 'قلتها \u2713' : 'I\u2019ve said it \u2713',
               style: GoogleFonts.nunito(
-                  fontSize: 15, fontWeight: FontWeight.w800),
+                  fontSize: 17, fontWeight: FontWeight.w800),
             ),
           ),
         ),
@@ -1186,7 +1187,8 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
           ),
         ),
         const SizedBox(height: 10),
-        _buildHoldRing(size: 80, ringSize: 72, strokeWidth: 4, iconSize: 28),
+        // B29: hold ring matches Explorer's 120/110/6/48 dimensions
+        _buildHoldRing(size: 120, ringSize: 110, strokeWidth: 6, iconSize: 48),
         const SizedBox(height: 14),
         _buildSkipLink(),
       ],
@@ -1284,33 +1286,39 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   }
 
   // ── Section 6: Continue button ───────────────────────────────────────
+  // B25: SizeTransition so the button grows from 0 height when revealed,
+  // pushing content naturally — no pre-allocated blank space below dhikr.
   Widget _buildContinueSection() {
-    return FadeTransition(
-      opacity: _continueFade,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 24),
-        child: SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: _canExit ? _continueJourney : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.gold,
-              foregroundColor: const Color(0xFF0B1E2D),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+    return SizeTransition(
+      sizeFactor: _continueFade,
+      axisAlignment: -1.0, // anchor to top so growth pushes down
+      child: FadeTransition(
+        opacity: _continueFade,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 24),
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _canExit ? _continueJourney : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: const Color(0xFF0B1E2D),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 0,
               ),
-              elevation: 0,
-            ),
-            child: Text(
-              _isAr
-                  ? '\u0623\u0643\u0645\u0644 \u0627\u0644\u0631\u062D\u0644\u0629 \u2190'
-                  : 'Continue Journey \u2192',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+              child: Text(
+                _isAr
+                    ? '\u0623\u0643\u0645\u0644 \u0627\u0644\u0631\u062D\u0644\u0629 \u2190'
+                    : 'Continue Journey \u2192',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+                textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
               ),
-              textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
             ),
           ),
         ),

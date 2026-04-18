@@ -29,4 +29,24 @@ class RawiStage {
     ];
     return isAr ? namesAr[stage] : namesEn[stage];
   }
+
+  /// B21: Age + gender based rank title (replaces stage title on tent).
+  /// Ages: <25 young, 25-55 explorer, 56+ wise. Gender 'male'/'female'.
+  static String ageGenderTitle({
+    required int age,
+    required String gender,
+    required bool isAr,
+  }) {
+    final female = gender == 'female';
+    if (age < 25) {
+      if (isAr) return female ? 'الرحّالة الشابة' : 'الرحّالة الشاب';
+      return 'Young Explorer';
+    }
+    if (age <= 55) {
+      if (isAr) return female ? 'الرحّالة' : 'الرحّال';
+      return 'The Explorer';
+    }
+    if (isAr) return female ? 'الرحّالة الحكيمة' : 'الرحّال الحكيم';
+    return 'The Wise Explorer';
+  }
 }

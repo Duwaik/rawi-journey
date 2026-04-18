@@ -22,14 +22,14 @@ class AudioService {
   /// what enables the continuous "home" ambient pattern (Sprint 49 R7-01).
   /// If a different ambient is playing, it fades out briefly before
   /// the new one starts (LOCKED RULE: no hard cuts).
-  static Future<void> playAmbient(String assetPath, {
+  static Future<bool> playAmbient(String assetPath, {
     double volume = 0.3,
     bool loop = true,
   }) async {
-    if (!PrefsService.musicEnabled) return;
+    if (!PrefsService.musicEnabled) return false;
     // If the same ambient is already playing, don't restart it —
     // let it carry continuously across screens.
-    if (_ambient != null && _currentAmbientPath == assetPath) return;
+    if (_ambient != null && _currentAmbientPath == assetPath) return true;
     // LOCKED RULE: fade previous ambient briefly before new one starts
     await fadeOut(duration: const Duration(milliseconds: 200));
     _currentAmbientPath = assetPath;
@@ -39,10 +39,12 @@ class AudioService {
       await _ambient!.setLoopMode(loop ? LoopMode.one : LoopMode.off);
       await _ambient!.setVolume(volume);
       _ambient!.play();
+      return true;
     } catch (_) {
       _ambient?.dispose();
       _ambient = null;
       _currentAmbientPath = null;
+      return false;
     }
   }
 

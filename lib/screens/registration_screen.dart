@@ -112,7 +112,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           if (confirmed == true && context.mounted) Navigator.of(context).pop();
         }
       },
-      child: Scaffold(
+      // B18: Scope Directionality to the selected language so ALL
+      // registration screens (mode cards, character cards, etc.) mirror
+      // correctly when Arabic is active, without waiting for app restart.
+      child: Directionality(
+        textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
         backgroundColor: AppColors.bg,
         resizeToAvoidBottomInset: false,
         body: GestureDetector(
@@ -192,6 +197,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ],
         ),
         ),
+      ),
       ),
     );
   }
