@@ -10,6 +10,7 @@ import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import 'collection_gallery_screen.dart';
 import 'dhikr_collection_screen.dart';
+import 'event_launcher.dart';
 import 'event_list_screen.dart';
 import 'scroll_viewer_screen.dart';
 import 'seerah_sky_screen.dart';
@@ -61,14 +62,21 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     return c;
   }
 
-  /// B8: title of the event the CTA will launch next.
-  String _nextEventTitle(int completed, bool isComplete) {
+  /// R25-S1-2: title of the current progression item — event OR threshold.
+  /// When a threshold is pending before the next event, the progress card
+  /// shows the threshold so the user knows what Start will actually launch.
+  String _nextItemTitle(bool isComplete) {
     if (isComplete) {
       return _isAr ? 'اكتملت الرحلة' : 'Journey complete';
     }
-    final idx = completed.clamp(0, m1Events.length - 1);
-    final ev = m1Events[idx];
-    return _isAr ? ev.titleAr : ev.title;
+    final item = currentProgressionItem();
+    if (item is ThresholdItem) {
+      return _isAr ? 'العتبة' : 'The Threshold';
+    }
+    if (item is EventItem) {
+      return _isAr ? item.event.titleAr : item.event.title;
+    }
+    return _isAr ? 'اكتملت الرحلة' : 'Journey complete';
   }
 
   @override
@@ -300,17 +308,22 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                 // Row: current/next event name + Start/Continue label.
                 // Progress count uses matched sizes (no big/small split).
                 child: GestureDetector(
-                  onTap: () {
+                  // R25-S1-1 / S1-2: launch the current progression item
+                  // directly — threshold → ThresholdScreen, event →
+                  // VideoIntroScreen / EventIntroScreen / ImmersiveEventScreen.
+                  // No events-list interstitial, no flash, no audio bleed.
+                  onTap: () async {
                     HapticFeedback.lightImpact();
                     if (isComplete) {
-                      Navigator.push(context, MaterialPageRoute(
+                      await Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const EventListScreen()));
                       return;
                     }
-                    final targetOrder = completed + 1;
-                    Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => EventListScreen(
-                            autoOpenEventOrder: targetOrder)));
+                    await launchCurrentItem(context);
+                    if (!mounted) return;
+                    // Refresh so the progress card reflects the new state
+                    // after threshold / event completion.
+                    setState(() {});
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -337,7 +350,7 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                _nextEventTitle(completed, isComplete),
+                                _nextItemTitle(isComplete),
                                 textDirection:
                                     _isAr ? TextDirection.rtl : TextDirection.ltr,
                                 style: GoogleFonts.lora(

@@ -8,13 +8,9 @@ import '../data/threshold_challenges.dart';
 import '../models/journey_event.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
-import 'event_intro_screen.dart';
-import 'immersive_event_screen.dart';
+import 'event_launcher.dart';
 import 'legacy_event_screen.dart';
 import 'threshold_screen.dart';
-import 'video_intro_screen.dart';
-import 'witness_moment_screen.dart';
-import '../widgets/cinematic/fly_transition.dart';
 
 // ── Chapter metadata ────────────────────────────────────────────────────────
 
@@ -37,12 +33,10 @@ class _Chapter {
 // ── Screen ──────────────────────────────────────────────────────────────────
 
 class EventListScreen extends StatefulWidget {
-  /// B3: If non-null, auto-open that event on first frame. Lets the Tent's
-  /// "Continue Journey" / "Begin Journey" button jump straight into an
-  /// event while preserving _openEvent's threshold + video intro flow.
-  final int? autoOpenEventOrder;
-
-  const EventListScreen({super.key, this.autoOpenEventOrder});
+  // R25-S1-1: autoOpenEventOrder removed — the Tent Start button now
+  // launches events/thresholds directly via event_launcher. Events-list
+  // is only reached by explicit user action from the side nav.
+  const EventListScreen({super.key});
 
   @override
   State<EventListScreen> createState() => _EventListScreenState();
@@ -75,24 +69,9 @@ class _EventListScreenState extends State<EventListScreen>
     if (active != null) _expandedEras.add(active);
 
     // R7-01: ambient_intro.mp3 is the "home" sound of the app.
-    // R25-S1-4: skip the home-ambient kick when Tent routed us here for a
-    // direct event launch — that path fades to the video's audio channel,
-    // so starting the list ambient mid-transition would bleed over it.
-    if (widget.autoOpenEventOrder == null) {
-      _startHomeAmbient();
-    }
-
-    // B3: auto-open if Tent routed us here for a direct event launch.
-    if (widget.autoOpenEventOrder != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final target = _events.firstWhere(
-          (e) => e.globalOrder == widget.autoOpenEventOrder,
-          orElse: () => _events.first,
-        );
-        _openEvent(target);
-      });
-    }
+    // R25-S1-1: events-list is only reached by explicit user nav now —
+    // no auto-open path — so it always owns the home ambient.
+    _startHomeAmbient();
   }
 
   Future<void> _startHomeAmbient() async {
@@ -140,137 +119,29 @@ class _EventListScreenState extends State<EventListScreen>
 
   bool get _isAr => PrefsService.isAr;
 
-  /// Returns video intro path for events with cinematic videos.
-  /// R19-14: video plays on every entry. First play = no skip button,
-  /// any subsequent entry (in-progress or completed) = skip button.
-  /// See [_videoIsReplay] for the skip decision.
-  String? _getVideoIntro(String eventId, int globalOrder) {
-    const videoIntros = {
-      'j_1_1_2': 'assets/video/event2_intro.mp4',
-      // Add more: 'j_1_1_X': 'assets/video/eventX_intro.mp4',
-    };
-    return videoIntros[eventId];
-  }
-
-  /// True if this is a replay (2nd+ entry) — controls the skip button.
-  bool _videoIsReplay(String eventId, int globalOrder) {
-    return PrefsService.isEventCompleted(globalOrder) ||
-        PrefsService.loadHotspotProgress(eventId).isNotEmpty;
-  }
-
   Future<void> _openEvent(JourneyEvent event) async {
-    // R19-09: tapping a Start button must not auto-trigger the Threshold.
-    // The user must interact with the threshold card explicitly. Block the
-    // event open with a quick hint and let them tap the threshold card.
+    // R25-S1-2: tapping Start when a Threshold is pending launches the
+    // threshold DIRECTLY (old code blocked with a snackbar, which left
+    // the user stuck). Same shared launcher the tent uses.
     final threshold = getThresholdBefore(event.globalOrder);
-    if (threshold != null && !PrefsService.isThresholdCompleted(event.globalOrder)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isAr
-                ? 'أكمل العتبة أولاً'
-                : 'Complete the Threshold first',
-            style: GoogleFonts.nunito(color: const Color(0xFF04060D)),
-          ),
-          backgroundColor: AppColors.gold,
-          duration: const Duration(seconds: 2),
-        ),
+    if (threshold != null &&
+        !PrefsService.isThresholdCompleted(event.globalOrder)) {
+      await launchThreshold(
+        context,
+        ThresholdItem(challenge: threshold, gatedEvent: event),
       );
+      if (!mounted) return;
+      _refresh();
       return;
-    }
-
-    // Explorer Mode: deplete noor on event transition (-25%).
-    // Skip for completed events (replays) and Event 1 (first-time grace).
-    if (PrefsService.isExplorerMode &&
-        !PrefsService.isEventCompleted(event.globalOrder) &&
-        event.globalOrder > 1) {
-      await PrefsService.depleteNoor(25);
     }
 
     final config = sceneConfigs[event.id];
     final hasScene = config != null;
 
     if (hasScene) {
-      // Check for video intro (first play only)
-      final videoPath = _getVideoIntro(event.id, event.globalOrder);
-
-      if (videoPath != null) {
-        // R25-S1-4: AWAIT the fade so ambient is fully down before the
-        // video controller initializes. Previously fire-and-forget, which
-        // let the ambient bleed into Event 2's video and blocked init.
-        await AudioService.fadeOut(
-            duration: const Duration(milliseconds: 500));
-        if (!mounted) return;
-
-        await Navigator.push(
-          context,
-          PageRouteBuilder(
-            opaque: true,
-            transitionDuration: const Duration(milliseconds: 300),
-            pageBuilder: (ctx, animation, secondaryAnimation) =>
-                FadeTransition(
-              opacity: animation,
-              child: VideoIntroScreen(
-                videoPath: videoPath,
-                // R19-14: allow skip only on replay (2nd+ entry).
-                canSkip: _videoIsReplay(event.id, event.globalOrder),
-                onComplete: () {
-                  if (ctx.mounted) {
-                    Navigator.pushReplacement(
-                      ctx,
-                      flyDownRoute(ImmersiveEventScreen(event: event)),
-                    );
-                  }
-                },
-              ),
-            ),
-          ),
-        );
-      } else {
-        // Regular cinematic transition (no video)
-        await Navigator.push(
-          context,
-          PageRouteBuilder(
-            opaque: false,
-            transitionDuration: Duration.zero,
-            pageBuilder: (ctx, animation, secondaryAnimation) =>
-                EventIntroScreen(
-              event: event,
-              onComplete: () {
-                if (!ctx.mounted) return;
-                // Check for Witness Moment before entering scene
-                if (event.witnessIntro != null) {
-                  Navigator.pushReplacement(
-                    ctx,
-                    PageRouteBuilder(
-                      transitionDuration: const Duration(milliseconds: 500),
-                      pageBuilder: (ctx2, a, s) => FadeTransition(
-                        opacity: a,
-                        child: WitnessMomentScreen(
-                          intro: event.witnessIntro!,
-                          onComplete: () {
-                            if (ctx2.mounted) {
-                              Navigator.pushReplacement(
-                                ctx2,
-                                flyDownRoute(ImmersiveEventScreen(event: event)),
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                } else {
-                  Navigator.pushReplacement(
-                    ctx,
-                    flyDownRoute(ImmersiveEventScreen(event: event)),
-                  );
-                }
-              },
-            ),
-          ),
-        );
-      }
+      // R25-S1-1: delegate to the shared launcher so tent + list share the
+      // exact same flow (video intro, noor depletion, witness moment, etc.).
+      await launchEvent(context, event);
     } else {
       await Navigator.push(
         context,
