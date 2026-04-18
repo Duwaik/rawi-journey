@@ -75,7 +75,12 @@ class _EventListScreenState extends State<EventListScreen>
     if (active != null) _expandedEras.add(active);
 
     // R7-01: ambient_intro.mp3 is the "home" sound of the app.
-    _startHomeAmbient();
+    // R25-S1-4: skip the home-ambient kick when Tent routed us here for a
+    // direct event launch — that path fades to the video's audio channel,
+    // so starting the list ambient mid-transition would bleed over it.
+    if (widget.autoOpenEventOrder == null) {
+      _startHomeAmbient();
+    }
 
     // B3: auto-open if Tent routed us here for a direct event launch.
     if (widget.autoOpenEventOrder != null) {
@@ -190,9 +195,11 @@ class _EventListScreenState extends State<EventListScreen>
       final videoPath = _getVideoIntro(event.id, event.globalOrder);
 
       if (videoPath != null) {
-        // Fade home ambient before video (LOCKED RULE: fade, no cut)
-        AudioService.fadeOut(duration: const Duration(milliseconds: 500));
-        await Future.delayed(const Duration(milliseconds: 300));
+        // R25-S1-4: AWAIT the fade so ambient is fully down before the
+        // video controller initializes. Previously fire-and-forget, which
+        // let the ambient bleed into Event 2's video and blocked init.
+        await AudioService.fadeOut(
+            duration: const Duration(milliseconds: 500));
         if (!mounted) return;
 
         await Navigator.push(

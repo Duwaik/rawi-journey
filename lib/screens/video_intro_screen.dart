@@ -7,8 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 
 import '../app_colors.dart';
-import '../services/prefs_service.dart';
+import '../services/audio_service.dart';
 import '../services/debug_log_service.dart';
+import '../services/prefs_service.dart';
 
 /// Full-screen cinematic video intro for special events.
 /// Plays once, then calls onComplete to transition to the game.
@@ -32,7 +33,9 @@ class VideoIntroScreen extends StatefulWidget {
 }
 
 class _VideoIntroScreenState extends State<VideoIntroScreen> {
-  late VideoPlayerController _controller;
+  // Nullable because controller is created inside the async _bootController
+  // after AudioService.stopAll() completes — dispose may fire before that.
+  VideoPlayerController? _controller;
   bool _disposed = false;
   bool _completed = false;
   // B26: timeout fallback — video must not freeze the journey.
@@ -46,6 +49,16 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    _bootController();
+  }
+
+  /// R25-S1-4: AudioService.stopAll() first so the video owns the audio
+  /// channel before VideoPlayerController.initialize() contends for it.
+  /// Previously the ambient from the previous screen could still be alive
+  /// when init started, which left Event 2 stuck on the first scene.
+  Future<void> _bootController() async {
+    await AudioService.stopAll();
+    if (_disposed) return;
 
     DebugLogService.log('video', 'init start ${widget.videoPath}');
     _controller = VideoPlayerController.asset(widget.videoPath)
@@ -53,9 +66,9 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
         if (_disposed) return;
         _initTimeout?.cancel();
         DebugLogService.log('video',
-            'isInitialized=true  dur=${_controller.value.duration} ${widget.videoPath}');
+            'isInitialized=true  dur=${_controller!.value.duration} ${widget.videoPath}');
         setState(() {});
-        _controller.play();
+        _controller!.play();
         _startStallWatchdog();
       }).catchError((e, st) {
         developer.log('video init failed', error: e, stackTrace: st);
@@ -64,12 +77,12 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
         _failGracefully(reason: 'init_error');
       });
 
-    _controller.addListener(_checkEnd);
+    _controller!.addListener(_checkEnd);
 
     // B26: if init doesn't complete in 10s, skip gracefully.
     _initTimeout = Timer(const Duration(seconds: 10), () {
       if (_disposed || _completed) return;
-      if (!_controller.value.isInitialized) {
+      if (_controller?.value.isInitialized != true) {
         DebugLogService.log('video',
             'init timeout (10s) for ${widget.videoPath} — skipping');
         _failGracefully(reason: 'init_timeout');
@@ -82,8 +95,10 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
     _stallWatchdog?.cancel();
     _stallWatchdog = Timer.periodic(const Duration(seconds: 2), (_) {
       if (_disposed || _completed) return;
-      final pos = _controller.value.position;
-      if (pos == _lastPos && _controller.value.isPlaying) {
+      final ctrl = _controller;
+      if (ctrl == null) return;
+      final pos = ctrl.value.position;
+      if (pos == _lastPos && ctrl.value.isPlaying) {
         final stallSecs = DateTime.now().difference(_lastPosTime).inSeconds;
         if (stallSecs >= 6) {
           DebugLogService.log('video',
@@ -109,8 +124,10 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
 
   void _checkEnd() {
     if (_disposed || _completed) return;
-    final pos = _controller.value.position;
-    final dur = _controller.value.duration;
+    final ctrl = _controller;
+    if (ctrl == null) return;
+    final pos = ctrl.value.position;
+    final dur = ctrl.value.duration;
     if (dur > Duration.zero && pos >= dur - const Duration(milliseconds: 200)) {
       _onVideoEnd();
     }
@@ -121,7 +138,7 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
     _completed = true;
     _initTimeout?.cancel();
     _stallWatchdog?.cancel();
-    _controller.removeListener(_checkEnd);
+    _controller?.removeListener(_checkEnd);
     widget.onComplete();
   }
 
@@ -132,19 +149,21 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
     _disposed = true;
     _initTimeout?.cancel();
     _stallWatchdog?.cancel();
-    _controller.removeListener(_checkEnd);
-    _controller.dispose();
+    _controller?.removeListener(_checkEnd);
+    _controller?.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final ctrl = _controller;
+    final isReady = ctrl != null && ctrl.value.isInitialized;
     return PopScope(
       canPop: false,
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: _controller.value.isInitialized
+        body: isReady
             ? Stack(
                 fit: StackFit.expand,
                 children: [
@@ -153,7 +172,7 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
                     scale: 3.0,
                     child: ImageFiltered(
                       imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                      child: VideoPlayer(_controller),
+                      child: VideoPlayer(ctrl),
                     ),
                   ),
                   // Layer 2: Dark overlay to tone down the blur
@@ -163,8 +182,8 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
                   // Layer 3: Actual video centered (contain fit)
                   Center(
                     child: AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
+                      aspectRatio: ctrl.value.aspectRatio,
+                      child: VideoPlayer(ctrl),
                     ),
                   ),
                   // R19-14: Skip button on replay (top-right, safe-area aware).
