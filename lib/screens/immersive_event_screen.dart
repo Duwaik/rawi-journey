@@ -58,6 +58,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _showContinueButton = false;
   bool _showXpAnimation = false;
   bool _showBadgeOverlay = false;
+  bool _showEventQTooltip = false; // B12c: first-time Event Question tooltip
   int _previousXp = 0;
   List<BadgeDefinition> _newBadges = [];
   BadgeDefinition? _currentBadge;
@@ -1085,6 +1086,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _joyDy = 0;
     _gameLoop.stop();
     _gameLoop.reset();
+    // B15: Snap figure to hotspot center (one-shot, not in movement loop)
+    final snapPos = _posFor(hotspot);
+    _companionX = snapPos.dx;
+    _companionY = snapPos.dy;
+    _parallaxOffset = -(_companionX - 0.5) * 0.8;
     setState(() {
       _pendingDiscovery.add(hotspot.id);
       _isWalking = false;
@@ -1452,7 +1458,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // NO tutorial here — tutorial was shown at the branch card
         Future.delayed(const Duration(milliseconds: 400), () {
           if (mounted) {
-            setState(() => _phase = _Phase.verdict);
+            setState(() {
+              _phase = _Phase.verdict;
+              if (!PrefsService.isEventQTooltipSeen) _showEventQTooltip = true;
+            });
             _phaseCtrl.forward();
             _playChoiceVo('q');
           }
@@ -1465,7 +1474,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             voPath: _companionVoPath(adLid));
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
-            setState(() => _phase = _Phase.verdict);
+            setState(() {
+              _phase = _Phase.verdict;
+              if (!PrefsService.isEventQTooltipSeen) _showEventQTooltip = true;
+            });
             _phaseCtrl.forward();
             _playChoiceVo('q');
           }
@@ -2042,7 +2054,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Virtual joystick ───────────────────────────────────────
-          if (_explorerMode && _phase == _Phase.explore && _activeHotspot == null)
+          // B14: hide on revisit to avoid collision with replay buttons
+          if (_explorerMode && _phase == _Phase.explore
+              && _activeHotspot == null && !_alreadyCompleted)
             Positioned(
               bottom: bottomPad + 16,
               left: PrefsService.joystickPosition == 'left'
@@ -2110,7 +2124,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        setState(() => _phase = _Phase.verdict);
+                        setState(() {
+                          _phase = _Phase.verdict;
+                          if (!PrefsService.isEventQTooltipSeen) _showEventQTooltip = true;
+                        });
                         _phaseCtrl.forward();
                       },
                       child: Container(
@@ -2121,7 +2138,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          _isAr ? 'الحكم' : 'The Verdict',
+                          _isAr ? 'سؤال الحدث' : 'Event Question',
                           style: GoogleFonts.nunito(
                             color: AppColors.bg,
                             fontSize: 13,
@@ -2154,6 +2171,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           if ((_phase == _Phase.verdict || _phase == _Phase.complete)
               && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
             _buildConvergenceQuestion(bottomPad),
+
+          // ── B12c: Event Question first-time tooltip ─────────────────
+          if (_showEventQTooltip
+              && (_phase == _Phase.verdict || _phase == _Phase.complete)
+              && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
+            _buildEventQTooltip(),
 
           // ── The Crossroads (choice card after The Gate) ────────────
           if (_showBranchCard && widget.event.branchPoint != null)
@@ -2622,6 +2645,80 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ), // SingleChildScrollView
             ), // ScrollHintWrapper
+          ),
+        ),
+      ),
+    );
+  }
+
+  // B12c: First-time tooltip shown over the Event Question screen.
+  // Dismisses on tap, sets pref so it never appears again.
+  Widget _buildEventQTooltip() {
+    return Positioned.fill(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          PrefsService.setEventQTooltipSeen();
+          setState(() => _showEventQTooltip = false);
+        },
+        child: Container(
+          color: Colors.black.withAlpha(200),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 36),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 72, height: 72,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.gold.withAlpha(30),
+                      border: Border.all(
+                          color: AppColors.gold.withAlpha(120), width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.gold.withAlpha(60),
+                          blurRadius: 20, spreadRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: Icon(Icons.quiz_rounded,
+                        size: 32, color: AppColors.gold),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    _isAr ? 'سؤال الحدث' : 'Event Question',
+                    textAlign: TextAlign.center,
+                    textDirection:
+                        _isAr ? TextDirection.rtl : TextDirection.ltr,
+                    style: GoogleFonts.cinzelDecorative(
+                      fontSize: 18, color: AppColors.gold, height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _isAr
+                        ? 'اختر الإجابة التي تظنها صحيحة. ستظهر الإجابة الصحيحة وشرحها، ثم يمكنك المتابعة.'
+                        : 'Choose the answer you think is correct. The correct answer and its explanation will be revealed, then you can continue.',
+                    textAlign: TextAlign.center,
+                    textDirection:
+                        _isAr ? TextDirection.rtl : TextDirection.ltr,
+                    style: GoogleFonts.nunito(
+                      fontSize: 14, color: AppColors.textBody, height: 1.55,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Text(
+                    _isAr ? 'انقر للمتابعة' : 'Tap to continue',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      color: AppColors.textMuted.withAlpha(140),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

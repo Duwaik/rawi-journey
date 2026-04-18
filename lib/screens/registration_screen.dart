@@ -8,10 +8,10 @@ import '../services/prefs_service.dart';
 import '../widgets/rawi_dialog.dart';
 import 'rawi_call_screen.dart';
 
-/// 3-step registration flow shown on first launch after intro cinematic.
-/// Screen 1: Identity (name + companion)
-/// Screen 2: Age range (drives default Explorer/Reader mode)
-/// Screen 3: Language
+/// 2-step registration flow shown on first launch after intro cinematic.
+/// Screen 1: Identity (name + companion) + prominent language toggle
+/// Screen 2: Age + Mode (drives Explorer/Reader default)
+/// Language is chosen inline on Screen 1 (B2 — R24 Batch 3A).
 /// Background: blurred cinematic desert scene throughout.
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -33,7 +33,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _modeChosen = false;
   late String _selectedLang;
 
-  static const _totalPages = 3;
+  static const _totalPages = 2;
 
   @override
   void initState() {
@@ -206,7 +206,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 30),
+          const SizedBox(height: 16),
+          // B2: Prominent language toggle at top of first screen.
+          // Tapping either side instantly updates the whole UI and
+          // carries through to subsequent registration screens.
+          _LanguageToggle(
+            selectedLang: _selectedLang,
+            onChanged: (lang) {
+              FocusScope.of(context).unfocus();
+              setState(() => _selectedLang = lang);
+            },
+          ),
+          const SizedBox(height: 24),
           Text(
             isAr ? 'من يحمل هذه الرواية؟' : 'Who carries the story?',
             textAlign: TextAlign.center,
@@ -447,7 +458,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _nextPage,
+              onPressed: _finish,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gold,
                 foregroundColor: const Color(0xFF04060D),
@@ -457,7 +468,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 elevation: 0,
               ),
               child: Text(
-                isAr ? 'التالي' : 'Continue',
+                isAr ? 'ابدأ' : 'Begin',
                 style: GoogleFonts.nunito(
                     fontWeight: FontWeight.w700, fontSize: 15),
               ),
@@ -629,6 +640,62 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 }
 
 // ── Reusable Widgets ────────────────────────────────────────────────────────
+
+/// B2: Prominent AR/EN toggle for the first registration screen.
+/// Large two-segment pill. Gold when selected. HapticFeedback on tap.
+class _LanguageToggle extends StatelessWidget {
+  final String selectedLang;
+  final ValueChanged<String> onChanged;
+
+  const _LanguageToggle({
+    required this.selectedLang,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(90),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.gold.withAlpha(70), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _seg('en', 'English'),
+          _seg('ar', 'العربية'),
+        ],
+      ),
+    );
+  }
+
+  Widget _seg(String lang, String label) {
+    final active = selectedLang == lang;
+    return GestureDetector(
+      onTap: active ? null : () => onChanged(lang),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        decoration: BoxDecoration(
+          color: active ? AppColors.gold : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: active ? AppColors.bg : AppColors.gold.withAlpha(200),
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _ContinueButton extends StatelessWidget {
   final String label;

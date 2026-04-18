@@ -12,9 +12,6 @@ import '../services/prefs_service.dart';
 import 'event_intro_screen.dart';
 import 'immersive_event_screen.dart';
 import 'legacy_event_screen.dart';
-import 'scroll_viewer_screen.dart';
-import 'seerah_sky_screen.dart';
-import 'settings_screen.dart';
 import 'threshold_screen.dart';
 import 'video_intro_screen.dart';
 import 'witness_moment_screen.dart';
@@ -42,7 +39,12 @@ class _Chapter {
 // ── Screen ──────────────────────────────────────────────────────────────────
 
 class EventListScreen extends StatefulWidget {
-  const EventListScreen({super.key});
+  /// B3: If non-null, auto-open that event on first frame. Lets the Tent's
+  /// "Continue Journey" / "Begin Journey" button jump straight into an
+  /// event while preserving _openEvent's threshold + video intro flow.
+  final int? autoOpenEventOrder;
+
+  const EventListScreen({super.key, this.autoOpenEventOrder});
 
   @override
   State<EventListScreen> createState() => _EventListScreenState();
@@ -76,6 +78,18 @@ class _EventListScreenState extends State<EventListScreen>
 
     // R7-01: ambient_intro.mp3 is the "home" sound of the app.
     _startHomeAmbient();
+
+    // B3: auto-open if Tent routed us here for a direct event launch.
+    if (widget.autoOpenEventOrder != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final target = _events.firstWhere(
+          (e) => e.globalOrder == widget.autoOpenEventOrder,
+          orElse: () => _events.first,
+        );
+        _openEvent(target);
+      });
+    }
   }
 
   Future<void> _startHomeAmbient() async {
@@ -825,129 +839,14 @@ class _EventListScreenState extends State<EventListScreen>
                   bottom: BorderSide(color: AppColors.textMuted.withAlpha(20)),
                 ),
               ),
+              // B4: Events List is now a secondary screen (Tent is home).
+              // Header = back-to-Tent + title. Gamification (XP/dhikr)
+              // and navigation to Scroll/Map moved to the Tent.
               child: Row(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('RAWI',
-                          style: GoogleFonts.cinzelDecorative(
-                            color: AppColors.gold, fontSize: 22,
-                            fontWeight: FontWeight.w700, letterSpacing: 3)),
-                      Text(
-                        isAr ? _moduleSubtitleAr : _moduleSubtitle,
-                        style: GoogleFonts.lora(
-                          color: AppColors.textBody, fontSize: 11,
-                          fontStyle: isAr ? FontStyle.normal : FontStyle.italic),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  _HeaderBadge(
-                    label: '${PrefsService.xp}',
-                    icon: Icons.star_rounded,
-                  ),
-                  const SizedBox(width: 8),
-                  _HeaderBadge(
-                    label: '${PrefsService.dhikrCompletedCount}',
-                    emoji: '\uD83D\uDCFF',
-                  ),
-                  const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () async {
-                      // R19-13: scroll viewer pops back with a globalOrder
-                      // when an entry is tapped — open that event.
-                      final result = await Navigator.push<int?>(
-                        context,
-                        PageRouteBuilder(
-                          transitionDuration: const Duration(milliseconds: 350),
-                          reverseTransitionDuration:
-                              const Duration(milliseconds: 250),
-                          pageBuilder: (c, a, s) =>
-                              const ScrollViewerScreen(),
-                          transitionsBuilder: (c, a, s, child) =>
-                              FadeTransition(
-                            opacity: CurvedAnimation(
-                                parent: a, curve: Curves.easeOut),
-                            child: child,
-                          ),
-                        ),
-                      );
-                      if (!mounted || result == null) return;
-                      final ev = _events.firstWhere(
-                        (e) => e.globalOrder == result,
-                        orElse: () => _events.first,
-                      );
-                      _openEvent(ev);
-                    },
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withAlpha(8),
-                        border: Border.all(
-                            color: AppColors.textMuted.withAlpha(40)),
-                      ),
-                      child: const Icon(Icons.auto_stories_rounded,
-                          size: 16, color: AppColors.textMuted),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          transitionDuration: const Duration(milliseconds: 350),
-                          reverseTransitionDuration:
-                              const Duration(milliseconds: 250),
-                          pageBuilder: (c, a, s) =>
-                              const SeerahSkyScreen(),
-                          transitionsBuilder: (c, a, s, child) =>
-                              FadeTransition(
-                            opacity: CurvedAnimation(
-                                parent: a, curve: Curves.easeOut),
-                            child: child,
-                          ),
-                        ),
-                      );
-                      if (!mounted) return;
-                      _refresh();
-                    },
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withAlpha(8),
-                        border: Border.all(
-                            color: AppColors.textMuted.withAlpha(40)),
-                      ),
-                      child: const Icon(Icons.map_rounded,
-                          size: 16, color: AppColors.textMuted),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () async {
-                      // R7-01: ambient carries into Settings — it's still "home"
-                      await Navigator.push(
-                        context,
-                        PageRouteBuilder(
-                          transitionDuration: const Duration(milliseconds: 350),
-                          reverseTransitionDuration:
-                              const Duration(milliseconds: 250),
-                          pageBuilder: (c, a, s) => const SettingsScreen(),
-                          transitionsBuilder: (c, a, s, child) => FadeTransition(
-                              opacity: CurvedAnimation(
-                                  parent: a, curve: Curves.easeOut),
-                              child: child),
-                        ),
-                      );
-                      if (!mounted) return;
-                      _refresh();
-                    },
+                    onTap: () => Navigator.of(context).maybePop(),
+                    behavior: HitTestBehavior.opaque,
                     child: Container(
                       width: 34, height: 34,
                       decoration: BoxDecoration(
@@ -956,8 +855,40 @@ class _EventListScreenState extends State<EventListScreen>
                         border: Border.all(
                             color: AppColors.textMuted.withAlpha(40)),
                       ),
-                      child: const Icon(Icons.settings_rounded,
-                          size: 16, color: AppColors.textMuted),
+                      child: Icon(
+                        isAr
+                            ? Icons.arrow_forward_ios_rounded
+                            : Icons.arrow_back_ios_new_rounded,
+                        size: 14,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isAr ? 'الأحداث' : 'Events',
+                          style: GoogleFonts.cinzelDecorative(
+                            color: AppColors.gold,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        Text(
+                          isAr ? _moduleSubtitleAr : _moduleSubtitle,
+                          style: GoogleFonts.lora(
+                            color: AppColors.textBody,
+                            fontSize: 11,
+                            fontStyle: isAr
+                                ? FontStyle.normal
+                                : FontStyle.italic,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -981,44 +912,6 @@ class _EventListScreenState extends State<EventListScreen>
         ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ── Header badge ────────────────────────────────────────────────────────────
-
-class _HeaderBadge extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final String? emoji;
-  const _HeaderBadge({required this.label, this.icon, this.emoji});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.gold.withAlpha(18),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.gold.withAlpha(60)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 13, color: AppColors.gold),
-            const SizedBox(width: 4),
-          ],
-          if (emoji != null) ...[
-            Text(emoji!, style: const TextStyle(fontSize: 13)),
-            const SizedBox(width: 4),
-          ],
-          Text(label,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold, fontSize: 12,
-                fontWeight: FontWeight.w700)),
-        ],
       ),
     );
   }

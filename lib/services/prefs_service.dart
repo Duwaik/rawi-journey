@@ -32,6 +32,7 @@ class PrefsService {
   static const String _keyTextScale        = 'text_scale';
   static const String _keyTutorialSeen     = 'tutorial_seen';
   static const String _keyChoiceTutSeen    = 'choice_tutorial_seen';
+  static const String _keyEventQTooltipSeen = 'event_q_tooltip_seen';
   static const String _keyAgeTier          = 'age_tier';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
@@ -226,8 +227,14 @@ class PrefsService {
   // Explorer Mode joystick placement: 'left' | 'center' | 'right'.
   static const String _keyJoystickPosition = 'joystickPosition';
 
-  static String get joystickPosition =>
-      _prefs?.getString(_keyJoystickPosition) ?? 'left';
+  /// B12a: when no explicit pref is saved, default mirrors the language —
+  /// AR → right, EN → left. Once user picks explicitly via Settings, the
+  /// saved value wins regardless of language.
+  static String get joystickPosition {
+    final saved = _prefs?.getString(_keyJoystickPosition);
+    if (saved != null) return saved;
+    return isAr ? 'right' : 'left';
+  }
 
   static Future<void> setJoystickPosition(String pos) async =>
       await _prefs?.setString(_keyJoystickPosition, pos);
@@ -260,6 +267,12 @@ class PrefsService {
       _prefs?.getBool(_keyChoiceTutSeen) ?? false;
   static Future<void> setChoiceTutorialSeen() async =>
       await _prefs?.setBool(_keyChoiceTutSeen, true);
+
+  // B12c: first-time tooltip on the Event Question screen.
+  static bool get isEventQTooltipSeen =>
+      _prefs?.getBool(_keyEventQTooltipSeen) ?? false;
+  static Future<void> setEventQTooltipSeen() async =>
+      await _prefs?.setBool(_keyEventQTooltipSeen, true);
 
   // ── TEXT SCALE (Accessibility) ─────────────────────────────────────────────
   static double get textScale =>

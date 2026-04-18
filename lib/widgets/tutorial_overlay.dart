@@ -23,14 +23,20 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   int _step = 0;
   late final AnimationController _fadeCtrl;
 
+  // B12b: Step 1 arrow direction is computed per-language at render
+  // time (AR → bottomRight, EN → bottomLeft) so the hint always points
+  // at the real joystick position. Step subtitle also clarifies that
+  // the joystick position is fixed by language.
   static const _steps = [
     _TutorialStep(
       titleEn: 'Use the joystick to move',
       titleAr: 'استخدم عصا التحكم للتحرك',
-      subtitleEn: 'Drag the joystick to guide your companion',
-      subtitleAr: 'اسحب عصا التحكم لتوجيه رفيقك',
+      subtitleEn: 'Drag the joystick to guide your companion. '
+          'Its position mirrors your language direction and cannot be changed.',
+      subtitleAr: 'اسحب عصا التحكم لتوجيه رفيقك. '
+          'موقعها يتبع اتجاه اللغة ولا يمكن تغييره.',
       icon: Icons.gamepad_rounded,
-      arrowDirection: _ArrowDir.bottomLeft,
+      arrowDirection: _ArrowDir.bottomLeading,
     ),
     _TutorialStep(
       titleEn: 'Discover the glowing diamonds',
@@ -144,10 +150,13 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               ),
 
               // ── Arrow indicator ─────────────────────────────────────
-              if (step.arrowDirection == _ArrowDir.bottomLeft)
+              // B12b: arrow points to the side matching the joystick
+              // (AR → right, EN → left).
+              if (step.arrowDirection == _ArrowDir.bottomLeading)
                 Positioned(
                   bottom: bottomPad + 90,
-                  left: 60,
+                  left: isAr ? null : 60,
+                  right: isAr ? 60 : null,
                   child: _buildArrow(isDown: true),
                 ),
               if (step.arrowDirection == _ArrowDir.up)
@@ -224,7 +233,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   }
 }
 
-enum _ArrowDir { bottomLeft, up }
+enum _ArrowDir { bottomLeading, up }
 
 class _TutorialStep {
   final String titleEn;

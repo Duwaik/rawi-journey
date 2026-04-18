@@ -9,7 +9,9 @@ import '../data/m1_data.dart';
 import '../models/rawi_stage.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
+import 'collection_gallery_screen.dart';
 import 'event_list_screen.dart';
+import 'scroll_viewer_screen.dart';
 import 'seerah_sky_screen.dart';
 import 'settings_screen.dart';
 
@@ -178,55 +180,109 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
             ),
 
             // ── Noor + XP (top left, below greeting) ─────────────────
+            // B7: larger + labeled so users recognize them as progression
+            // indicators, not decorative chips.
             Positioned(
-              top: topPad + 100,
+              top: topPad + 110,
               left: 12,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _statPill('☀️', '${PrefsService.noorLevel}%'),
-                  const SizedBox(height: 6),
-                  _statPill('⭐', '${PrefsService.xp}'),
+                  _statPill(
+                    emoji: '✦',
+                    value: '${PrefsService.noorLevel}%',
+                    label: _isAr ? 'نورك' : 'Your Light',
+                  ),
+                  const SizedBox(height: 8),
+                  _statPill(
+                    emoji: '★',
+                    value: '${PrefsService.xp}',
+                    label: _isAr ? 'خبرتك' : 'Experience',
+                  ),
                 ],
               ),
             ),
 
             // ── Right-side navigation (5 square icons) ───────────────
+            // B5: nav stack = 5 icons (Events, Stars, Scroll, Dhikr,
+            // Collections). Settings moved OUT of nav stack to its own
+            // gear in the top-right corner (consistent with event screens).
             if (_activeSheet == null)
               Positioned(
-                top: screenH * 0.35,
-                right: 12,
+                top: screenH * 0.28,
+                right: 10,
                 child: Column(
                   children: [
                     _navIcon('📋', _isAr ? 'الأحداث' : 'Events', () {
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const EventListScreen()));
                     }),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _navIcon('✦', _isAr ? 'النجوم' : 'Stars', () {
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const SeerahSkyScreen()));
                     }),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
+                    _navIcon('📜', _isAr ? 'السجلّ' : 'Scroll', () {
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const ScrollViewerScreen()));
+                    }),
+                    const SizedBox(height: 8),
                     _navIcon('🤲', _isAr ? 'الذكر' : 'Dhikr', () {
                       _openSheet('dhikr');
                     }),
-                    const SizedBox(height: 10),
-                    _navIcon('⚙', _isAr ? 'إعدادات' : 'Settings', () {
+                    const SizedBox(height: 8),
+                    _navIcon('🏛️', _isAr ? 'المجموعات' : 'Collections', () {
                       Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const SettingsScreen()));
+                          builder: (_) => const CollectionGalleryScreen()));
                     }),
                   ],
                 ),
               ),
 
+            // ── Settings gear (top-right corner, 30x30, glass) ──────
+            if (_activeSheet == null)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 10,
+                right: 12,
+                child: GestureDetector(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => const SettingsScreen())),
+                  child: Container(
+                    width: 34, height: 34,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black.withAlpha(90),
+                      border: Border.all(
+                          color: AppColors.gold.withAlpha(70)),
+                    ),
+                    child: const Icon(Icons.settings_rounded,
+                        size: 16, color: AppColors.gold),
+                  ),
+                ),
+              ),
+
             // ── Continue Journey CTA (center, above fire) ────────────
+            // B3: tapping launches the next event DIRECTLY via EventList's
+            // autoOpenEventOrder — preserves threshold + video-intro flow.
             if (_activeSheet == null)
               Positioned(
                 bottom: screenH * 0.18,
                 left: 0, right: 0,
                 child: Center(
                   child: GestureDetector(
-                    onTap: () => _openSheet('next'),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      if (isComplete) {
+                        Navigator.push(context, MaterialPageRoute(
+                            builder: (_) => const EventListScreen()));
+                        return;
+                      }
+                      final targetOrder = completed + 1;
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => EventListScreen(
+                              autoOpenEventOrder: targetOrder)));
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 10),
@@ -243,9 +299,13 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
+                        textDirection:
+                            _isAr ? TextDirection.rtl : TextDirection.ltr,
                         children: [
-                          const Text('🚶', style: TextStyle(fontSize: 14)),
-                          const SizedBox(width: 8),
+                          // B6: icon is on the TRAILING side of the text.
+                          // In a Row with LTR: text first, icon after.
+                          // In RTL: Flutter mirrors the order so icon still
+                          // sits on the trailing (visual left) side.
                           Text(
                             isStart
                                 ? (_isAr ? 'ابدأ الرحلة' : 'Begin Journey')
@@ -260,6 +320,8 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                             textDirection:
                                 _isAr ? TextDirection.rtl : TextDirection.ltr,
                           ),
+                          const SizedBox(width: 8),
+                          const Text('🚶', style: TextStyle(fontSize: 14)),
                         ],
                       ),
                     ),
@@ -272,55 +334,110 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
               Positioned(
                 bottom: bottomPad + 16,
                 left: 16, right: 16,
+                // B8: prominent progress card — big numbers, bigger bar,
+                // label line above. Feels like a proud achievement display.
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                      horizontal: 18, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.black.withAlpha(170),
-                    borderRadius: BorderRadius.circular(14),
-                    border:
-                        Border.all(color: AppColors.gold.withAlpha(40)),
+                    color: Colors.black.withAlpha(185),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                        color: AppColors.gold.withAlpha(70), width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppColors.gold.withAlpha(15),
+                          blurRadius: 14),
+                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            _isAr ? 'رحلتك' : 'Your Journey',
-                            style: GoogleFonts.nunito(
-                              color: AppColors.gold.withAlpha(100),
-                              fontSize: 9,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            isStart
-                                ? (_isAr ? 'رحلتك تنتظر' : 'Your journey awaits')
-                                : isComplete
-                                    ? 'Journey complete ✦'
-                                    : '$completed / ${m1Events.length}  ($percent%)',
-                            style: GoogleFonts.nunito(
-                              color: isComplete
-                                  ? AppColors.gold
-                                  : AppColors.gold.withAlpha(100),
-                              fontSize: 9,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(3),
-                        child: LinearProgressIndicator(
-                          value:
-                              (completed / m1Events.length).clamp(0.0, 1.0),
-                          minHeight: 6,
-                          backgroundColor: AppColors.gold.withAlpha(20),
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              AppColors.gold),
+                      Text(
+                        _isAr ? 'رحلتك' : 'Your Journey',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                          color: AppColors.gold.withAlpha(160),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 2,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      if (isStart)
+                        Text(
+                          _isAr ? 'رحلتك تنتظر' : 'Your journey awaits',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.lora(
+                            color: AppColors.gold,
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        )
+                      else if (isComplete)
+                        Text(
+                          _isAr ? 'اكتملت الرحلة ✦' : 'Journey complete ✦',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.cinzelDecorative(
+                            color: AppColors.gold,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            shadows: [
+                              Shadow(
+                                  color: AppColors.gold.withAlpha(120),
+                                  blurRadius: 12),
+                            ],
+                          ),
+                        )
+                      else
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              '$completed',
+                              style: GoogleFonts.cinzelDecorative(
+                                color: AppColors.gold,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
+                                height: 1.0,
+                              ),
+                            ),
+                            Text(
+                              ' / ${m1Events.length}',
+                              style: GoogleFonts.nunito(
+                                color: AppColors.gold.withAlpha(140),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              '·  $percent%',
+                              style: GoogleFonts.nunito(
+                                color: AppColors.gold.withAlpha(180),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (!isStart) ...[
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: (completed / m1Events.length)
+                                .clamp(0.0, 1.0),
+                            minHeight: 8,
+                            backgroundColor: AppColors.gold.withAlpha(25),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.gold),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -373,26 +490,59 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     );
   }
 
-  Widget _statPill(String emoji, String value) {
+  /// B7: bigger, labeled stat pill. Emoji + large value + muted label line.
+  Widget _statPill({
+    required String emoji,
+    required String value,
+    required String label,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.black.withAlpha(150),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.gold.withAlpha(30)),
+        color: Colors.black.withAlpha(170),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.gold.withAlpha(60), width: 1.2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 10)),
-          const SizedBox(width: 4),
           Text(
-            value,
-            style: GoogleFonts.nunito(
+            emoji,
+            style: TextStyle(
+              fontSize: 18,
               color: AppColors.gold,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
+              shadows: [
+                Shadow(color: AppColors.gold.withAlpha(90), blurRadius: 8),
+              ],
             ),
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.nunito(
+                  color: AppColors.gold,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: GoogleFonts.nunito(
+                  color: AppColors.gold.withAlpha(130),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+              ),
+            ],
           ),
         ],
       ),
