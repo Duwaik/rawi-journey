@@ -43,7 +43,9 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
   Timer? _stallWatchdog;
   Duration _lastPos = Duration.zero;
   DateTime _lastPosTime = DateTime.now();
-  bool _showUnavailable = false;
+  // R25-S1-7: fallback UI shown when init/stall watchdog fires. User
+  // picks Replay (re-init from scratch) or Skip (treat as completed).
+  bool _showFallback = false;
 
   @override
   void initState() {
@@ -80,11 +82,14 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
     _controller!.addListener(_checkEnd);
 
     // B26: if init doesn't complete in 10s, skip gracefully.
-    _initTimeout = Timer(const Duration(seconds: 10), () {
+    // R25-S1-7: 8-second init cap (replaces B26's 10s). On timeout, show
+    // the Replay/Skip fallback instead of the old "Video unavailable"
+    // dead-end message — users need an actionable choice, not a notice.
+    _initTimeout = Timer(const Duration(seconds: 8), () {
       if (_disposed || _completed) return;
       if (_controller?.value.isInitialized != true) {
         DebugLogService.log('video',
-            'init timeout (10s) for ${widget.videoPath} — skipping');
+            'init timeout (8s) for ${widget.videoPath} — showing fallback');
         _failGracefully(reason: 'init_timeout');
       }
     });
@@ -112,14 +117,36 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
     });
   }
 
+  /// R25-S1-7: Show Replay/Skip fallback. User chooses the outcome —
+  /// the screen no longer auto-advances after 900ms.
   void _failGracefully({required String reason}) {
     if (_completed || _disposed) return;
-    setState(() => _showUnavailable = true);
-    // Brief visible notice, then proceed to the scene.
-    Future.delayed(const Duration(milliseconds: 900), () {
-      if (!mounted) return;
-      _onVideoEnd();
-    });
+    // Cancel any in-flight timers so they don't fire on top of the UI.
+    _stallWatchdog?.cancel();
+    _initTimeout?.cancel();
+    setState(() => _showFallback = true);
+    DebugLogService.log('video', 'fallback shown reason=$reason');
+  }
+
+  /// R25-S1-7 Replay: tear down the controller and re-boot it fresh.
+  Future<void> _replay() async {
+    DebugLogService.log('video',
+        'user tapped Replay from fallback (${widget.videoPath})');
+    final old = _controller;
+    _controller = null;
+    _lastPos = Duration.zero;
+    _lastPosTime = DateTime.now();
+    setState(() => _showFallback = false);
+    await old?.dispose();
+    if (_disposed) return;
+    await _bootController();
+  }
+
+  /// R25-S1-7 Skip: treat as completed — scene advances without replay.
+  void _skipFromFallback() {
+    DebugLogService.log('video',
+        'user tapped Skip from fallback (${widget.videoPath})');
+    _onVideoEnd();
   }
 
   void _checkEnd() {
@@ -163,7 +190,9 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
       canPop: false,
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: isReady
+        body: _showFallback
+            ? _buildFallbackUi()
+            : isReady
             ? Stack(
                 fit: StackFit.expand,
                 children: [
@@ -233,29 +262,85 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
                     ),
                 ],
               )
-            : Center(
-                child: _showUnavailable
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(
-                          PrefsService.isAr
-                              ? 'الفيديو غير متوفّر — المتابعة إلى المشهد'
-                              : 'Video unavailable — continuing to the scene',
-                          textAlign: TextAlign.center,
-                          textDirection: PrefsService.isAr
-                              ? TextDirection.rtl
-                              : TextDirection.ltr,
-                          style: GoogleFonts.nunito(
-                            color: AppColors.gold.withAlpha(200),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    : const CircularProgressIndicator(
-                        color: AppColors.gold,
-                      ),
+            : const Center(
+                child: CircularProgressIndicator(color: AppColors.gold),
               ),
+      ),
+    );
+  }
+
+  /// R25-S1-7: Fallback UI shown when the 8s init watchdog or 6s stall
+  /// watchdog fires. Two buttons: Try Again (re-init from scratch) and
+  /// Skip (proceed as if the video had completed).
+  Widget _buildFallbackUi() {
+    final isAr = PrefsService.isAr;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Icon(Icons.error_outline_rounded,
+                size: 40, color: AppColors.gold.withAlpha(180)),
+            const SizedBox(height: 16),
+            Text(
+              isAr
+                  ? 'حدث خطأ في تحميل هذا المشهد'
+                  : 'Something went wrong loading this scene',
+              textAlign: TextAlign.center,
+              textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 28),
+            // Try Again — primary
+            SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed: _replay,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: const Color(0xFF04060D),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  isAr ? 'إعادة المحاولة' : 'Try Again',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Skip — secondary
+            SizedBox(
+              height: 44,
+              child: OutlinedButton(
+                onPressed: _skipFromFallback,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppColors.gold.withAlpha(140)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(
+                  isAr ? 'تخطّي' : 'Skip',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.gold,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
