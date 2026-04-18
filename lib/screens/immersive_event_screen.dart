@@ -9,6 +9,7 @@ import '../character_art.dart';
 import '../data/scene_configs.dart';
 import '../models/journey_event.dart';
 import '../models/scene_config.dart';
+import '../feature_flags.dart';
 import '../services/audio_service.dart';
 import '../services/debug_log_service.dart';
 import '../services/prefs_service.dart';
@@ -780,7 +781,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _bubbleVisible = true;
       _isWalking = false;
     });
-    if (voPath != null) {
+    // R25-S1-5: Rawi figure VO gated behind kRawiFigureVoEnabled.
+    // Bubble text still shows; only the voice clip is suppressed.
+    if (voPath != null && kRawiFigureVoEnabled) {
       // Rawi bubbles are short — use SFX layer, don't duck ambient
       AudioService.playSfx(voPath, volume: 0.5);
     }
