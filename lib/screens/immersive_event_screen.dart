@@ -25,7 +25,6 @@ import '../widgets/cinematic/crescent_moon.dart';
 import '../widgets/cinematic/hotspot_card.dart';
 import '../widgets/cinematic/hotspot_progress.dart';
 import '../widgets/cinematic/grain_overlay.dart';
-import '../widgets/cinematic/parallax_scene.dart';
 import '../widgets/cinematic/particle_painter.dart';
 import '../widgets/cinematic/reader_hotspot_card.dart';
 import '../widgets/cinematic/scene_hotspot_marker.dart';
@@ -165,6 +164,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   Offset _posFor(SceneHotspot h) =>
       _effectivePositions[h.id] ?? Offset(h.x, h.y);
+
 
 
   @override
@@ -1560,43 +1560,35 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // Positioned.fill child INSIDE the Stack, Explorer-only.
         child: Stack(
         children: [
-          // R19-01b: Reader Mode background gradient.
+          // R19-01b: Reader Mode background gradient (only visible where
+          // ground layers don't cover; harmless when they do).
           if (!_explorerMode)
             const Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF04060D), Color(0xFF0B1E2D)],
-                    ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF04060D), Color(0xFF0B1E2D)],
                   ),
                 ),
               ),
             ),
 
-          // ── Scene background image (direct render) ────────────────────
-          // ParallaxScene's complex pipeline (SizedBox → GestureDetector
-          // → ClipRect → inner Stack → Positioned with negative offsets
-          // → Transform.translate → Image.asset) failed to render on
-          // device across 4 attempts. Bypassing entirely with a simple
-          // Positioned.fill Image.asset that guarantees the scene is
-          // visible. Parallax panning sacrificed for a working BG.
+          // ── Scene background image ────────────────────────────────────
+          // Explicit width/height from screen size — Image.asset without
+          // explicit dimensions was failing to render on Samsung A56
+          // despite Positioned.fill / non-positioned Stack child patterns.
+          // Rawi figure works because it has width: 60, height: 60 explicit.
           if (_scene.groundLayers.isNotEmpty)
-            Positioned.fill(
+            Positioned(
+              left: 0,
+              top: 0,
               child: Image.asset(
                 _scene.groundLayers.first.assetPath,
+                width: screenW,
+                height: screenH,
                 fit: BoxFit.cover,
-                errorBuilder: (_, error, _) => Container(
-                  color: const Color(0xFF0A0E14),
-                  child: Center(
-                    child: Text(
-                      'BG load failed: $error',
-                      style: const TextStyle(color: Colors.red, fontSize: 10),
-                    ),
-                  ),
-                ),
               ),
             ),
 
@@ -1647,16 +1639,23 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             );
           }),
 
-          // ── Atmospheric overlays (all non-interactive) ─────────────
-          if (_scene.showStars) const IgnorePointer(child: StarfieldLayer()),
-          if (_scene.showMoon) IgnorePointer(child: CrescentMoon(position: _scene.moonPosition)),
+          // ── Atmospheric overlays ───────────────────────────────────
+          // THE FIX: these widgets have IgnorePointer INSIDE their own
+          // build methods wrapping Positioned.fill. R22 Part 1 added a
+          // redundant outer IgnorePointer which broke the inner
+          // Positioned.fill (Positioned only works as a direct Stack
+          // child). Removing the outer wrappers restores 333567b pattern.
+          if (_scene.showStars) const StarfieldLayer(),
+          if (_scene.showMoon) CrescentMoon(position: _scene.moonPosition),
           if (_scene.particleType != ParticleType.none)
-            IgnorePointer(child: ParticleField(type: _scene.particleType,
-                count: (_scene.particleCount * (1.0 + _discoveredProgress * 0.5)).round(),
-                color: _scene.particleColor)),
-          if (_scene.showGrain) const IgnorePointer(child: GrainOverlay()),
-
-          if (_scene.showBirds) IgnorePointer(child: BirdsOverlay(count: _scene.birdCount)),
+            ParticleField(
+                type: _scene.particleType,
+                count: (_scene.particleCount *
+                        (1.0 + _discoveredProgress * 0.5))
+                    .round(),
+                color: _scene.particleColor),
+          if (_scene.showGrain) const GrainOverlay(),
+          if (_scene.showBirds) BirdsOverlay(count: _scene.birdCount),
 
           // ── Footprint trail (non-interactive) ──────────────────────
           if (_phase == _Phase.explore && _footprints.isNotEmpty)
@@ -1701,10 +1700,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Touch-to-move (Explorer only, BEHIND markers) ────────
-          // R24 fix: MUST be before hotspot markers in the children
-          // list so markers render on top and win hit tests. The
-          // previous position (after markers) caused the Positioned.fill
-          // GestureDetector to sit ABOVE cards, eating their taps.
           if (_explorerMode && _phase == _Phase.explore)
             Positioned.fill(
               child: GestureDetector(
@@ -1860,8 +1855,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   ),
                 ),
               ),
-            // ── Explorer: speech bubble above figure (separate
-            // Positioned so it doesn't push the figure down) ────────
+            // ── Explorer: speech bubble above figure ────────────────
             if (_explorerMode)
               Positioned(
                 left: _companionX * screenW + sceneOffset - 60,
@@ -1960,9 +1954,6 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),
 
           // ── Virtual joystick ───────────────────────────────────────
-          // R20 Part C: hidden in Reader Mode — Reader uses tap-to-advance
-          // instead of free movement.
-          // R21-04: position is user-configurable (left / center / right).
           if (_explorerMode && _phase == _Phase.explore && _activeHotspot == null)
             Positioned(
               bottom: bottomPad + 16,
@@ -2228,6 +2219,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 ),
               ),
             ),
+
         ],
       ),
       ),
