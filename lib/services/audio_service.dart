@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:just_audio/just_audio.dart';
 
+import 'debug_log_service.dart';
 import 'prefs_service.dart';
 
 /// Manages ambient background audio and one-shot SFX for cinematic scenes.
@@ -39,8 +40,10 @@ class AudioService {
       await _ambient!.setLoopMode(loop ? LoopMode.one : LoopMode.off);
       await _ambient!.setVolume(volume);
       _ambient!.play();
+      DebugLogService.log('audio', 'ambient play $assetPath vol=$volume');
       return true;
-    } catch (_) {
+    } catch (e) {
+      DebugLogService.log('audio', 'ambient init FAILED $assetPath — $e');
       _ambient?.dispose();
       _ambient = null;
       _currentAmbientPath = null;
@@ -77,7 +80,8 @@ class AudioService {
       await _sfx!.setLoopMode(LoopMode.off);
       await _sfx!.setVolume(volume);
       _sfx!.play();
-    } catch (_) {
+    } catch (e) {
+      DebugLogService.log('audio', 'sfx FAILED $assetPath — $e');
       _sfx?.dispose();
       _sfx = null;
     }
@@ -166,6 +170,7 @@ class AudioService {
   }) async {
     final player = _ambient;
     if (player == null) return;
+    final path = _currentAmbientPath;
 
     final startVol = player.volume;
     const steps = 15;
@@ -180,14 +185,19 @@ class AudioService {
     await player.dispose();
     _ambient = null;
     _currentAmbientPath = null;
+    DebugLogService.log('audio', 'ambient faded out $path');
   }
 
   /// Immediately stop ambient audio (emergency only — use fadeOut for UI).
   static Future<void> stopAmbient() async {
+    final path = _currentAmbientPath;
     await _ambient?.stop();
     await _ambient?.dispose();
     _ambient = null;
     _currentAmbientPath = null;
+    if (path != null) {
+      DebugLogService.log('audio', 'ambient STOP $path');
+    }
   }
 
   /// Stop SFX.
@@ -195,5 +205,19 @@ class AudioService {
     await _sfx?.stop();
     await _sfx?.dispose();
     _sfx = null;
+  }
+
+  /// R25-S1-4: Stop everything — ambient, SFX, VO — awaiting disposal.
+  /// Called by any screen that must own the audio channel before starting
+  /// its own player (e.g. VideoIntroScreen on event launch). Use this
+  /// instead of individual stop* calls so future audio layers are covered
+  /// by one call site.
+  static Future<void> stopAll() async {
+    DebugLogService.log('audio',
+        'stopAll requested (ambient=${_currentAmbientPath ?? "—"})');
+    // Await each disposal so the caller can rely on a silent channel.
+    await stopVoiceover();
+    await stopAmbient();
+    await stopSfx();
   }
 }

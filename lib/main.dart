@@ -6,6 +6,7 @@ import 'app_colors.dart';
 import 'screens/splash_screen.dart';
 import 'services/audio_service.dart';
 import 'services/prefs_service.dart';
+import 'widgets/debug_nav_observer.dart';
 import 'widgets/debug_reporter_overlay.dart';
 
 void main() async {
@@ -79,6 +80,8 @@ class _RawiAppState extends State<RawiApp> with WidgetsBindingObserver {
     return MaterialApp(
       title: 'Rawi',
       debugShowCheckedModeBanner: false,
+      // R25-S1-6: every push/pop/replace funnels into DebugLogService
+      navigatorObservers: [DebugNavObserver()],
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.black,
         textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),

@@ -47,10 +47,13 @@ class _VideoIntroScreenState extends State<VideoIntroScreen> {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
+    DebugLogService.log('video', 'init start ${widget.videoPath}');
     _controller = VideoPlayerController.asset(widget.videoPath)
       ..initialize().then((_) {
         if (_disposed) return;
         _initTimeout?.cancel();
+        DebugLogService.log('video',
+            'isInitialized=true  dur=${_controller.value.duration} ${widget.videoPath}');
         setState(() {});
         _controller.play();
         _startStallWatchdog();
