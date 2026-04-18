@@ -135,6 +135,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   BranchOption? _branchChoice;
   List<String> _branchUnlockOrder = []; // hotspot IDs in visit order
   Timer? _idleTimer;
+  Timer? _hotspotHealthTimer;
   int _idleTriggerCount = 0;
   int _postDiscoveryCount = 0;
   final Map<String, int> _revisitCount = {};
@@ -251,12 +252,98 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         _pathProgress = (_discovered.length / _scene.hotspots.length).clamp(0.0, 0.95);
         _updateCompanionFromPath();
       }
+      // B1 root cause fix: if this is a branching event and the anchor is
+      // already discovered but no branch choice has been made, restore the
+      // Crossroads card on the next frame. Without this, _branchUnlockOrder
+      // stays empty, _nextHotspotId returns null, and all branch hotspots
+      // remain invisible — the user is stuck.
+      if (_isBranching &&
+          widget.event.anchorHotspotId != null &&
+          _discovered.contains(widget.event.anchorHotspotId) &&
+          _branchChoice == null &&
+          _branchUnlockOrder.isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            debugPrint('[B1] Restored Crossroads card on resume '
+                '(anchor discovered, no branch choice)');
+            setState(() => _showBranchCard = true);
+          }
+        });
+      }
       // Show tutorial on first event if not seen
       if (!PrefsService.isTutorialSeen && widget.event.globalOrder == 1) {
         _showTutorial = true;
       } else {
         _resetIdleTimer();
       }
+    }
+    // B1 safety net: periodic health check every 12s.
+    _startHotspotHealthCheck();
+  }
+
+  /// B1 safety net: periodic silent health check that heals stuck
+  /// hotspot states. Runs every 12 seconds while the event screen is
+  /// alive. Detects and self-heals known stuck states:
+  ///
+  ///   1. `_pendingDiscovery` has entries but no active panel / branch
+  ///      card — the dismiss flow didn't complete. Clear stale entries
+  ///      and move them to `_discovered` so the game continues.
+  ///   2. Branching event: anchor discovered, no branch choice made,
+  ///      `_branchUnlockOrder` empty, and Crossroads card not showing.
+  ///      Re-show the Crossroads card.
+  ///   3. Linear event: `_nextHotspotId` is null but not all hotspots
+  ///      are discovered — log (shouldn't happen, indicates a bug).
+  ///
+  /// All fixes are silent — no flicker, no reload. Logs via debugPrint
+  /// so we can track if it ever fires in release builds.
+  void _startHotspotHealthCheck() {
+    _hotspotHealthTimer?.cancel();
+    _hotspotHealthTimer = Timer.periodic(
+      const Duration(seconds: 12),
+      (_) => _runHotspotHealthCheck(),
+    );
+  }
+
+  void _runHotspotHealthCheck() {
+    if (!mounted) return;
+    if (_alreadyCompleted) return;
+    if (_phase != _Phase.explore) return;
+    if (_activeHotspot != null) return; // user is reading a card, not stuck
+    if (_showBranchCard) return; // Crossroads is up, not stuck
+    if (_showSettings || _showTutorial) return;
+
+    // Heal 1: stale _pendingDiscovery entries.
+    // A hotspot in _pendingDiscovery but no active panel means the
+    // dismiss flow didn't complete. Move them to _discovered.
+    if (_pendingDiscovery.isNotEmpty) {
+      final stale = _pendingDiscovery.toList();
+      debugPrint('[B1 safety net] Healing stale pending discoveries: $stale');
+      setState(() {
+        _discovered.addAll(stale);
+        _pendingDiscovery.clear();
+      });
+      _saveProgressNow();
+    }
+
+    // Heal 2: branching event, anchor done, no choice, no crossroads.
+    if (_isBranching &&
+        widget.event.anchorHotspotId != null &&
+        _discovered.contains(widget.event.anchorHotspotId) &&
+        _branchChoice == null &&
+        _branchUnlockOrder.isEmpty &&
+        !_showBranchCard) {
+      debugPrint('[B1 safety net] Restoring missing Crossroads card');
+      setState(() => _showBranchCard = true);
+      return;
+    }
+
+    // Heal 3: linear event with null next and not all discovered.
+    if (!_isBranching &&
+        _nextHotspotId == null &&
+        _discovered.length < _scene.hotspots.length) {
+      debugPrint(
+          '[B1 safety net] Linear event has null _nextHotspotId with '
+          '${_discovered.length}/${_scene.hotspots.length} discovered');
     }
   }
 
@@ -513,6 +600,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   @override
   void dispose() {
     _idleTimer?.cancel();
+    _hotspotHealthTimer?.cancel();
     _autoWalking = false;
     _verdictScrollCtrl.dispose();
     // _reflectionScrollCtrl removed
