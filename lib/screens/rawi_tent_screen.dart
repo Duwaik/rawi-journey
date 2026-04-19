@@ -42,18 +42,20 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     return 'assets/scenes/tent_night.jpg';
   }
 
-  // R24 A-05: greeting on one line, name on next, no "Peace be upon you"
+  /// R25-S2-6: Static salaam greeting with the user's name inline.
+  /// No time-of-day variants. Empty-name falls back to bare salaam
+  /// (no trailing comma) per spec §7 deferred handling.
   String get _greeting {
-    final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return _isAr ? 'صباح الخير' : 'Good morning';
-    if (hour >= 12 && hour < 17) return _isAr ? 'مرحباً' : 'Good afternoon';
-    return _isAr ? 'مساء الخير' : 'Good evening';
+    final name = PrefsService.userName.trim();
+    if (_isAr) {
+      return name.isEmpty
+          ? 'السلام عليكم'
+          : 'السلام عليكم، $name';
+    }
+    return name.isEmpty
+        ? 'Assalamu Alaykom'
+        : 'Assalamu Alaykom, $name';
   }
-
-  String get _userName =>
-      PrefsService.userName.isNotEmpty
-          ? PrefsService.userName
-          : (_isAr ? 'رحّال' : 'Traveler');
 
   int get _completedCount {
     int c = 0;
@@ -158,30 +160,34 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
             // tent visual, a separate avatar circle is redundant.
 
             // ── Greeting (top center) ────────────────────────────────
+            // R25-S2-6: single-line inline greeting "Assalamu Alaykom,
+            // {name}" / "السلام عليكم، {name}". Rank subtitle unchanged.
             Positioned(
               top: topPad + 40,
-              left: 0, right: 0,
+              left: 16, right: 16,
               child: Column(
                 children: [
                   Text(
                     _greeting,
-                    style: GoogleFonts.nunito(
-                      color: AppColors.textPrimary.withAlpha(130),
-                      fontSize: 11,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _userName,
                     textAlign: TextAlign.center,
+                    textDirection:
+                        _isAr ? TextDirection.rtl : TextDirection.ltr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.nunito(
-                      color: AppColors.textPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFE8D8B8),
+                      fontSize: _isAr ? 16 : 15,
+                      fontWeight: FontWeight.w500,
+                      shadows: [
+                        Shadow(
+                          offset: const Offset(0, 2),
+                          blurRadius: 8,
+                          color: Colors.black.withAlpha(153),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 6),
                   Text(
                     // B21: age + gender based rank title
                     RawiStage.ageGenderTitle(
