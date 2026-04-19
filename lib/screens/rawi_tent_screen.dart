@@ -220,8 +220,14 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
             // Three rows: Light, XP, Dhikr (Reader mode uses Knowledge +
             // Events + Dhikr per B11). Single container with faint gold
             // dividers and backdrop blur.
+            //
+            // Device-test fix (Apr 19): original spec top: 0.44 landed on
+            // the hooded figure's body in tent_day.jpg — the 0.55-alpha
+            // pill had zero contrast against the dark robes and appeared
+            // invisible. Moved to top: 0.22 so it sits in the sunrise sky
+            // just below the greeting, above the figure.
             Positioned(
-              top: screenH * 0.44,
+              top: screenH * 0.22,
               left: 10,
               child: _buildStatPillsContainer(completed),
             ),
@@ -488,18 +494,23 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
         value: '${PrefsService.dhikrCompletedCount}',
       ),
     ];
+    // Device-test fix (Apr 19): bumped bg opacity 0.55→0.72 and border
+    // alpha 0.18→0.32 so the pill stays legible against both the bright
+    // sunrise sky on tent_day.jpg AND the darker figure/dunes on other
+    // time-of-day variants. Original spec values assumed a uniformly
+    // dark scene BG that the live art doesn't guarantee.
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 9),
           decoration: BoxDecoration(
-            color: const Color.fromRGBO(10, 14, 24, 0.55),
+            color: const Color.fromRGBO(10, 14, 24, 0.72),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: AppColors.gold.withAlpha(46), // 0.18 * 255 ≈ 46
-              width: 0.5,
+              color: AppColors.gold.withAlpha(82), // 0.32 * 255 ≈ 82
+              width: 0.8,
             ),
           ),
           child: Column(
