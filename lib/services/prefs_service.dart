@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/m1_data.dart';
 import '../models/badge_definition.dart';
+import 'debug_log_service.dart';
 
 class PrefsService {
   static SharedPreferences? _prefs;
@@ -425,10 +426,22 @@ class PrefsService {
       await _prefs?.setBool(_keyDhikrTutorialSeen, true);
 
   // ── NOOR LEVEL (Explorer Mode light mechanic) ──��──────────────────────
+  /// Returns the current Noor level in [0, 100]. Default 100 when the
+  /// pref hasn't been written yet. Always-clamped on write so readers
+  /// never see a negative or >100 value.
   static const String _keyNoorLevel = 'noorLevel';
   static int get noorLevel => _prefs?.getInt(_keyNoorLevel) ?? 100;
-  static Future<void> setNoorLevel(int level) async =>
-      await _prefs?.setInt(_keyNoorLevel, level.clamp(0, 100));
+
+  /// R25-S3-4: clamp writes to [0, 100] AND log the clamp path to the
+  /// debug reporter so device-test runs can see the exact sequence
+  /// behind any observed value. Addresses a Sprint 3 report of scene
+  /// vs tent showing different Noor numbers on the same event.
+  static Future<void> setNoorLevel(int level) async {
+    final clamped = level.clamp(0, 100);
+    final prev = noorLevel;
+    DebugLogService.log('noor', 'setNoorLevel($level)→$clamped (was $prev)');
+    await _prefs?.setInt(_keyNoorLevel, clamped);
+  }
   /// Deplete noor on event transition. Min floor = 0.
   static Future<void> depleteNoor(int amount) async =>
       await setNoorLevel(noorLevel - amount);
