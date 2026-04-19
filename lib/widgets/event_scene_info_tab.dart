@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
-import 'stat_row_group.dart';
 
 /// R25-S3-6: Expandable info tab on the left edge of the event scene.
 ///
@@ -163,107 +162,117 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     );
   }
 
-  /// Expanded content: YOUR LIGHT (lifetime) section + THIS EVENT
-  /// (4-dot progress) section, separated by a faint divider.
+  /// R25-S3-HF-2: vertical-stack redesign per hotfix spec.
+  /// Section 1: "Your Light" title + "across all events" subtitle + 18px value.
+  /// Section 2: "This Event" title + "X of 4 moments" subtitle + 4 dots.
+  /// No more uppercase section headers, no duplicated "Your Light" label.
+  /// Collapse chevron sits on the right border at mid-height (Stack).
   Widget _buildExpandedContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        // Header row: collapse chevron pinned to the end
-        Row(
-          textDirection:
-              _isAr ? TextDirection.rtl : TextDirection.ltr,
-          children: [
-            const Spacer(),
-            GestureDetector(
+        // Content column
+        Padding(
+          padding: const EdgeInsets.only(right: 14), // clear the chevron
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Section 1: Your Light (lifetime) ──────────────────
+              Text(
+                _isAr ? 'نورك' : 'Your Light',
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                style: GoogleFonts.nunito(
+                  color: AppColors.gold.withAlpha(217), // 0.85
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                _isAr ? 'عبر كل الأحداث' : 'across all events',
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                style: GoogleFonts.nunito(
+                  color: AppColors.gold.withAlpha(128), // 0.50
+                  fontSize: 9,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${PrefsService.noorLevel}%',
+                style: GoogleFonts.nunito(
+                  color: const Color(0xFFE8D8B8),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Divider
+              Container(
+                height: 0.5,
+                color: AppColors.gold.withAlpha(46),
+              ),
+              const SizedBox(height: 12),
+              // ── Section 2: This Event (4-dot progress) ────────────
+              Text(
+                _isAr ? 'هذا الحدث' : 'This Event',
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                style: GoogleFonts.nunito(
+                  color: AppColors.gold.withAlpha(217),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                _isAr
+                    ? '${_toArabicNumeral(widget.discoveredHotspots)} من '
+                        '${_toArabicNumeral(widget.totalHotspots)} لحظات'
+                    : '${widget.discoveredHotspots} of '
+                        '${widget.totalHotspots} moments',
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                style: GoogleFonts.nunito(
+                  color: AppColors.gold.withAlpha(128),
+                  fontSize: 9,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                children: _buildEventDots(),
+              ),
+            ],
+          ),
+        ),
+        // Collapse chevron on the right border at mid-height
+        Positioned(
+          right: -4,
+          top: 0,
+          bottom: 0,
+          child: Center(
+            child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _toggle,
               child: Icon(Icons.chevron_left_rounded,
-                  size: 18, color: AppColors.gold.withAlpha(200)),
+                  size: 20, color: AppColors.gold.withAlpha(200)),
             ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        // Section 1 — YOUR LIGHT (lifetime), rendered via the shared
-        // StatRowGroup so this surface and the tent use the same widget
-        // (spec §S3-8 acceptance criterion).
-        _sectionLabel(_isAr ? 'نورك' : 'YOUR LIGHT'),
-        const SizedBox(height: 6),
-        StatRowGroup(
-          showDividers: false,
-          rows: [
-            StatRow(
-              icon: Icons.auto_awesome_rounded,
-              label: 'Your Light',
-              labelAr: 'نورك',
-              value: '${PrefsService.noorLevel}%',
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        Text(
-          _isAr ? 'عبر كل الأحداث' : 'across all events',
-          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-          style: GoogleFonts.nunito(
-            color: AppColors.gold.withAlpha(102), // 0.40
-            fontSize: 9,
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Divider
-        Container(
-          height: 0.5,
-          color: AppColors.gold.withAlpha(46),
-        ),
-        const SizedBox(height: 12),
-        // Section 2 — THIS EVENT (4-dot progress)
-        _sectionLabel(_isAr ? 'هذا الحدث' : 'THIS EVENT'),
-        const SizedBox(height: 6),
-        Row(
-          textDirection:
-              _isAr ? TextDirection.rtl : TextDirection.ltr,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(Icons.check_circle_outline_rounded,
-                size: 14, color: AppColors.gold),
-            const SizedBox(width: 6),
-            ..._buildEventDots(),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          _isAr
-              ? '${_toArabicNumeral(widget.discoveredHotspots)} من '
-                  '${_toArabicNumeral(widget.totalHotspots)} لحظات'
-              : '${widget.discoveredHotspots} of '
-                  '${widget.totalHotspots} moments',
-          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-          style: GoogleFonts.nunito(
-            color: AppColors.gold.withAlpha(140), // 0.55
-            fontSize: 9,
           ),
         ),
       ],
     );
   }
 
-  Widget _sectionLabel(String text) => Text(
-        text,
-        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-        style: GoogleFonts.nunito(
-          color: AppColors.gold.withAlpha(191), // 0.75
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
-        ),
-      );
-
   List<Widget> _buildEventDots() {
     return List<Widget>.generate(widget.totalHotspots, (i) {
       final filled = i < widget.discoveredHotspots;
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 3),
         child: Container(
           width: 8,
           height: 8,
@@ -273,8 +282,8 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
             border: Border.all(
               color: filled
                   ? AppColors.gold
-                  : AppColors.gold.withAlpha(80),
-              width: 1,
+                  : AppColors.gold.withAlpha(102), // 0.4
+              width: filled ? 0 : 0.5,
             ),
           ),
         ),
