@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -186,35 +188,14 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
               ),
             ),
 
-            // ── Noor + XP (top left, below greeting) ─────────────────
-            // B7: label-first pills, matched width
-            // B11: Reader mode uses plain labels ("Events Completed") — no
-            // gaming jargon. Same visual treatment, elder-friendly terms.
+            // ── R25-S2-1/S2-2: Stat pills container (left side) ──────
+            // Three rows: Light, XP, Dhikr (Reader mode uses Knowledge +
+            // Events + Dhikr per B11). Single container with faint gold
+            // dividers and backdrop blur.
             Positioned(
-              top: topPad + 110,
-              left: 12,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _statPill(
-                    emoji: '✦',
-                    value: '${PrefsService.noorLevel}%',
-                    label: PrefsService.isExplorerMode
-                        ? (_isAr ? 'نورك' : 'Your Light')
-                        : (_isAr ? 'المعرفة' : 'Knowledge'),
-                  ),
-                  const SizedBox(height: 8),
-                  _statPill(
-                    emoji: '★',
-                    value: PrefsService.isExplorerMode
-                        ? '${PrefsService.xp}'
-                        : '$completed',
-                    label: PrefsService.isExplorerMode
-                        ? (_isAr ? 'خبرتك' : 'Experience')
-                        : (_isAr ? 'الأحداث المكتملة' : 'Events Completed'),
-                  ),
-                ],
-              ),
+              top: screenH * 0.44,
+              left: 10,
+              child: _buildStatPillsContainer(completed),
             ),
 
             // ── Right-side navigation (5 square icons) ───────────────
@@ -511,62 +492,100 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     );
   }
 
-  /// B7: horizontal stat row — label THEN emoji THEN value.
-  /// Reads "نورك ✦ 100%" / "Your Light ✦ 100%" left-to-right per language.
-  Widget _statPill({
-    required String emoji,
-    required String value,
-    required String label,
-  }) {
-    return SizedBox(
-      width: 150, // fixed width — both pills match
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.black.withAlpha(170),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.gold.withAlpha(60), width: 1.2),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold.withAlpha(180),
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
-              ),
-              textDirection:
-                  _isAr ? TextDirection.rtl : TextDirection.ltr,
+  /// R25-S2-1/S2-2: single container with Light, XP, Dhikr rows plus
+  /// faint gold dividers. Reader mode swaps Light→Knowledge,
+  /// XP→Events (B11 locked rule). Dhikr is lifetime count from
+  /// PrefsService.dhikrCompletedCount.
+  Widget _buildStatPillsContainer(int completed) {
+    final explorer = PrefsService.isExplorerMode;
+    final rows = <Widget>[
+      _statRow(
+        icon: Icons.auto_awesome_rounded,
+        label: explorer
+            ? (_isAr ? 'النور' : 'Light')
+            : (_isAr ? 'المعرفة' : 'Knowledge'),
+        value: '${PrefsService.noorLevel}%',
+      ),
+      _statDivider(),
+      _statRow(
+        icon: Icons.bolt_rounded,
+        label: explorer
+            ? (_isAr ? 'الخبرة' : 'XP')
+            : (_isAr ? 'الأحداث' : 'Events'),
+        value: explorer ? '${PrefsService.xp}' : '$completed',
+      ),
+      _statDivider(),
+      _statRow(
+        icon: Icons.pan_tool_alt_rounded,
+        label: _isAr ? 'الذكر' : 'Dhikr',
+        value: '${PrefsService.dhikrCompletedCount}',
+      ),
+    ];
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 9),
+          decoration: BoxDecoration(
+            color: const Color.fromRGBO(10, 14, 24, 0.55),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.gold.withAlpha(46), // 0.18 * 255 ≈ 46
+              width: 0.5,
             ),
-            const SizedBox(width: 8),
-            Text(
-              emoji,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.gold,
-                shadows: [
-                  Shadow(color: AppColors.gold.withAlpha(90), blurRadius: 8),
-                ],
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              value,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: rows,
+          ),
         ),
       ),
     );
   }
+
+  Widget _statRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return SizedBox(
+      height: 22,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+        children: [
+          Icon(icon, size: 11, color: AppColors.gold),
+          const SizedBox(width: 7),
+          Text(
+            label,
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.nunito(
+              color: const Color(0xFFC0A878),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            value,
+            style: GoogleFonts.nunito(
+              color: AppColors.gold,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statDivider() => Container(
+        height: 0.5,
+        margin: const EdgeInsets.symmetric(vertical: 3),
+        color: AppColors.gold.withAlpha(31), // 0.12 * 255 ≈ 31
+      );
 
   // ── Sheet overlay (R24 A-03: tap outside + swipe to dismiss) ─────────
 
