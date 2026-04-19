@@ -40,7 +40,8 @@ import '../widgets/cinematic/starfield_layer.dart';
 import '../widgets/cinematic/virtual_joystick.dart';
 import '../widgets/cinematic/fog_overlay.dart';
 import '../widgets/settings_overlay.dart';
-import '../widgets/tutorial_overlay.dart';
+// R25-S3-HF-8: legacy TutorialOverlay retired — Event1TutorialOverlay
+// is the sole tutorial on Event 1 now.
 import 'rawi_tent_screen.dart';
 import 'unified_completion_screen.dart';
 
@@ -59,7 +60,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _isAr = false;
   bool _alreadyCompleted = false;
   bool _showSettings = false;
-  bool _showTutorial = false;
+  // R25-S3-HF-8: retained as `final false` so the two remaining guard
+  // reads (idle timer, _onIdle) resolve without breaking. Legacy
+  // TutorialOverlay will never set this true again.
+  final bool _showTutorial = false;
   // R25-S3-7: Event 1 one-time tutorial overlay (post-intro).
   bool _showEvent1Tutorial = false;
   // _showChoiceTutorial removed — Crossroads is self-explanatory
@@ -288,10 +292,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           }
         });
       }
-      // Show tutorial on first event if not seen
-      if (!PrefsService.isTutorialSeen && widget.event.globalOrder == 1) {
-        _showTutorial = true;
-      } else {
+      // R25-S3-HF-8: legacy TutorialOverlay retired. Event 1 tutorial
+      // is now the sequential 3-step Event1TutorialOverlay (see
+      // _showEvent1Tutorial flag, set in initState when this is event
+      // 1 and the pref is unseen). Flipping the old seen flag here so
+      // any reappearance of this trigger in a future branch no-ops.
+      if (widget.event.globalOrder == 1 && !PrefsService.isTutorialSeen) {
+        PrefsService.setTutorialSeen();
+      }
+      {
         _resetIdleTimer();
       }
     }
@@ -2283,16 +2292,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── Tutorial overlay (first event only) ───────────────────
-          if (_showTutorial)
-            Positioned.fill(
-              child: TutorialOverlay(
-                onComplete: () {
-                  setState(() => _showTutorial = false);
-                  _resetIdleTimer();
-                },
-              ),
-            ),
+          // R25-S3-HF-8: legacy TutorialOverlay render retired. The
+          // Event1TutorialOverlay below is the sole tutorial surface
+          // on Event 1 now — sequential 3 steps, elegant centered
+          // styling that matches the old overlay's look.
 
           // ── R25-S3-7: Event 1 one-time tutorial overlay ──────────
           // Shown only on the first launch of event #1, after the
