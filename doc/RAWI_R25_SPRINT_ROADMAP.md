@@ -22,7 +22,7 @@
 | Sprint | Title | Status | Agent Commit | Verified On Device |
 |--------|-------|--------|--------------|--------------------|
 | 1 | Tent → Event Navigation + Audio | ✅ Verified | `bf337c2` (tip, followup incl.) | Apr 19, 2026 — A56, all 7 items pass |
-| 2 | Tent Screen Layout | 🟢 Agent done, awaiting device | `ee2f6ad` | — |
+| 2 | Tent Screen Layout | 🟡 Device test found S2-1 invisibility — followup shipped, re-verify pending | `b452ccc` (tip, visibility fix) | — |
 | 3 | Event Scene Header + Noor | 🔲 Inputs locked, ready when S2 closes | — | — |
 | 4 | Reader Mode Flow | 🔲 Not started | — | — |
 | 5 | End of Event + Badge | 🔲 Not started | — | — |

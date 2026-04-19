@@ -63,11 +63,11 @@ _None._
 
 ---
 
-## Sprint 2 — Tent Screen Layout  🟢 AGENT DONE, AWAITING DEVICE
+## Sprint 2 — Tent Screen Layout  🟡 DEVICE TEST IN PROGRESS
 
-**Agent commits:** `189038e` (S2-1+S2-2) · `1720998` (S2-3) · `f9f4c31` (S2-4+S2-5) · `079ef4e` (S2-6) · `631af4b` (S2-7) · `ee2f6ad` (S2-8)
+**Agent commits:** `189038e` (S2-1+S2-2) · `1720998` (S2-3) · `f9f4c31` (S2-4+S2-5) · `079ef4e` (S2-6) · `631af4b` (S2-7) · `ee2f6ad` (S2-8) · `b452ccc` (S2-1 followup: visibility fix)
 **Handoff:** `doc/RAWI_R25_S2_HANDOFF.md`
-**Verify date:** pending A56 run by Khaled.
+**Verify date:** Apr 19 2026 — device test found S2-1 invisibility, followup shipped. Re-verification pending.
 **APK SHA256:** `b6404443e8775a3f775aa93818375bfa368fa4cb7c6bc091ab75b28b753e505f` (91.8 MB)
 **Net LoC:** +126 / −159 (−33 net)
 
@@ -94,7 +94,18 @@ _None._ Dhikr counter picked up an existing lifetime source; no new content requ
 
 ### Device-test findings
 
-_Pending A56 run. Populate with pass/fail per acceptance row from handoff §3._
+**Apr 19 2026, 13:04 on A56 (tent_day.jpg, Explorer mode, user "KD"):**
+
+| ID | Item | Finding | Resolution |
+|----|------|---------|------------|
+| S2-1-v1 | Stat pills container | Invisible on device — `top: 0.44` landed on the hooded figure's robed body; 0.55-alpha pill had no contrast against dark reddish-brown robe. | Followup `b452ccc`: moved to `top: 0.22` (sunrise sky, below greeting, above figure). Bumped bg to 0.72 alpha + border to 0.32 alpha + width 0.8 for general robustness across all four time-of-day scenes. Re-verify on device. |
+
+All other S2 items (S2-3 through S2-8) appear correct in the screenshot:
+- S2-6 greeting "Assalamu Alaykom, KD" + "The Explorer" subtitle rendering correctly inline.
+- S2-3 "Your Journey" label absent.
+- S2-4 + S2-5 progress card: title centered ("The Birth of the Prophet ﷺ"), [Start] button on left, "2 / 155" count on right, thin progress bar below.
+- S2-8 events-list not yet opened on device — pending check.
+- Debug overlay FAB visible at bottom-left (60 entries) — S1-6 working as designed.
 
 ### Regressions / new bugs
 
