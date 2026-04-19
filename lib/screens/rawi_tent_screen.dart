@@ -17,6 +17,7 @@ import 'event_list_screen.dart';
 import 'scroll_viewer_screen.dart';
 import 'seerah_sky_screen.dart';
 import 'settings_screen.dart';
+import '../widgets/stat_row_group.dart';
 
 /// R22 Part 3 / R24 A-01 — Rawi's Tent V2 (cinematic campfire home).
 ///
@@ -465,44 +466,39 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     );
   }
 
-  /// R25-S2-1/S2-2: single container with Light, XP, Dhikr rows plus
-  /// faint gold dividers. Reader mode swaps XP value→events-completed
-  /// count (B11) but the label stays unchanged. Dhikr is lifetime count
-  /// from PrefsService.dhikrCompletedCount.
+  /// R25-S3-8: tent's 3-pill stat container now consumes the shared
+  /// StatRowGroup widget. Same widget + data flow as the event-scene
+  /// info tab (S3-6) — fixes the S2-1 / S2-2 invisibility bug by
+  /// retiring the bespoke inline row rendering that was being drawn
+  /// but not visually registering against certain scene-art backgrounds.
   ///
-  /// R25-S3-5: the Light label is now "Your Light" / "نورك" in BOTH
-  /// modes. Previously the Reader-mode branch showed "Knowledge" /
-  /// "المعرفة" which Khaled saw flickering in after mode toggles. The
-  /// info tab on the event scene (§9.3) uses the same label, so
-  /// consolidation keeps both surfaces identical.
+  /// Reader mode still swaps the XP value→events-completed count (B11).
+  /// Labels stay constant across modes (S3-5 consolidation).
   Widget _buildStatPillsContainer(int completed) {
     final explorer = PrefsService.isExplorerMode;
-    final rows = <Widget>[
-      _statRow(
+    final statRows = <StatRow>[
+      StatRow(
         icon: Icons.auto_awesome_rounded,
-        label: _isAr ? 'نورك' : 'Your Light',
+        label: 'Your Light',
+        labelAr: 'نورك',
         value: '${PrefsService.noorLevel}%',
       ),
-      _statDivider(),
-      _statRow(
+      StatRow(
         icon: Icons.bolt_rounded,
-        label: explorer
-            ? (_isAr ? 'الخبرة' : 'XP')
-            : (_isAr ? 'الأحداث' : 'Events'),
+        label: explorer ? 'XP' : 'Events',
+        labelAr: explorer ? 'الخبرة' : 'الأحداث',
         value: explorer ? '${PrefsService.xp}' : '$completed',
       ),
-      _statDivider(),
-      _statRow(
+      StatRow(
         icon: Icons.pan_tool_alt_rounded,
-        label: _isAr ? 'الذكر' : 'Dhikr',
+        label: 'Dhikr',
+        labelAr: 'الذكر',
         value: '${PrefsService.dhikrCompletedCount}',
       ),
     ];
-    // Device-test fix (Apr 19): bumped bg opacity 0.55→0.72 and border
-    // alpha 0.18→0.32 so the pill stays legible against both the bright
-    // sunrise sky on tent_day.jpg AND the darker figure/dunes on other
-    // time-of-day variants. Original spec values assumed a uniformly
-    // dark scene BG that the live art doesn't guarantee.
+    // Container chrome kept from the S2-1 device-test fix: bg 0.72,
+    // gold 0.32 border, blur 8. Renders legibly against any time-of-
+    // day scene variant.
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: BackdropFilter(
@@ -513,61 +509,15 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
             color: const Color.fromRGBO(10, 14, 24, 0.72),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: AppColors.gold.withAlpha(82), // 0.32 * 255 ≈ 82
+              color: AppColors.gold.withAlpha(82),
               width: 0.8,
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: rows,
-          ),
+          child: StatRowGroup(rows: statRows, showDividers: true),
         ),
       ),
     );
   }
-
-  Widget _statRow({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return SizedBox(
-      height: 22,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-        children: [
-          Icon(icon, size: 11, color: AppColors.gold),
-          const SizedBox(width: 7),
-          Text(
-            label,
-            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-            style: GoogleFonts.nunito(
-              color: const Color(0xFFC0A878),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            value,
-            style: GoogleFonts.nunito(
-              color: AppColors.gold,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statDivider() => Container(
-        height: 0.5,
-        margin: const EdgeInsets.symmetric(vertical: 3),
-        color: AppColors.gold.withAlpha(31), // 0.12 * 255 ≈ 31
-      );
 
   /// R25-S2-4: Start / Continue button. Same generous padding in both
   /// states so the card doesn't shift when the label swaps. Label only,

@@ -22,6 +22,7 @@ import '../widgets/cinematic/rawi_figure.dart';
 import '../models/badge_definition.dart';
 import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
+import '../widgets/event_scene_info_tab.dart';
 import '../widgets/scroll_hint_wrapper.dart';
 import '../widgets/top_bar_icon_button.dart';
 import '../widgets/cinematic/xp_reward_animation.dart';
@@ -2067,6 +2068,20 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           // (see block near bottomPad).
           // R25-S3-1: old top-left _NoorHud removed. Replaced by the
           // expandable info tab widget on the left edge (S3-6).
+
+          // ── R25-S3-6: Event-scene info tab (left edge, mid-height)
+          // Collapsed = neutral info glyph; expanded = YOUR LIGHT
+          // lifetime row + THIS EVENT 4-dot progress.
+          if (_phase == _Phase.explore && _activeHotspot == null)
+            Positioned(
+              top: screenH * 0.40,
+              left: 0,
+              child: EventSceneInfoTab(
+                totalHotspots: _scene.hotspots.length,
+                discoveredHotspots:
+                    _discovered.length + _pendingDiscovery.length,
+              ),
+            ),
 
           // ── R25-S3-1: Scene dots (near bottom, above the title hero)
           if (_phase == _Phase.explore && _activeHotspot == null)
