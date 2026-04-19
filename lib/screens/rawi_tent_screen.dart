@@ -431,36 +431,26 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
   }
 
   // ── Navigation icon ──────────────────────────────────────────────────
+  //
+  // R25-S3-HF-4: Icon-only. Labels removed per device feedback — the
+  // 7px labels were getting truncated ("Collectio") at larger font
+  // scales and the label parameter is kept for API stability /
+  // tooltips only. Button shrank 52→44 to match 44dp tap-target min.
 
   Widget _navIcon(String icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 52, height: 52,
-        decoration: BoxDecoration(
-          color: Colors.black.withAlpha(180),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.gold.withAlpha(40)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold.withAlpha(130),
-                // R25-S2-7: bumped from 7 to 9 — with the root
-                // TextScaler clamp of [1.0, 1.3], this renders 9–11.7px,
-                // matching the spec's design minimum of 9+ for tiny
-                // labels on the A56 panel.
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
+    return Tooltip(
+      message: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 44, height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withAlpha(180),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.gold.withAlpha(40)),
+          ),
+          child: Text(icon, style: const TextStyle(fontSize: 22)),
         ),
       ),
     );
