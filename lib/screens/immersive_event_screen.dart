@@ -1645,7 +1645,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         if (didPop) return;
         _exitScene();
       },
-      child: Scaffold(
+      // R25-S3-1: clamp system text scaler to [1.0, 1.3] on the event
+      // scene root (same cap as the tent in S2-7). Large accessibility
+      // scaling was breaking the scene header and title overlay on the A56.
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: MediaQuery.textScalerOf(context).clamp(
+            minScaleFactor: 1.0,
+            maxScaleFactor: 1.3,
+          ),
+        ),
+        child: Scaffold(
       // R19-01b: Reader Mode uses the same navy gradient as the cinematic
       // intro for events without rich custom art. Avoids a flat-black scene
       // that feels dim even though there's no fog.
@@ -2038,72 +2048,46 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             ),         // Container (header bg)
           ),           // Positioned (header)
 
-          // ── B16: Event title banner (scroll-style, distinct from dots)
-          Positioned(
-            top: topPad + 50,
-            left: 0, right: 0,
-            child: Center(
-              child: Container(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.75,
-                ),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 18, vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF2A1810).withAlpha(220),
-                      const Color(0xFF1A0F08).withAlpha(240),
-                      const Color(0xFF2A1810).withAlpha(220),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(3),
-                  border: Border(
-                    top: BorderSide(
-                        color: AppColors.gold.withAlpha(120), width: 1),
-                    bottom: BorderSide(
-                        color: AppColors.gold.withAlpha(120), width: 1),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withAlpha(120),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2)),
-                  ],
-                ),
-                child: Text(
-                  _isAr ? widget.event.titleAr : widget.event.title,
-                  textAlign: TextAlign.center,
-                  textDirection:
-                      _isAr ? TextDirection.rtl : TextDirection.ltr,
-                  style: GoogleFonts.cinzelDecorative(
-                    color: AppColors.gold,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-          ),
+          // R25-S3-1: old top-anchored title banner removed. Title now
+          // renders at the bottom of the scene as a hero element
+          // (see block near bottomPad).
+          // R25-S3-1: old top-left _NoorHud removed. Replaced by the
+          // expandable info tab widget on the left edge (S3-6).
 
-          // ── Noor HUD (Explorer Mode only) ────────────────────────
-          if (_explorerMode && _phase == _Phase.explore && _activeHotspot == null)
-            Positioned(
-              top: topPad + 50, left: 14,
-              child: _NoorHud(noorLevel: PrefsService.noorLevel),
-            ),
-
-          // ── Hotspot progress (top, below event title banner) ──────
+          // ── R25-S3-1: Scene dots (near bottom, above the title hero)
           if (_phase == _Phase.explore && _activeHotspot == null)
             Positioned(
-              top: topPad + 86, left: 0, right: 0,
+              bottom: bottomPad + 72, left: 0, right: 0,
               child: Center(
                 child: HotspotProgress(
                   total: _scene.hotspots.length,
                   discovered: _discovered.length + _pendingDiscovery.length, isAr: _isAr),
+              ),
+            ),
+
+          // ── R25-S3-1: Event title hero (bottom of scene, no box) ──
+          if (_phase == _Phase.explore && _activeHotspot == null)
+            Positioned(
+              bottom: bottomPad + 28, left: 32, right: 32,
+              child: Text(
+                _isAr ? widget.event.titleAr : widget.event.title,
+                textAlign: TextAlign.center,
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                style: GoogleFonts.nunito(
+                  color: const Color(0xFFE8D8B8),
+                  fontSize: _isAr ? 17 : 16,
+                  fontWeight: FontWeight.w600,
+                  shadows: [
+                    Shadow(
+                      offset: const Offset(0, 2),
+                      blurRadius: 10,
+                      color: Colors.black.withAlpha(178),
+                    ),
+                  ],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
 
@@ -2381,6 +2365,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         ],
       ),
       ),
+    ),
     ),
     );
   }
@@ -2704,46 +2689,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
 /// Paints a brief reaction effect for a discovered scene secret.
 /// Type 'bird': diagonal flying line. Type 'star': diagonal shooting trail.
-// ── Noor HUD (Explorer Mode) ──────────────────────────────────────────────
-/// Small sun icon + circular fill indicator showing the Rawi's current
-/// light level. Positioned top-left during explore phase.
-class _NoorHud extends StatelessWidget {
-  final int noorLevel; // 0-100
-  const _NoorHud({required this.noorLevel});
-
-  @override
-  Widget build(BuildContext context) {
-    final fraction = noorLevel / 100.0;
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Background ring
-          SizedBox(
-            width: 36,
-            height: 36,
-            child: CircularProgressIndicator(
-              value: fraction,
-              strokeWidth: 3,
-              backgroundColor: Colors.white.withAlpha(20),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                AppColors.gold.withAlpha((140 + fraction * 115).toInt().clamp(0, 255)),
-              ),
-            ),
-          ),
-          // Sun icon
-          Icon(
-            noorLevel > 50 ? Icons.wb_sunny_rounded : Icons.wb_sunny_outlined,
-            size: 16,
-            color: AppColors.gold.withAlpha((100 + fraction * 155).toInt().clamp(0, 255)),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// R25-S3-1: _NoorHud removed. Lifetime light is now surfaced by the
+// EventSceneInfoTab widget on the left edge of the scene (S3-6).
 
 class _SecretPainter extends CustomPainter {
   final String type;
