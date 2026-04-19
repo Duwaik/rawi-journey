@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,6 +23,7 @@ import '../models/badge_definition.dart';
 import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
 import '../widgets/scroll_hint_wrapper.dart';
+import '../widgets/top_bar_icon_button.dart';
 import '../widgets/cinematic/xp_reward_animation.dart';
 import '../widgets/cinematic/rawi_speech_bubble.dart';
 import '../widgets/cinematic/crescent_moon.dart';
@@ -922,6 +925,38 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       }
     }
     return _scene.pathWaypoints;
+  }
+
+  /// R25-S3-2: Static chapter pill. Plain Container — no Button,
+  /// no InkWell, no GestureDetector. Backdrop-blur navy fill with
+  /// a faint gold border. Shows era emoji + era label only.
+  Widget _buildChapterPill() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+          decoration: BoxDecoration(
+            color: const Color.fromRGBO(10, 14, 24, 0.55),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.gold.withAlpha(46), // 0.18
+              width: 0.5,
+            ),
+          ),
+          child: Text(
+            '${widget.event.era.emoji}  ${widget.event.era.label(PrefsService.language)}',
+            style: GoogleFonts.nunito(
+              color: AppColors.gold.withAlpha(217), // 0.85
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _openSettings() {
@@ -1990,63 +2025,42 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── Header ─────────────────────────────────────────────────
+          // ── R25-S3-1/S3-2/S3-3: Minimal 3-element top bar ─────────
+          // [back]  [chapter pill, static]  [⚙ settings]
+          // Back + settings use shared TopBarIconButton (36×36 pill).
+          // Chapter pill is a plain Container — no ripple, no tap target.
           Positioned(
             top: 0, left: 0, right: 0,
             child: Container(
-              padding: EdgeInsetsDirectional.fromSTEB(4, topPad + 4, 16, 10),
+              height: 48 + topPad,
+              padding: EdgeInsets.fromLTRB(12, topPad + 6, 12, 4),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                  colors: [Colors.black.withAlpha(180), Colors.transparent],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withAlpha(128), // 0.50 alpha
+                    Colors.transparent,
+                  ],
                 ),
               ),
-              // R21B-05: Language toggle removed from scene header — language
-              // changes only via Settings or Registration. The header now
-              // has just the back + era chip on the left and settings on
-              // the right.
               child: Row(
-                    textDirection: TextDirection.ltr,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_rounded,
-                            color: AppColors.textBody, size: 20),
-                        onPressed: _exitScene,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.bg.withAlpha(200),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: _eraColor.withAlpha(120)),
-                        ),
-                        child: Text(
-                          '${widget.event.era.emoji}  ${widget.event.era.label(PrefsService.language)}',
-                          style: GoogleFonts.nunito(
-                              color: _eraColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: _openSettings,
-                    child: Container(
-                      width: 32, height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.card.withAlpha(180),
-                        border: Border.all(color: AppColors.divider),
-                      ),
-                      child: const Icon(Icons.settings_rounded,
-                          size: 15, color: AppColors.textMuted),
-                    ),
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  TopBarIconButton(
+                    icon: Icons.arrow_back_ios_new_rounded,
+                    onTap: _exitScene,
                   ),
-                    ],
+                  _buildChapterPill(),
+                  TopBarIconButton(
+                    icon: Icons.settings_rounded,
+                    onTap: _openSettings,
                   ),
-            ),         // Container (header bg)
-          ),           // Positioned (header)
+                ],
+              ),
+            ),
+          ),
 
           // R25-S3-1: old top-anchored title banner removed. Title now
           // renders at the bottom of the scene as a hero element
