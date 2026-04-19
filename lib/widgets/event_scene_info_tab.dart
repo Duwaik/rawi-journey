@@ -168,7 +168,13 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
   /// No more uppercase section headers, no duplicated "Your Light" label.
   /// Collapse chevron sits on the right border at mid-height (Stack).
   Widget _buildExpandedContent() {
-    return Stack(
+    // R25-S3-HF-9: explicit Directionality guarantees AR layout semantics
+    // (CrossAxisAlignment.start = right, Row child order mirrored)
+    // even if the ambient directionality doesn't propagate cleanly
+    // through the Positioned/AnimatedBuilder/Stack wrapping chain.
+    return Directionality(
+      textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+      child: Stack(
       clipBehavior: Clip.none,
       children: [
         // Content column
@@ -265,6 +271,7 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
           ),
         ),
       ],
+      ),
     );
   }
 
