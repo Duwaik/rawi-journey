@@ -23,7 +23,7 @@
 |--------|-------|--------|--------------|--------------------|
 | 1 | Tent → Event Navigation + Audio | ✅ Verified | `bf337c2` (tip, followup incl.) | Apr 19, 2026 — A56, all 7 items pass |
 | 2 | Tent Screen Layout | 🟡 Device test found S2-1 invisibility — followup shipped, re-verify pending | `b452ccc` (tip, visibility fix) | — |
-| 3 | Event Scene Header + Noor | 🔲 Inputs locked, ready when S2 closes | — | — |
+| 3 | Event Scene Header + Noor | 🟢 Agent done, awaiting device | `3f1c6eb` | — |
 | 4 | Reader Mode Flow | 🔲 Not started | — | — |
 | 5 | End of Event + Badge | 🔲 Not started | — | — |
 | 6 | Stars + Scroll | 🔲 Not started | — | — |

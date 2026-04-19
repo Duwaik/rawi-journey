@@ -120,37 +120,54 @@ _None detected in agent-side static verification._
 
 ---
 
-## Sprint 3 — Event Scene Header + Noor  🔲 NOT STARTED (inputs locked)
+## Sprint 3 — Event Scene Header + Noor  🟢 AGENT DONE, AWAITING DEVICE
 
-**Agent commits:** —
-**Handoff:** —
-**Verify date:** —
+**Agent commits:** `7ca99a8` (S3-1) · `da66766` (S3-2+S3-3) · `60680dc` (S3-4) · `8aa122c` (S3-5) · `b369567` (S3-6+S3-8) · `3f1c6eb` (S3-7)
+**Handoff:** `doc/RAWI_R25_S3_HANDOFF.md`
+**Verify date:** pending A56 run by Khaled.
+**APK SHA256:** `2b225040e1ea4ed82b57bc7f25d0ff7350bb9e7b579c7764f4f36c284d45e04f` (91.9 MB)
+**Net LoC:** +575 / −140 (net +435, spec expected net +235; delta is info-tab widget being more substantial than estimate)
 
 ### Items
 
 | ID | Status | Notes |
 |----|--------|-------|
-| S3-1 Event scene top bar declutter | 🔲 | 3 elements only: `[< back]  [Chapter pill]  [⚙ settings]` |
-| S3-2 Chapter pill non-button style | 🔲 | — |
-| S3-3 Settings gear guideline styling | 🔲 | — |
-| S3-4 Noor render on event scene | 🔲 | Audit: is Noor read from same source on tent and scene? |
-| S3-5 "Knowledge" vs "Your Light" label bug | 🔲 | No hard repro. Investigate reader ↔ explorer toggle. Defer if stuck after ~30min. |
-| S3-6 Expandable left-tab info widget | 🔲 | **New, from roadmap_2.** Replaces old Noor indicator. Full spec in §9.3 of roadmap. |
-| S3-7 Event 1 tutorial rewrite | 🔲 | **New, from roadmap_2.** Absorbs dropped "Explore the scene" copy. Full copy locked in §9.4 of roadmap. |
+| S3-1 Event scene top bar declutter | ✅ | 3-element top bar: `[back] [chapter pill] [⚙]`. Title moved to bottom (hero, no box). Scene dots moved above title. Scaler clamp 1.0–1.3 at scene root. HotspotProgress widget stripped of "Explore the scene" text — dots only. |
+| S3-2 Chapter pill non-button style | ✅ | Plain `Container` with backdrop blur. No Button/InkWell/GestureDetector. Radius 10, 0.55 bg, 0.18 border, 11px w500 gold at 0.85 alpha. |
+| S3-3 Settings gear guideline styling | ✅ | New shared `TopBarIconButton` widget used by both back + gear. 36×36 circular, 0.18 gold border, 18px gold icon, InkWell ripple clipped to circle, light haptic. |
+| S3-4 Noor render on event scene | ✅ | Data-flow audit: tent + scene read same `PrefsService.noorLevel`; writes already clamp [0, 100]. Old `_NoorHud` removed in S3-1 (replaced by info tab). `setNoorLevel` now logs every write to `DebugLogService` under 'noor' for future trace. No 155-event field audit needed. |
+| S3-5 "Knowledge" vs "Your Light" label | ✅ | Root cause: `rawi_tent_screen.dart:479` Reader-mode conditional. Consolidated to "Your Light" / "نورك" in both modes. XP→Events value swap kept (B11). No findings note needed. |
+| S3-6 Expandable info tab widget | ✅ | `EventSceneInfoTab` at top:40%, left:0. Collapsed = 32px with `ⓘ` + chevron. Expanded = 180px with YOUR LIGHT (lifetime) + faint divider + THIS EVENT (4-dot). 200ms slide animation. Scrim dims scene. |
+| S3-7 Event 1 tutorial rewrite | ✅ | `Event1TutorialOverlay` — single full-screen scrim with 3 labelled callouts (dots, info tab, hotspots) + "Got it" / "فهمت" dismiss. Locked copy §9.4. SharedPref `tutorial_event1_shown`. QA reset button in Settings → About under `kDebugMode`. |
+| S3-8 StatRowGroup shared widget | ✅ | New `lib/widgets/stat_row_group.dart`. Tent 3-pill container refactored to consume it (supersedes S2-1 invisibility fix from commit `b452ccc`). Info tab Section 1 also consumes it with `showDividers: false`. |
 
 ### Q-block — ✅ ANSWERED Apr 19, 2026 (roadmap_2)
 
-- **Q3.1** → Approve minimal header PLUS expandable left-tab info widget (§9.3).
-- **Q3.2** → Drop "Explore the scene" from ALL events. Rewrite Event 1 tutorial instead (§9.4).
-- **Q3.3** → No hard repro. Investigate reader ↔ explorer toggle path. If stuck, defer.
+- **Q3.1** → Approved minimal header + expandable left-tab info widget. ✅ shipped.
+- **Q3.2** → Dropped "Explore the scene" from all events. Event 1 tutorial rewritten. ✅ shipped.
+- **Q3.3** → "Knowledge" bug root-cause identified and fixed inside timebox. ✅ shipped.
 
-### Locked design decisions (roadmap §9)
+### Minor tweaks
 
-- §9.1 Event Scene Header — three-element top bar, title at BOTTOM (not below header), info tab on left edge at mid-height, kill "Explore the scene" everywhere.
-- §9.3 Info Tab Widget — collapsed shows neutral `ⓘ` icon + chevron; expanded shows two sections (YOUR LIGHT lifetime + THIS EVENT 4-dot progress). Slide-out animation 200ms. Dim overlay when expanded.
-- §9.4 Event 1 Tutorial — one-time overlay after Event 1 intro video. Tooltips on (1) scene dots (2) info tab (3) optional hotspots. Copy locked EN + AR. Dismissal: "Got it" / "فهمت" button.
+_None outstanding from agent side._ Info-tab Section 1 sizing is worth eyeballing — spec §9.3 hints at "big 72%" hero-style value but spec §S3-8 required StatRowGroup consumption (11px value). If Khaled feels the value is too small once expanded, a 1-line fontSize bump or a StatRowGroup variant parameter can address it.
 
-_Populate remaining sections after Sprint 3 device test._
+### Missing elements
+
+_None._ All four new widgets + Noor instrumentation + pref keys shipped.
+
+### Device-test findings
+
+_Pending A56 run. Critical gate: S3-8 tent + info tab both must render visibly (S2-1/S2-2 absorption)._
+
+### Regressions / new bugs
+
+_None detected in agent-side static verification._
+
+### Deferred to later sprints
+
+- **155-event Noor JSON audit** (roadmap §6) — deferred to a content pass if the debug trace reveals field-gaps on specific events.
+- **Info-tab hero-style Section 1 sizing** — only if device test feedback calls for it.
+- **Rank-label string update** (Q3.7 — `الرحالة الصغير` / `الرحالة الشاب` / `الرحال الحكيم`) — roadmap says "one-off string update commit before Sprint 5". NOT in Sprint 3 scope. Separate commit when Khaled signals.
 
 ---
 
