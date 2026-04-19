@@ -940,16 +940,22 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     return _scene.pathWaypoints;
   }
 
-  /// R25-S3-2: Static chapter pill. Plain Container — no Button,
-  /// no InkWell, no GestureDetector. Backdrop-blur navy fill with
-  /// a faint gold border. Shows era emoji + era label only.
-  Widget _buildChapterPill() {
+  /// R25-S3-HF-3: Title pill in the top-bar center. Event name is the
+  /// hero (14px w600 #E8D8B8); chapter/era name is the subtitle (10px
+  /// gold 0.65, letter-spacing 0.5). Same scroll-like BG as the old
+  /// chapter pill (rgba(10,14,24,0.55) + blur + 0.18 border) and still
+  /// a plain Container — no button, no ripple.
+  ///
+  /// Replaces the bottom-of-scene title hero from S3-1. That position
+  /// collided with scene dots, joystick, Android nav bar, and speech
+  /// bubbles during device testing — doesn't hold up in practice.
+  Widget _buildTitlePill() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
           decoration: BoxDecoration(
             color: const Color.fromRGBO(10, 14, 24, 0.55),
             borderRadius: BorderRadius.circular(10),
@@ -958,14 +964,39 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               width: 0.5,
             ),
           ),
-          child: Text(
-            '${widget.event.era.emoji}  ${widget.event.era.label(PrefsService.language)}',
-            style: GoogleFonts.nunito(
-              color: AppColors.gold.withAlpha(217), // 0.85
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.5,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                _isAr ? widget.event.titleAr : widget.event.title,
+                textAlign: TextAlign.center,
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.nunito(
+                  color: const Color(0xFFE8D8B8),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                widget.event.era.label(PrefsService.language),
+                textAlign: TextAlign.center,
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.nunito(
+                  color: AppColors.gold.withAlpha(166), // 0.65
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -2065,7 +2096,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     icon: Icons.arrow_back_ios_new_rounded,
                     onTap: _exitScene,
                   ),
-                  _buildChapterPill(),
+                  Expanded(child: Center(child: _buildTitlePill())),
                   TopBarIconButton(
                     icon: Icons.settings_rounded,
                     onTap: _openSettings,
@@ -2095,10 +2126,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── R25-S3-1: Scene dots (near bottom, above the title hero)
+          // R25-S3-HF-3: scene dots at bottom — title moved to top bar
+          // so dots no longer need to clear a title block above them.
           if (_phase == _Phase.explore && _activeHotspot == null)
             Positioned(
-              bottom: bottomPad + 72, left: 0, right: 0,
+              bottom: bottomPad + 30, left: 0, right: 0,
               child: Center(
                 child: HotspotProgress(
                   total: _scene.hotspots.length,
@@ -2106,31 +2138,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── R25-S3-1: Event title hero (bottom of scene, no box) ──
-          if (_phase == _Phase.explore && _activeHotspot == null)
-            Positioned(
-              bottom: bottomPad + 28, left: 32, right: 32,
-              child: Text(
-                _isAr ? widget.event.titleAr : widget.event.title,
-                textAlign: TextAlign.center,
-                textDirection:
-                    _isAr ? TextDirection.rtl : TextDirection.ltr,
-                style: GoogleFonts.nunito(
-                  color: const Color(0xFFE8D8B8),
-                  fontSize: _isAr ? 17 : 16,
-                  fontWeight: FontWeight.w600,
-                  shadows: [
-                    Shadow(
-                      offset: const Offset(0, 2),
-                      blurRadius: 10,
-                      color: Colors.black.withAlpha(178),
-                    ),
-                  ],
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+          // R25-S3-HF-3: bottom-of-scene title hero removed. Event title
+          // now lives in the top-bar pill next to the chapter subtitle.
+          // Bottom was too crowded (dots + joystick + speech bubbles +
+          // Android nav).
 
           // ── Virtual joystick ───────────────────────────────────────
           // B14: hide on revisit to avoid collision with replay buttons
