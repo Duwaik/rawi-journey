@@ -62,7 +62,18 @@ class _RawiFigureState extends State<RawiFigure>
         final walkLean =
             widget.isWalking ? widget.facingDirection.clamp(-1, 1) * 1.5 : 0.0;
 
-        final glowAlpha = (40 + _anim.value * 35).round();
+        // R25-S3-HF-6: figure halo is now keyed to the live Noor level.
+        // Previously the alpha was (40 + _anim.value * 35) regardless of
+        // Noor — meaning a user at 0% still saw a full golden aura. Now
+        // we multiply the animated component by noorFraction so glow
+        // visibly breathes down as Noor depletes and restores as the
+        // user says dhikr. At 100% the halo matches the pre-hotfix look;
+        // at 0% it collapses to a faint border-glow that keeps the
+        // figure visible without signalling light.
+        final noorFraction =
+            (PrefsService.noorLevel / 100.0).clamp(0.0, 1.0);
+        final basePulse = (40 + _anim.value * 35).round();
+        final glowAlpha = (basePulse * noorFraction).round();
 
         return Transform.translate(
           offset: Offset(walkLean, walkBob - breathe),
@@ -86,12 +97,13 @@ class _RawiFigureState extends State<RawiFigure>
                       BoxShadow(
                         color: AppColors.gold.withAlpha(glowAlpha + 20),
                         blurRadius: 20,
-                        spreadRadius: 4,
+                        spreadRadius: 4 * noorFraction,
                       ),
                       BoxShadow(
-                        color: AppColors.gold.withAlpha((glowAlpha * 0.6).round()),
+                        color: AppColors.gold
+                            .withAlpha((glowAlpha * 0.6).round()),
                         blurRadius: 8,
-                        spreadRadius: 1,
+                        spreadRadius: 1 * noorFraction,
                       ),
                     ],
                   ),
