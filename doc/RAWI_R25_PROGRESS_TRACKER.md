@@ -63,27 +63,48 @@ _None._
 
 ---
 
-## Sprint 2 — Tent Screen Layout  🔲 NOT STARTED
+## Sprint 2 — Tent Screen Layout  🟢 AGENT DONE, AWAITING DEVICE
 
-**Agent commits:** —
-**Handoff:** —
-**Verify date:** —
+**Agent commits:** `189038e` (S2-1+S2-2) · `1720998` (S2-3) · `f9f4c31` (S2-4+S2-5) · `079ef4e` (S2-6) · `631af4b` (S2-7) · `ee2f6ad` (S2-8)
+**Handoff:** `doc/RAWI_R25_S2_HANDOFF.md`
+**Verify date:** pending A56 run by Khaled.
+**APK SHA256:** `b6404443e8775a3f775aa93818375bfa368fa4cb7c6bc091ab75b28b753e505f` (91.8 MB)
+**Net LoC:** +126 / −159 (−33 net)
 
 ### Items
 
 | ID | Status | Notes |
 |----|--------|-------|
-| S2-1 Combine Light + Experience + Dhikr pills | 🔲 | — |
-| S2-2 Dhikr counter restored as third pill | 🔲 | Resolved via S2-1 per Q2.1. |
-| S2-3 Remove "Your Journey" ghost box | 🔲 | — |
-| S2-4 Start/Continue on same line as #/155 | 🔲 | — |
-| S2-5 Event title centered with more room | 🔲 | — |
-| S2-6 Greeting "Assalamu Alaykom, {name}" | 🔲 | Q2.3 locked the name-inclusive variant. |
-| S2-7 Text-size clamp on tent | 🔲 | Cap at 1.3× per Q2.2. |
+| S2-1 Combine Light + Experience + Dhikr pills | ✅ | Single container, backdrop blur, 3 rows + 2 gold dividers. Positioned `top: screenH*0.44, left: 10`. Reader mode swaps Light→Knowledge, XP→Events per B11. |
+| S2-2 Dhikr counter restored as third pill | ✅ | Reads `PrefsService.dhikrCompletedCount` (lifetime counter — same source Settings uses). |
+| S2-3 Remove "Your Journey" ghost box + label | ✅ | Ghost box was the floating "Your Journey" label above the card, not a structural wrapper duplication. Label Positioned block deleted. |
+| S2-4 Start/Continue on same line as `#/155` | ✅ | Row `spaceBetween`, `Padding(horizontal: 4)` off card edges. Button ~intrinsic width with 32h / 9v padding, count uses 11px muted gold. No `x/4`, no walking emoji. |
+| S2-5 Event title centered with more room | ✅ | `TextAlign.center`, 13/14px, w500, `#E8D8B8`, 12px bottom padding. |
+| S2-6 Greeting "Assalamu Alaykom, {name}" | ✅ | Time-of-day ladder removed. Grep of old greeting strings returns zero hits. Empty-name falls back to bare salaam. |
+| S2-7 Text-size clamp on tent | ✅ | Root `MediaQuery.textScalerOf().clamp(1.0, 1.3)`. Nav label fontSize 7 → 9 (renders 9–11.7px with the clamp). |
+| S2-8 Drop per-event hotspot dots | ✅ | Dots + `_buildProgressDots` method + `hasScene`/`hotspotCount` locals all deleted. Chapter dots at list top untouched. |
 
-### Minor tweaks / Missing elements / Regressions / Deferred
+### Minor tweaks
 
-_Populate during and after Sprint 2 device test._
+_None outstanding from agent's side._ Khaled's device test may surface layout or position micro-tweaks; log them here after verification.
+
+### Missing elements
+
+_None._ Dhikr counter picked up an existing lifetime source; no new content required for this sprint.
+
+### Device-test findings
+
+_Pending A56 run. Populate with pass/fail per acceptance row from handoff §3._
+
+### Regressions / new bugs
+
+_None detected in agent-side static verification._
+
+### Deferred to later sprints
+
+- **Daily vs lifetime dhikr counter** (spec §7) — if Khaled wants daily, becomes a deferred finding.
+- **Project-wide TextScaler clamp** (current scope is tent only) — would need a separate mini-sprint if non-tent screens also break at large font sizes.
+- **Stat pill tap animations** (pulse on update) — spec §7 punted them.
 
 ---
 
