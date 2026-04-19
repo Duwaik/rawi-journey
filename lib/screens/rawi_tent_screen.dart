@@ -226,9 +226,11 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
             ),
 
             // ── R25-S2-1/S2-2: Stat pills container (left side) ──────
-            // Three rows: Light, XP, Dhikr (Reader mode uses Knowledge +
-            // Events + Dhikr per B11). Single container with faint gold
-            // dividers and backdrop blur.
+            // Three rows: Light, XP, Dhikr. Labels are constant across
+            // modes (S3-5 / S3-HF-7 consolidation — Light is always
+            // "Your Light" / "نورك", never "Knowledge"). Reader mode
+            // still swaps XP value → events-completed count (B11).
+            // Single container with faint gold dividers and backdrop blur.
             //
             // Device-test fix (Apr 19): original spec top: 0.44 landed on
             // the hooded figure's body in tent_day.jpg — the 0.55-alpha
