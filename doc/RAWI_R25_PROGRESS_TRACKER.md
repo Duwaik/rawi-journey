@@ -108,7 +108,7 @@ _None detected in agent-side static verification._
 
 ---
 
-## Sprint 3 — Event Scene Header + Noor  🔲 NOT STARTED
+## Sprint 3 — Event Scene Header + Noor  🔲 NOT STARTED (inputs locked)
 
 **Agent commits:** —
 **Handoff:** —
@@ -118,17 +118,25 @@ _None detected in agent-side static verification._
 
 | ID | Status | Notes |
 |----|--------|-------|
-| S3-1 Event scene top bar declutter | 🔲 | — |
+| S3-1 Event scene top bar declutter | 🔲 | 3 elements only: `[< back]  [Chapter pill]  [⚙ settings]` |
 | S3-2 Chapter pill non-button style | 🔲 | — |
 | S3-3 Settings gear guideline styling | 🔲 | — |
-| S3-4 Noor render on event scene | 🔲 | — |
-| S3-5 "Knowledge" vs "Your Light" label bug | 🔲 | Reproduction steps pending Q3.3. |
+| S3-4 Noor render on event scene | 🔲 | Audit: is Noor read from same source on tent and scene? |
+| S3-5 "Knowledge" vs "Your Light" label bug | 🔲 | No hard repro. Investigate reader ↔ explorer toggle. Defer if stuck after ~30min. |
+| S3-6 Expandable left-tab info widget | 🔲 | **New, from roadmap_2.** Replaces old Noor indicator. Full spec in §9.3 of roadmap. |
+| S3-7 Event 1 tutorial rewrite | 🔲 | **New, from roadmap_2.** Absorbs dropped "Explore the scene" copy. Full copy locked in §9.4 of roadmap. |
 
-### Q-block outstanding
+### Q-block — ✅ ANSWERED Apr 19, 2026 (roadmap_2)
 
-- **Q3.1** Approve minimal header (§9.1) or keep side-column idea?
-- **Q3.2** Drop "Explore the scene" entirely or keep only on Event 1?
-- **Q3.3** Can Khaled reproduce the "Knowledge" label bug? Which mode toggle sequence?
+- **Q3.1** → Approve minimal header PLUS expandable left-tab info widget (§9.3).
+- **Q3.2** → Drop "Explore the scene" from ALL events. Rewrite Event 1 tutorial instead (§9.4).
+- **Q3.3** → No hard repro. Investigate reader ↔ explorer toggle path. If stuck, defer.
+
+### Locked design decisions (roadmap §9)
+
+- §9.1 Event Scene Header — three-element top bar, title at BOTTOM (not below header), info tab on left edge at mid-height, kill "Explore the scene" everywhere.
+- §9.3 Info Tab Widget — collapsed shows neutral `ⓘ` icon + chevron; expanded shows two sections (YOUR LIGHT lifetime + THIS EVENT 4-dot progress). Slide-out animation 200ms. Dim overlay when expanded.
+- §9.4 Event 1 Tutorial — one-time overlay after Event 1 intro video. Tooltips on (1) scene dots (2) info tab (3) optional hotspots. Copy locked EN + AR. Dismissal: "Got it" / "فهمت" button.
 
 _Populate remaining sections after Sprint 3 device test._
 
@@ -221,6 +229,15 @@ _Populate remaining sections after Sprint 3 device test._
 ---
 
 ## Cross-cutting concerns (evaluate at round close)
+
+### Deferred findings (mirrored from roadmap §11)
+
+| ID | Severity | What | Disposition |
+|----|----------|------|-------------|
+| D1 | 🔴 | Missing `ambient_tent_fire.mp3` (maps to B13). Short-term: guard (shipped in `bf337c2`). Long-term: asset delivery. | Content delivery |
+| D2 | 🟠 | Missing SFX set: `sfx_kaabah_wind/birds_swarm/muttalib_silence/footsteps_sand/elephants_rumble`. Guarded (Sprint 1 followup). Dedicated sound-asset sprint TBD. | Content delivery |
+| D3 | 🟡 | "Healed stale pending discoveries" log fired on Event 2. B1 safety net working as intended. Monitor frequency. | Observe |
+| D4 | 🟢 | Mixed `PageRouteBuilder` + `MaterialPageRoute` usage. Tech debt; single-commit cleanup eventually. | Tech debt |
 
 ### Content assets still missing at R25 close
 
