@@ -344,8 +344,6 @@ class _EventListScreenState extends State<EventListScreen>
         !PrefsService.isThresholdCompleted(event.globalOrder);
     final isNext = event.globalOrder == _currentOrder && !blockedByThreshold;
     final locked = event.globalOrder > _currentOrder || blockedByThreshold;
-    final hasScene = sceneConfigs.containsKey(event.id);
-    final hotspotCount = sceneConfigs[event.id]?.hotspots.length ?? 0;
 
     return IntrinsicHeight(
       child: Row(
@@ -501,11 +499,9 @@ class _EventListScreenState extends State<EventListScreen>
                                   fontSize: 11,
                                 ),
                               ),
-                              // Hotspot progress dots
-                              if (!locked && hasScene && hotspotCount > 0) ...[
-                                const SizedBox(height: 4),
-                                _buildProgressDots(event, completed, hotspotCount),
-                              ],
+                              // R25-S2-8: per-event hotspot dots removed.
+                              // The Start / Continue button label already
+                              // communicates "this event has progress".
                             ],
                           ),
                         ),
@@ -632,37 +628,6 @@ class _EventListScreenState extends State<EventListScreen>
     );
     if (!mounted) return;
     _refresh();
-  }
-
-  Widget _buildProgressDots(JourneyEvent event, bool completed, int count) {
-    final savedProgress = PrefsService.loadHotspotProgress(event.id);
-    final discoveredCount = completed ? count : savedProgress.length;
-
-    return Row(
-      children: List.generate(count, (i) {
-        final filled = i < discoveredCount;
-        return Container(
-          margin: const EdgeInsetsDirectional.only(end: 5),
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: filled ? AppColors.gold : Colors.transparent,
-            border: Border.all(
-              color: filled ? AppColors.gold : AppColors.gold.withAlpha(80),
-              width: 1.5,
-            ),
-            boxShadow: filled
-                ? [BoxShadow(
-                    color: AppColors.gold.withAlpha(60),
-                    blurRadius: 4,
-                    spreadRadius: 1,
-                  )]
-                : null,
-          ),
-        );
-      }),
-    );
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
