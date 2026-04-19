@@ -64,6 +64,17 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     return c;
   }
 
+  /// R25-S2-4: true if the next progression item (event) has saved
+  /// mid-event hotspot progress — governs Start vs Continue button label.
+  /// Thresholds and fresh events return false.
+  bool _hasInProgressNextItem() {
+    final item = currentProgressionItem();
+    if (item is EventItem) {
+      return PrefsService.loadHotspotProgress(item.event.id).isNotEmpty;
+    }
+    return false;
+  }
+
   /// R25-S1-2: title of the current progression item — event OR threshold.
   /// When a threshold is pending before the next event, the progress card
   /// shows the threshold so the user knows what Start will actually launch.
@@ -111,10 +122,11 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     final bottomPad = MediaQuery.of(context).padding.bottom;
     final screenH = MediaQuery.of(context).size.height;
     final completed = _completedCount;
-    final percent = (completed / m1Events.length * 100).toStringAsFixed(1);
-    // C-01: Tent state flags
-    final isStart = completed == 0;
     final isComplete = completed >= m1Events.length;
+    // R25-S2-4: Continue vs Start — true when the next event has any
+    // recorded hotspot progress (saved mid-event). Threshold items are
+    // always Start (no in-progress concept).
+    final isContinue = _hasInProgressNextItem();
 
     return PopScope(
       canPop: false,
@@ -308,117 +320,67 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Row 1: Event name (left/trailing) + CTA (right/leading)
-                        Row(
-                          textDirection:
-                              _isAr ? TextDirection.rtl : TextDirection.ltr,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _nextItemTitle(isComplete),
-                                textDirection:
-                                    _isAr ? TextDirection.rtl : TextDirection.ltr,
-                                style: GoogleFonts.lora(
-                                  color: AppColors.gold,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: _isAr
-                                      ? FontStyle.normal
-                                      : FontStyle.italic,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.gold,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                textDirection: _isAr
-                                    ? TextDirection.rtl
-                                    : TextDirection.ltr,
-                                children: [
-                                  Text(
-                                    isStart
-                                        ? (_isAr ? 'ابدأ' : 'Start')
-                                        : isComplete
-                                            ? (_isAr ? 'عد' : 'Revisit')
-                                            : (_isAr ? 'تابع' : 'Continue'),
-                                    style: GoogleFonts.nunito(
-                                      color: AppColors.bg,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  const Text('🚶',
-                                      style: TextStyle(fontSize: 13)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Row 2: count · percent (same size/brightness)
-                        if (!isComplete) ...[
-                          const SizedBox(height: 12),
-                          Row(
+                        // R25-S2-5: title centered above button row
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            isComplete
+                                ? (_isAr
+                                    ? 'اكتملت الرحلة ✦'
+                                    : 'Journey complete ✦')
+                                : _nextItemTitle(isComplete),
+                            textAlign: TextAlign.center,
                             textDirection: _isAr
                                 ? TextDirection.rtl
                                 : TextDirection.ltr,
-                            children: [
-                              Text(
-                                '$completed / ${m1Events.length}',
-                                style: GoogleFonts.nunito(
-                                  color: AppColors.gold,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                '·  $percent%',
-                                style: GoogleFonts.nunito(
-                                  color: AppColors.gold,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
+                            style: GoogleFonts.nunito(
+                              color: const Color(0xFFE8D8B8),
+                              fontSize: _isAr ? 14 : 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ] else ...[
-                          const SizedBox(height: 10),
-                          Text(
-                            _isAr
-                                ? 'اكتملت الرحلة ✦'
-                                : 'Journey complete ✦',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.cinzelDecorative(
-                              color: AppColors.gold,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              shadows: [
-                                Shadow(
-                                    color: AppColors.gold.withAlpha(120),
-                                    blurRadius: 12),
+                        ),
+                        // R25-S2-4: button + count on same line
+                        if (!isComplete)
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4),
+                            child: Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              textDirection: _isAr
+                                  ? TextDirection.rtl
+                                  : TextDirection.ltr,
+                              children: [
+                                _buildStartContinueButton(isContinue),
+                                const SizedBox(width: 14),
+                                Padding(
+                                  padding: EdgeInsetsDirectional.only(
+                                      end: _isAr ? 0 : 4,
+                                      start: _isAr ? 4 : 0),
+                                  child: Text(
+                                    '$completed / ${m1Events.length}',
+                                    style: GoogleFonts.nunito(
+                                      color: AppColors.gold.withAlpha(191),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ],
-                        // Progress bar
-                        const SizedBox(height: 10),
+                        // R25-S2-4: thin 2px progress bar
+                        const SizedBox(height: 11),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(1),
                           child: LinearProgressIndicator(
                             value: (completed / m1Events.length)
                                 .clamp(0.0, 1.0),
-                            minHeight: 8,
-                            backgroundColor: AppColors.gold.withAlpha(25),
+                            minHeight: 2,
+                            backgroundColor: AppColors.gold.withAlpha(26),
                             valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppColors.gold),
                           ),
@@ -570,6 +532,40 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
         margin: const EdgeInsets.symmetric(vertical: 3),
         color: AppColors.gold.withAlpha(31), // 0.12 * 255 ≈ 31
       );
+
+  /// R25-S2-4: Start / Continue button. Same generous padding in both
+  /// states so the card doesn't shift when the label swaps. Label only,
+  /// no icon, no number badge.
+  Widget _buildStartContinueButton(bool isContinue) {
+    // Start:    bg 0.15 gold, border 0.4, text #d4a843
+    // Continue: bg 0.18 gold, border 0.5, text #e8c04d (slightly warmer)
+    final bgAlpha = isContinue ? 46 : 38; // 0.18 vs 0.15
+    final borderAlpha = isContinue ? 128 : 102; // 0.5 vs 0.4
+    final textColor =
+        isContinue ? const Color(0xFFE8C04D) : AppColors.gold;
+    final label = isContinue
+        ? (_isAr ? 'متابعة' : 'Continue')
+        : (_isAr ? 'ابدأ' : 'Start');
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(vertical: 9, horizontal: 32),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withAlpha(bgAlpha),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+            color: AppColors.gold.withAlpha(borderAlpha), width: 1),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.nunito(
+          color: textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+      ),
+    );
+  }
 
   // ── Sheet overlay (R24 A-03: tap outside + swipe to dismiss) ─────────
 
