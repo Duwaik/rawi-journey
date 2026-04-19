@@ -46,8 +46,16 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
   /// R25-S2-6: Static salaam greeting with the user's name inline.
   /// No time-of-day variants. Empty-name falls back to bare salaam
   /// (no trailing comma) per spec §7 deferred handling.
+  ///
+  /// R25-S3-HF-5: safety-net capitalize the first letter at render
+  /// time so users who registered before the setter-side fix landed
+  /// still see "Khaled" instead of "khaled". Future registrations are
+  /// already cased in PrefsService.setUserName.
   String get _greeting {
-    final name = PrefsService.userName.trim();
+    final raw = PrefsService.userName.trim();
+    final name = raw.isEmpty
+        ? raw
+        : raw[0].toUpperCase() + raw.substring(1);
     if (_isAr) {
       return name.isEmpty
           ? 'السلام عليكم'

@@ -140,8 +140,19 @@ class PrefsService {
 
   // ── USER PROFILE ──────────────────────────────────────────────────────────
   static String get userName => _prefs?.getString(_keyUserName) ?? '';
-  static Future<void> setUserName(String v) async =>
-      await _prefs?.setString(_keyUserName, v);
+
+  /// R25-S3-HF-5: capitalize the first letter of the trimmed input
+  /// before persisting. Future users get properly cased names in
+  /// storage; the tent greeting also applies the same transform at
+  /// render time as a safety net for users registered before this
+  /// shipped.
+  static Future<void> setUserName(String v) async {
+    final trimmed = v.trim();
+    final cased = trimmed.isEmpty
+        ? trimmed
+        : trimmed[0].toUpperCase() + trimmed.substring(1);
+    await _prefs?.setString(_keyUserName, cased);
+  }
 
   static String get userGender => _prefs?.getString(_keyUserGender) ?? 'male';
   static Future<void> setUserGender(String v) async =>
