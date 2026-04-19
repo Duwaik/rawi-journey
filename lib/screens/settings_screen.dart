@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -839,8 +840,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
             ),
+            // R25-S3-7: debug-only "Reset tutorials" affordance so QA can
+            // re-trigger the Event 1 overlay + other first-time flows on
+            // the same install. Compiled out of release builds.
+            if (kDebugMode) ...[
+              const SizedBox(height: 14),
+              GestureDetector(
+                onTap: _onResetTutorials,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                        color: AppColors.gold.withAlpha(120), width: 0.8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _isAr ? 'إعادة الدروس (QA)' : 'Reset tutorials (QA)',
+                    textDirection:
+                        _isAr ? TextDirection.rtl : TextDirection.ltr,
+                    style: GoogleFonts.nunito(
+                      color: AppColors.gold.withAlpha(200),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _onResetTutorials() async {
+    await PrefsService.resetAllTutorials();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tutorials reset'),
+        duration: Duration(milliseconds: 1000),
       ),
     );
   }

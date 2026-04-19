@@ -36,6 +36,7 @@ class PrefsService {
   static const String _keyEventQTooltipSeen = 'event_q_tooltip_seen';
   static const String _keyAgeTier          = 'age_tier';
   static const String _keyDebugOverlay     = 'debug_overlay_enabled';
+  static const String _keyEvent1TutorialShown = 'tutorial_event1_shown';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
   static String get language => _prefs?.getString(_keyLanguage) ?? 'en';
@@ -282,6 +283,24 @@ class PrefsService {
       _prefs?.getBool(_keyDebugOverlay) ?? true;
   static Future<void> setDebugOverlayEnabled(bool v) async =>
       await _prefs?.setBool(_keyDebugOverlay, v);
+
+  /// R25-S3-7: one-time Event 1 tutorial overlay shown after the intro
+  /// video of the very first event. Flipped true on dismiss; never shown
+  /// again until QA resets all tutorials (see [resetAllTutorials]).
+  static bool get isEvent1TutorialShown =>
+      _prefs?.getBool(_keyEvent1TutorialShown) ?? false;
+  static Future<void> setEvent1TutorialShown() async =>
+      await _prefs?.setBool(_keyEvent1TutorialShown, true);
+
+  /// R25-S3-7: QA/dev helper — clear every tutorial-seen flag so the
+  /// next run shows all overlays again. Gated behind kDebugMode at the
+  /// UI surface; the pref mutation itself has no production gate.
+  static Future<void> resetAllTutorials() async {
+    await _prefs?.remove(_keyTutorialSeen);
+    await _prefs?.remove(_keyChoiceTutSeen);
+    await _prefs?.remove(_keyEventQTooltipSeen);
+    await _prefs?.remove(_keyEvent1TutorialShown);
+  }
 
   // ── TEXT SCALE (Accessibility) ─────────────────────────────────────────────
   static double get textScale =>

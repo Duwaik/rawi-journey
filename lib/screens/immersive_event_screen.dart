@@ -22,6 +22,7 @@ import '../widgets/cinematic/rawi_figure.dart';
 import '../models/badge_definition.dart';
 import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
+import '../widgets/event_1_tutorial_overlay.dart';
 import '../widgets/event_scene_info_tab.dart';
 import '../widgets/scroll_hint_wrapper.dart';
 import '../widgets/top_bar_icon_button.dart';
@@ -59,6 +60,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _alreadyCompleted = false;
   bool _showSettings = false;
   bool _showTutorial = false;
+  // R25-S3-7: Event 1 one-time tutorial overlay (post-intro).
+  bool _showEvent1Tutorial = false;
   // _showChoiceTutorial removed — Crossroads is self-explanatory
   bool _isCompleting = false;
   bool _showContinueButton = false;
@@ -184,6 +187,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         PrefsService.isEventCompleted(widget.event.globalOrder);
     _scene = sceneConfigs[widget.event.id]!;
     _answers = List.filled(widget.event.questions.length, null);
+
+    // R25-S3-7: show the one-time Event 1 tutorial overlay on first
+    // launch of the first event, after the intro video has completed
+    // (this scene mounts AFTER VideoIntroScreen pops, so by here the
+    // video is done). Never shown on events 2-155; never shown twice.
+    if (widget.event.globalOrder == 1 &&
+        !PrefsService.isEvent1TutorialShown) {
+      _showEvent1Tutorial = true;
+    }
 
     // R20 Part B + C: compute effective hotspot positions once for this
     // event. Completed-event replays keep the stored scene-config positions
@@ -2269,6 +2281,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   _resetIdleTimer();
                 },
               ),
+            ),
+
+          // ── R25-S3-7: Event 1 one-time tutorial overlay ──────────
+          // Shown only on the first launch of event #1, after the
+          // intro video. Tap "Got it" to dismiss; flipped in prefs.
+          if (_showEvent1Tutorial)
+            Event1TutorialOverlay(
+              onDismiss: () {
+                setState(() => _showEvent1Tutorial = false);
+              },
             ),
 
           // ── Badge overlay (full-screen, 85% dark) ──────────────────
