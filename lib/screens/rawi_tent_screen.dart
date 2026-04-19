@@ -261,24 +261,8 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
               ),
 
             // B8/B19/B20: standalone Continue Journey CTA removed.
-            // The progress card below is now the single tappable action zone.
-
-            // ── Journey label (above progress card, language-aligned) ─
-            if (_activeSheet == null)
-              Positioned(
-                bottom: bottomPad + 120,
-                left: 16, right: 16,
-                child: Text(
-                  _isAr ? 'رحلتك' : 'Your Journey',
-                  textAlign: _isAr ? TextAlign.right : TextAlign.left,
-                  style: GoogleFonts.nunito(
-                    color: AppColors.gold.withAlpha(180),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 2,
-                  ),
-                ),
-              ),
+            // R25-S2-3: "Your Journey" / "رحلتك" label removed — the
+            // progress card's event title is already the hero.
 
             // ── Progress card (bottom, integrated CTA) ───────────────
             if (_activeSheet == null)
