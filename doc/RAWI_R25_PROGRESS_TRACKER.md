@@ -120,13 +120,14 @@ _None detected in agent-side static verification._
 
 ---
 
-## Sprint 3 — Event Scene Header + Noor  🟢 AGENT DONE, AWAITING DEVICE
+## Sprint 3 — Event Scene Header + Noor  🟡 HOTFIX SHIPPED, AWAITING RE-VERIFY
 
-**Agent commits:** `7ca99a8` (S3-1) · `da66766` (S3-2+S3-3) · `60680dc` (S3-4) · `8aa122c` (S3-5) · `b369567` (S3-6+S3-8) · `3f1c6eb` (S3-7)
-**Handoff:** `doc/RAWI_R25_S3_HANDOFF.md`
-**Verify date:** pending A56 run by Khaled.
-**APK SHA256:** `2b225040e1ea4ed82b57bc7f25d0ff7350bb9e7b579c7764f4f36c284d45e04f` (91.9 MB)
-**Net LoC:** +575 / −140 (net +435, spec expected net +235; delta is info-tab widget being more substantial than estimate)
+**Sprint commits:** `7ca99a8` (S3-1) · `da66766` (S3-2+S3-3) · `60680dc` (S3-4) · `8aa122c` (S3-5) · `b369567` (S3-6+S3-8) · `3f1c6eb` (S3-7)
+**Hotfix commits (9, Apr 19 evening):** `4bdc690` (H1) · `f74147b` (H2) · `7e5b9a6` (H3) · `9b907e4` (H4) · `c5e33db` (H5) · `fa909d2` (H6) · `0738e7c` (H7) · `bf65e75` (H8) · `cc72007` (H9)
+**Handoffs:** `doc/RAWI_R25_S3_HANDOFF.md` + `doc/RAWI_R25_S3_HF_HANDOFF.md`
+**Verify date:** Apr 19 2026 — sprint landed with 10 open items, hotfix addresses 9 (1 item stays with Khaled for device testing). Re-verification pending.
+**APK SHA256 (post-hotfix):** `9b280f681ed612fe5f2bb52c54258d789750375646f69ac42c1de74e34d295d9` (91.9 MB) — supersedes the original `2b225040…` sprint build.
+**Net LoC (sprint + hotfix):** +1000 / −320 approximate.
 
 ### Items
 
@@ -157,17 +158,39 @@ _None._ All four new widgets + Noor instrumentation + pref keys shipped.
 
 ### Device-test findings
 
-_Pending A56 run. Critical gate: S3-8 tent + info tab both must render visibly (S2-1/S2-2 absorption)._
+**Apr 19 2026 evening, A56 — Sprint 3 sprint-build (`2b225040…`):**
+
+10 open items flagged. Hotfix `bc2be05..cc72007` ships fixes for 9:
+
+| Item | Finding on device | Hotfix resolution |
+|------|-------------------|-------------------|
+| Tent pills still invisible (H1) | 3-pill container not painting on tent; info tab rendered OK. | `4bdc690` — explicit `SizedBox(width: 155)` unblocks the Spacer inside StatRowGroup's rows. One-line geometry fix. |
+| Double "Your Light" in info tab (H2) | Section 1 showed uppercase header AND row label → two "Your Light" strings. Value sat far right. | `f74147b` — section redesigned as vertical stack (title, subtitle, 18px value). Section 2 matches. Chevron moved to right mid-border. |
+| Title at scene bottom crowded (H3) | Title collided with scene dots, joystick, speech bubbles, Android nav. | `7e5b9a6` — title moved back to top-bar center pill with chapter as subtitle. Bottom title block removed. |
+| "Collectio" truncated on right nav (H4) | Labels don't fit at 52×52 button + text-scaler range. | `9b907e4` — right nav is icon-only; buttons shrink 52→44. Label surfaces via Tooltip on long-press. |
+| Lowercase name in greeting (H5) | `Assalamu Alaykom, khaled`. | `c5e33db` — capitalize write-side (setUserName) + display-side safety net for existing users. |
+| Missing figure halo (H6) | Info tab read Noor correctly; figure aura didn't scale with Noor %. | `fa909d2` — halo alpha + spreadRadius now keyed to `noorLevel/100`. At 100% identical to pre-hotfix; at 0% collapses to border only. |
+| "Knowledge" label still reproduces (H7) | Reported by Khaled after mode toggle cycles. | `0738e7c` — grep verified zero UI render sites emit "Knowledge" post-`8aa122c`. Likely stale install when reported. Comment updated; added note that any future appearance is a NEW bug path. |
+| Two tutorial systems firing (H8) | Old TutorialOverlay rendered alongside new Event1TutorialOverlay. | `bf65e75` — legacy retired (import removed, trigger nulled, seen-flag auto-written). Event1TutorialOverlay rebuilt as sequential 3 steps with the legacy's elegant centered style. |
+| AR strings on info tab (H9) | Strings were already bilingual; RTL layout risk from Positioned-absolute parent chain. | `cc72007` — explicit Directionality wrapper guarantees AR layout semantics. |
+
+**Deferred to Khaled device retest (not in hotfix scope):**
+- S3-4 Noor render on "Abd al-Muttalib" / "Khadijah" events — `60680dc` added `setNoorLevel` DebugLog trace; next device run should capture any remaining discrepancy with numerical evidence.
+- 1.3× text scaler on event scene — Android accessibility max test.
 
 ### Regressions / new bugs
 
-_None detected in agent-side static verification._
+None introduced by the hotfix batch. The 9 commits are either surgical
+fixes, targeted refactors, or documented revisions of prior Sprint 3
+intent.
 
 ### Deferred to later sprints
 
 - **155-event Noor JSON audit** (roadmap §6) — deferred to a content pass if the debug trace reveals field-gaps on specific events.
-- **Info-tab hero-style Section 1 sizing** — only if device test feedback calls for it.
+- **Info-tab hero-style Section 1 sizing** — retired by H2 redesign (now the 18px hero value IS the section value). ✅ addressed.
 - **Rank-label string update** (Q3.7 — `الرحالة الصغير` / `الرحالة الشاب` / `الرحال الحكيم`) — roadmap says "one-off string update commit before Sprint 5". NOT in Sprint 3 scope. Separate commit when Khaled signals.
+- **Delete `lib/widgets/tutorial_overlay.dart`** — left in place per H8 spec. Once Khaled confirms the new tutorial on device, clean-up commit can remove the retired file.
+- **H8 Step 3 "amplified hotspot pulse"** — overlay renders its own pulsing demo disc instead of boosting the real HS1's pulse. If device test calls for the real one, wire via a ValueNotifier in a follow-up commit.
 
 ---
 
