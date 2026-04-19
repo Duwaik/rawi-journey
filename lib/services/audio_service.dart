@@ -15,6 +15,24 @@ class AudioService {
   /// Asset path of the currently playing ambient (for continuous-ambient logic).
   static String? _currentAmbientPath;
 
+  /// R25-S1 followup: asset paths that have already failed to load once.
+  /// Subsequent calls for the same path return silently without re-logging.
+  /// Cleared only on full app restart — that's fine: pending-content assets
+  /// stay missing for a whole session, and flipping real failures back to
+  /// success requires a rebuild anyway.
+  static final Set<String> _knownMissing = <String>{};
+
+  static bool _isKnownMissing(String assetPath) =>
+      _knownMissing.contains(assetPath);
+
+  static void _markMissing(String assetPath, String category, Object err) {
+    // Log exactly once per asset path.
+    if (_knownMissing.add(assetPath)) {
+      DebugLogService.log(category,
+          'asset missing/unloadable $assetPath — $err (further attempts silenced)');
+    }
+  }
+
   /// Start playing an ambient audio asset at the given volume.
   /// Used for: onboarding music (looping) and hotspot atmospheric beds.
   ///
@@ -28,6 +46,9 @@ class AudioService {
     bool loop = true,
   }) async {
     if (!PrefsService.musicEnabled) return false;
+    // R25-S1 followup: skip silently if this path already failed once.
+    // Caller (e.g. tent fire ambient) treats false as "try fallback".
+    if (_isKnownMissing(assetPath)) return false;
     // If the same ambient is already playing, don't restart it —
     // let it carry continuously across screens.
     if (_ambient != null && _currentAmbientPath == assetPath) return true;
@@ -43,7 +64,7 @@ class AudioService {
       DebugLogService.log('audio', 'ambient play $assetPath vol=$volume');
       return true;
     } catch (e) {
-      DebugLogService.log('audio', 'ambient init FAILED $assetPath — $e');
+      _markMissing(assetPath, 'audio', e);
       _ambient?.dispose();
       _ambient = null;
       _currentAmbientPath = null;
@@ -72,6 +93,11 @@ class AudioService {
   /// Skips playback if SFX is disabled in preferences.
   static Future<void> playSfx(String assetPath, {double volume = 0.5}) async {
     if (!PrefsService.sfxEnabled) return;
+    // R25-S1 followup: skip silently for known-missing assets. Previously
+    // repeated attempts (e.g. every footstep) spammed the debug log with
+    // the same failure. Also avoids nuking the current _sfx player on
+    // each call for a missing path.
+    if (_isKnownMissing(assetPath)) return;
     await _sfx?.stop();
     await _sfx?.dispose();
     _sfx = AudioPlayer();
@@ -81,7 +107,7 @@ class AudioService {
       await _sfx!.setVolume(volume);
       _sfx!.play();
     } catch (e) {
-      DebugLogService.log('audio', 'sfx FAILED $assetPath — $e');
+      _markMissing(assetPath, 'audio', e);
       _sfx?.dispose();
       _sfx = null;
     }
