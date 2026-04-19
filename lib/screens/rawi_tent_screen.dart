@@ -136,7 +136,17 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
         if (didPop) return;
         SystemNavigator.pop();
       },
-      child: Scaffold(
+      // R25-S2-7: clamp system text scaler to [1.0, 1.3] at the tent
+      // root. Android accessibility can push scaling to 2.0× which
+      // breaks the layout; the design tolerates up to 1.3×.
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: MediaQuery.textScalerOf(context).clamp(
+            minScaleFactor: 1.0,
+            maxScaleFactor: 1.3,
+          ),
+        ),
+        child: Scaffold(
         backgroundColor: Colors.black,
         body: Stack(
           fit: StackFit.expand,
@@ -409,6 +419,7 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -433,7 +444,11 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
               label,
               style: GoogleFonts.nunito(
                 color: AppColors.gold.withAlpha(130),
-                fontSize: 7,
+                // R25-S2-7: bumped from 7 to 9 — with the root
+                // TextScaler clamp of [1.0, 1.3], this renders 9–11.7px,
+                // matching the spec's design minimum of 9+ for tiny
+                // labels on the A56 panel.
+                fontSize: 9,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.3,
               ),
