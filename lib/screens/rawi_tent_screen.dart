@@ -496,24 +496,33 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
         value: '${PrefsService.dhikrCompletedCount}',
       ),
     ];
+    // R25-S3-HF-1: explicit width = 155. StatRowGroup rows contain a
+    // Spacer() between label and value; inside a Positioned with no
+    // right bound, the row had zero bounded width, the Spacer couldn't
+    // flex, and the whole container collapsed to 0 width — invisible
+    // on device despite the widget being mounted. The info tab renders
+    // fine because its parent supplies an explicit width animation.
     // Container chrome kept from the S2-1 device-test fix: bg 0.72,
     // gold 0.32 border, blur 8. Renders legibly against any time-of-
     // day scene variant.
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 9),
-          decoration: BoxDecoration(
-            color: const Color.fromRGBO(10, 14, 24, 0.72),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.gold.withAlpha(82),
-              width: 0.8,
+    return SizedBox(
+      width: 155,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 9),
+            decoration: BoxDecoration(
+              color: const Color.fromRGBO(10, 14, 24, 0.72),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.gold.withAlpha(82),
+                width: 0.8,
+              ),
             ),
+            child: StatRowGroup(rows: statRows, showDividers: true),
           ),
-          child: StatRowGroup(rows: statRows, showDividers: true),
         ),
       ),
     );
