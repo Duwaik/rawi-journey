@@ -466,17 +466,21 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
   }
 
   /// R25-S2-1/S2-2: single container with Light, XP, Dhikr rows plus
-  /// faint gold dividers. Reader mode swaps Light→Knowledge,
-  /// XP→Events (B11 locked rule). Dhikr is lifetime count from
-  /// PrefsService.dhikrCompletedCount.
+  /// faint gold dividers. Reader mode swaps XP value→events-completed
+  /// count (B11) but the label stays unchanged. Dhikr is lifetime count
+  /// from PrefsService.dhikrCompletedCount.
+  ///
+  /// R25-S3-5: the Light label is now "Your Light" / "نورك" in BOTH
+  /// modes. Previously the Reader-mode branch showed "Knowledge" /
+  /// "المعرفة" which Khaled saw flickering in after mode toggles. The
+  /// info tab on the event scene (§9.3) uses the same label, so
+  /// consolidation keeps both surfaces identical.
   Widget _buildStatPillsContainer(int completed) {
     final explorer = PrefsService.isExplorerMode;
     final rows = <Widget>[
       _statRow(
         icon: Icons.auto_awesome_rounded,
-        label: explorer
-            ? (_isAr ? 'النور' : 'Light')
-            : (_isAr ? 'المعرفة' : 'Knowledge'),
+        label: _isAr ? 'نورك' : 'Your Light',
         value: '${PrefsService.noorLevel}%',
       ),
       _statDivider(),
