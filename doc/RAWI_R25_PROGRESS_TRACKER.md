@@ -68,6 +68,7 @@ _None._
 **Agent commits:** `189038e` (S2-1+S2-2) · `1720998` (S2-3) · `f9f4c31` (S2-4+S2-5) · `079ef4e` (S2-6) · `631af4b` (S2-7) · `ee2f6ad` (S2-8) · `b452ccc` (S2-1 followup: visibility fix)
 **Handoff:** `doc/RAWI_R25_S2_HANDOFF.md`
 **Verify date:** Apr 19 2026 — device test found S2-1 invisibility, followup shipped. Re-verification pending.
+**APK SHA256 (post-fix):** `5f4995e7caa8118038423ec87e6cc1bdce4c64179f7bcddf406a13c9ff08065f` (91.8 MB) — supersedes the original `b6404443…` build.
 **APK SHA256:** `b6404443e8775a3f775aa93818375bfa368fa4cb7c6bc091ab75b28b753e505f` (91.8 MB)
 **Net LoC:** +126 / −159 (−33 net)
 
