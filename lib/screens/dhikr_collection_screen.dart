@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
@@ -165,10 +166,41 @@ class _DhikrRow {
   });
 }
 
-class _FeaturedDhikrCard extends StatelessWidget {
+class _FeaturedDhikrCard extends StatefulWidget {
   final DhikrCard card;
   final bool isAr;
   const _FeaturedDhikrCard({required this.card, required this.isAr});
+
+  @override
+  State<_FeaturedDhikrCard> createState() => _FeaturedDhikrCardState();
+}
+
+class _FeaturedDhikrCardState extends State<_FeaturedDhikrCard> {
+  /// R26 S1v2-EE6: session-local "said today" flag. Prevents the user
+  /// from stacking regens by tapping I-said-it repeatedly. A full
+  /// "daily reset" would need a date-keyed pref; Khaled's spec note:
+  /// "don't over-engineer this" — session-scoped is enough until the
+  /// daily counter lands.
+  bool _saidThisSession = false;
+  bool _busy = false;
+
+  Future<void> _onSaidIt() async {
+    if (_saidThisSession || _busy) return;
+    setState(() => _busy = true);
+    HapticFeedback.mediumImpact();
+    final before = PrefsService.noorLevel;
+    await PrefsService.incrementDhikrCount();
+    // Tent-side regen: +25 Light, clamped to 100 ceiling in setNoorLevel.
+    await PrefsService.setNoorLevel(before + 25);
+    if (!mounted) return;
+    setState(() {
+      _saidThisSession = true;
+      _busy = false;
+    });
+  }
+
+  DhikrCard get card => widget.card;
+  bool get isAr => widget.isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -242,6 +274,48 @@ class _FeaturedDhikrCard extends StatelessWidget {
               color: AppColors.gold.withAlpha(200),
               fontSize: 12,
               fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // R26 S1v2-EE6: tent-side dhikr regen — "I said it" button on
+          // the Dhikr of the Day featured card. Tapping increments the
+          // lifetime dhikr count and restores +25% Light (clamped to
+          // 100). After tap the button flips to a subtle "✓ Said"
+          // indicator for the rest of this session.
+          Align(
+            alignment: Alignment.center,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _saidThisSession ? null : _onSaidIt,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 22, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _saidThisSession
+                      ? AppColors.gold.withAlpha(30)
+                      : AppColors.gold,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                      color: AppColors.gold,
+                      width: _saidThisSession ? 0.8 : 1.2),
+                ),
+                child: Text(
+                  _saidThisSession
+                      ? (isAr ? '✓ قلتها' : '✓ Said')
+                      : (isAr ? 'قلتها ✓' : "I've said it ✓"),
+                  textDirection:
+                      isAr ? TextDirection.rtl : TextDirection.ltr,
+                  style: GoogleFonts.nunito(
+                    color: _saidThisSession
+                        ? AppColors.gold.withAlpha(200)
+                        : const Color(0xFF0A0E18),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
             ),
           ),
         ],

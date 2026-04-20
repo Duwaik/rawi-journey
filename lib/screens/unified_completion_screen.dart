@@ -114,6 +114,16 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   // from hold-ring completion. Used to show the right confirmation msg.
   bool _saidItPressed = false;
 
+  // R26 S1v2-EE6: true once the user has positively confirmed dhikr
+  // (hold-ring complete OR Reader-mode "I've said it"). Flipped false
+  // by skip / not-now. Drives the -25% Light penalty in _continueJourney
+  // and the 25% warning popup trigger.
+  bool _dhikrAcknowledged = false;
+
+  // R26 S1v2-EE6: defensive one-shot for the 25% warning dialog so it
+  // never re-fires on the same page if the user dismisses and re-skips.
+  bool _lightWarningShown = false;
+
   // ── Gating ──────────────────────────────────────────────────────────
   bool _canExit = false;
 
@@ -335,11 +345,11 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     _holdRingComplete = true;
     HapticFeedback.heavyImpact();
 
-    // Noor recharge in Explorer Mode
-    if (PrefsService.isExplorerMode) {
-      await PrefsService.rechargeNoor(50);
-    }
-
+    // R26 S1v2-EE6: event-completion dhikr no longer restores Light
+    // (+50 rechargeNoor removed). New model: saying dhikr on event
+    // completion = Light STAYS at whatever value it was at entry;
+    // skipping = -25 penalty applied in _continueJourney. Only the
+    // tent-side dhikr path (dhikr_collection_screen) regenerates.
     await PrefsService.incrementDhikrCount();
     await PrefsService.setDhikrCompleted(widget.event.id);
     await _dhikrShimmerCtrl.forward();
@@ -347,6 +357,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     setState(() {
       _dhikrCelebrating = true;
       _dhikrResolved = true;
+      _dhikrAcknowledged = true; // R26 S1v2-EE6
       _canExit = true;
     });
     _continueFade.forward();
@@ -366,13 +377,33 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     if (!mounted) return;
     setState(() {
       _dhikrResolved = true;
+      _dhikrAcknowledged = true; // R26 S1v2-EE6
       _canExit = true;
     });
     _continueFade.forward();
   }
 
-  void _onNotNow() {
+  /// R26 S1v2-EE6: Skip path. If the user is at Light == 25 AND hasn't
+  /// acknowledged dhikr yet, intercept with the "Your light is fading"
+  /// warning dialog before committing the skip. Otherwise fall through
+  /// to the normal skip behaviour. The -25 penalty itself is applied
+  /// later at _continueJourney based on _dhikrAcknowledged.
+  Future<void> _onNotNow() async {
     if (_dhikrResolved) return;
+    if (!_lightWarningShown &&
+        _hasDhikr &&
+        !_dhikrAcknowledged &&
+        PrefsService.noorLevel == 25) {
+      _lightWarningShown = true;
+      final skipAnyway = await _showLightWarningDialog();
+      if (!mounted) return;
+      if (skipAnyway != true) {
+        // User picked "Say dhikr" — leave them on the dhikr card.
+        // Dhikr state untouched; they can still tap "I've said it"
+        // or complete the hold ring from here.
+        return;
+      }
+    }
     setState(() {
       _dhikrResolved = true;
       _canExit = true;
@@ -380,8 +411,108 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     _continueFade.forward();
   }
 
+  /// R26 S1v2-EE6: warning popup when Light = 25 and user is skipping
+  /// dhikr. Matches in-app dialog style (navy container + gold accents).
+  /// Barrier dismissal disabled (EE8 rule: explicit choice only).
+  Future<bool?> _showLightWarningDialog() {
+    final isAr = _isAr;
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF0A0E18),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.gold.withAlpha(100), width: 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.warning_amber_rounded,
+                  size: 36, color: AppColors.gold.withAlpha(200)),
+              const SizedBox(height: 12),
+              Text(
+                isAr ? 'نورك يخفت' : 'Your light is fading',
+                textAlign: TextAlign.center,
+                textDirection:
+                    isAr ? TextDirection.rtl : TextDirection.ltr,
+                style: GoogleFonts.cinzelDecorative(
+                  color: AppColors.gold,
+                  fontSize: 18,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                isAr
+                    ? 'قل ذكرك لتحافظ على إشراق نورك. أو تخطَّ للمتابعة على أي حال.'
+                    : 'Say your dhikr to keep your light shining. '
+                        'Or tap skip to continue anyway.',
+                textAlign: TextAlign.center,
+                textDirection:
+                    isAr ? TextDirection.rtl : TextDirection.ltr,
+                style: GoogleFonts.nunito(
+                  color: const Color(0xFFE8D8B8),
+                  fontSize: 14,
+                  height: 1.55,
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Primary — Say dhikr (closes dialog, keeps user on page)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: const Color(0xFF0A0E18),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 11),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    isAr ? 'قل الذكر' : 'Say dhikr',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Secondary — Skip anyway
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(
+                  isAr ? 'تخطٍ' : 'Skip anyway',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.textMuted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── Exit ─────────────────────────────────────────────────────────────
   void _continueJourney() {
+    // R26 S1v2-EE6: apply the -25% Light penalty for finishing an
+    // event without acknowledging dhikr. Clamp floor 10 lives in
+    // PrefsService.setNoorLevel. Skipped on replays (already-
+    // completed revisits never touch Light).
+    if (!widget.alreadyCompleted && !_dhikrAcknowledged) {
+      final current = PrefsService.noorLevel;
+      PrefsService.setNoorLevel(current - 25);
+    }
     AudioService.stopSfx();
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     AudioService.fadeOutVoiceover(

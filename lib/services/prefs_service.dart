@@ -483,12 +483,15 @@ class PrefsService {
   static const String _keyNoorLevel = 'noorLevel';
   static int get noorLevel => _prefs?.getInt(_keyNoorLevel) ?? 100;
 
-  /// R25-S3-4: clamp writes to [0, 100] AND log the clamp path to the
-  /// debug reporter so device-test runs can see the exact sequence
-  /// behind any observed value. Addresses a Sprint 3 report of scene
-  /// vs tent showing different Noor numbers on the same event.
+  /// R25-S3-4 / R26 S1v2-EE6: clamp writes to [10, 100] AND log the
+  /// clamp path to the debug reporter.
+  ///
+  /// Floor 10 (not 0) is the R26 Light-mechanic rule: light never
+  /// fully drops — a user who completes 5+ events without dhikr
+  /// lands at 10%, not 0%. Ceiling 100 is unchanged. Registration
+  /// still seeds with 100 (see setupInitialState).
   static Future<void> setNoorLevel(int level) async {
-    final clamped = level.clamp(0, 100);
+    final clamped = level.clamp(10, 100);
     final prev = noorLevel;
     DebugLogService.log('noor', 'setNoorLevel($level)→$clamped (was $prev)');
     await _prefs?.setInt(_keyNoorLevel, clamped);
