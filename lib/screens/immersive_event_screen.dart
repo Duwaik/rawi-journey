@@ -988,18 +988,23 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   /// collided with scene dots, joystick, Android nav bar, and speech
   /// bubbles during device testing — doesn't hold up in practice.
   Widget _buildTitlePill() {
+    // R26 S1v2-EE1: border alpha bumped 0.18 → 0.35 and width 0.5 → 0.8
+    // so the pill reads as a distinct signboard against any scene art,
+    // not floating text. Padding widened to 20h/10v per reference
+    // screenshot. Backdrop blur kept at 6 sigma (enough to register
+    // without over-softening the scene behind).
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           decoration: BoxDecoration(
             color: const Color.fromRGBO(10, 14, 24, 0.55),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: AppColors.gold.withAlpha(46), // 0.18
-              width: 0.5,
+              color: AppColors.gold.withAlpha(89), // 0.35 * 255
+              width: 0.8,
             ),
           ),
           child: Column(
@@ -1013,13 +1018,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     _isAr ? TextDirection.rtl : TextDirection.ltr,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                // R26 S1v2-EE1: title 14 → 15 per spec reference.
                 style: GoogleFonts.nunito(
                   color: const Color(0xFFE8D8B8),
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 1),
+              const SizedBox(height: 2),
               Text(
                 widget.event.era.label(PrefsService.language),
                 textAlign: TextAlign.center,
