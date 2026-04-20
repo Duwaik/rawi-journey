@@ -2220,15 +2220,23 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
             ),
 
-          // ── R25-S3-1/S3-2/S3-3: Minimal 3-element top bar ─────────
-          // [back]  [chapter pill, static]  [⚙ settings]
+          // ── Minimal 3-element top bar ─────────────────────────────
+          // [back]  [title pill, static]  [⚙ settings]
           // Back + settings use shared TopBarIconButton (36×36 pill).
-          // Chapter pill is a plain Container — no ripple, no tap target.
+          // Title pill is a plain Container — no ripple, no tap target.
+          //
+          // R26 S1v3-EE1: fixed-height container REMOVED. Previous
+          // `height: 48 + topPad` clipped the 2-line title pill (needs
+          // ~58px for 15px title + 2px gap + 11px italic chapter +
+          // 20px padding). On device only the top of the pill painted,
+          // which looked like "title only, no chapter, no BG pill"
+          // even though the widget tree contained all three. Container
+          // now sizes to its tallest child so the full pill renders.
+          // Bottom padding bumped 4 → 10 for breathing room.
           Positioned(
             top: 0, left: 0, right: 0,
             child: Container(
-              height: 48 + topPad,
-              padding: EdgeInsets.fromLTRB(12, topPad + 6, 12, 4),
+              padding: EdgeInsets.fromLTRB(12, topPad + 6, 12, 10),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
