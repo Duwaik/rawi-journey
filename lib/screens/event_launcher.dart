@@ -99,18 +99,26 @@ Future<void> launchThreshold(
   );
 }
 
-/// Launches an event — handles video intro, noor depletion, witness moment,
-/// and the immersive scene push. Mirrors the original event_list_screen._openEvent.
+/// Launches an event — handles video intro, witness moment, and the
+/// immersive scene push. Mirrors the original event_list_screen._openEvent.
 Future<void> launchEvent(BuildContext context, JourneyEvent event) async {
   DebugLogService.log('nav', 'launchEvent ${event.id} (#${event.globalOrder})');
 
-  // Explorer Mode: deplete noor on event transition (-25%).
-  // Skip for completed events (replays) and Event 1 (first-time grace).
-  if (PrefsService.isExplorerMode &&
-      !PrefsService.isEventCompleted(event.globalOrder) &&
-      event.globalOrder > 1) {
-    await PrefsService.depleteNoor(25);
-  }
+  // R26 S1-EE6: event-launch noor depletion removed. Previously this
+  // subtracted 25 from PrefsService.noorLevel on every Explorer-mode
+  // event entry (except Event 1 and completed replays), which produced
+  // the tent-vs-scene "100% → 75%" discrepancy in Khaled's device test.
+  // All four consumers (tent pill, event info tab, figure halo, fog
+  // radius) already read the same getter; the delta came from this
+  // write landing BETWEEN the tent read and the scene read.
+  //
+  // Light is now a gains-only stat tied to completions / dhikr recharges
+  // (see unified_completion_screen rechargeNoor path). The Explorer fog
+  // mechanic still scales with live noorLevel, so "lower light = dimmer
+  // fog" is preserved — users just can't lose light by ENTERING an
+  // event. If a decay mechanic is reintroduced later it should write at
+  // a moment that precedes the tent's next render, not between tent
+  // and scene.
 
   final config = sceneConfigs[event.id];
   final hasScene = config != null;
