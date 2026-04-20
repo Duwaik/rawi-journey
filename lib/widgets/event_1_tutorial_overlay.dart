@@ -62,7 +62,10 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
   Future<void> _advance() async {
     // TODO: Sprint 4 — revisit step 1 copy if the mode toggle location
     // changes when Sprint 4 moves the toggle to tent settings only.
-    if (_step < 2) {
+    // R26 S1-TU3: 4 steps total (0..3). Step 3 is the figure-movement
+    // explainer, added after the hotspot step so the user first
+    // understands WHERE to go, then HOW to get there.
+    if (_step < 3) {
       setState(() => _step++);
       return;
     }
@@ -94,7 +97,7 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
               : "Tap here to see your light and this event's progress.",
           pointer: _PointerTarget.leftMid,
         );
-      default:
+      case 2:
         return _StepSpec(
           icon: Icons.auto_awesome_rounded,
           title: isAr ? 'اللحظات المتوهّجة' : 'Glowing Moments',
@@ -102,6 +105,18 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
               ? 'اقترب من نقطة متوهجة كهذه لتشهد لحظة.'
               : 'Move toward a glowing spot like this to witness a moment.',
           pointer: _PointerTarget.demoHotspot,
+        );
+      default:
+        // R26 S1-TU3: figure-movement explainer. Placed last per spec
+        // so users already know WHY they're moving (to reach the
+        // glowing spot from step 2) before learning HOW.
+        return _StepSpec(
+          icon: Icons.gamepad_rounded,
+          title: isAr ? 'كيفية التحرك' : 'How to move',
+          subtitle: isAr
+              ? 'اسحب راوي مباشرة بإصبعك، أو استخدم عصا التحكم في الأسفل.'
+              : 'Drag Rawi directly with your finger, or use the joystick at the bottom.',
+          pointer: _PointerTarget.bottomJoystick,
         );
     }
   }
@@ -223,7 +238,7 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
               left: 0, right: 0,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (i) {
+                children: List.generate(4, (i) {
                   final active = i == _step;
                   return Container(
                     margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -301,6 +316,36 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
             },
           ),
         );
+      case _PointerTarget.bottomJoystick:
+        // R26 S1-TU3: figure-movement explainer. Renders TWO arrows —
+        // one up the middle of the scene (hint: drag figure with
+        // finger) and one pointing down toward the joystick area
+        // (hint: or use the joystick). Avoids cross-widget
+        // coordination by drawing its own demo glyphs rather than
+        // pulsing the live joystick.
+        return Stack(
+          children: [
+            // Finger-drag hint — arrow above the figure area
+            Positioned(
+              top: size.height * 0.48,
+              left: 0, right: 0,
+              child: Center(
+                child: _buildArrow(Icons.touch_app_rounded),
+              ),
+            ),
+            // Joystick hint — arrow near bottom where the virtual
+            // joystick renders (left in EN, right in AR — but the
+            // joystick itself is positioned by user preference, so
+            // a centered hint is language-safe).
+            Positioned(
+              bottom: size.height * 0.16,
+              left: 0, right: 0,
+              child: Center(
+                child: _buildArrow(Icons.arrow_downward_rounded),
+              ),
+            ),
+          ],
+        );
     }
   }
 
@@ -319,7 +364,7 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
   }
 }
 
-enum _PointerTarget { topRight, leftMid, demoHotspot }
+enum _PointerTarget { topRight, leftMid, demoHotspot, bottomJoystick }
 
 class _StepSpec {
   final IconData icon;
