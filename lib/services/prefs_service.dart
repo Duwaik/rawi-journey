@@ -417,6 +417,7 @@ class PrefsService {
   // ── DHIKR (Hasanat) ───────────────────────────────────────────────────────
   static const String _keyDhikrCount = 'dhikr_completed_count';
   static const String _keyDhikrCompleted = 'dhikr_completed_';
+  static const String _keyLastTentDhikrTs = 'last_tent_dhikr_ts';
 
   static int get dhikrCompletedCount =>
       _prefs?.getInt(_keyDhikrCount) ?? 0;
@@ -429,6 +430,32 @@ class PrefsService {
 
   static bool isDhikrCompleted(String eventId) =>
       _prefs?.getBool('$_keyDhikrCompleted$eventId') ?? false;
+
+  /// R26 S1v3-EE6.4: 24h cooldown on the tent-side "I said it" regen.
+  /// v2 used a session-local flag which reset any time the user
+  /// restarted the app — so they could stack +25 regens by backgrounding
+  /// and relaunching. Now we persist the timestamp and gate the next
+  /// recharge until 24h have passed.
+  ///
+  /// Storage: millisecondsSinceEpoch (int). Unset → never tapped.
+  /// Caller logic: if now - last < 86400000ms, show the "Said today ✓
+  /// Return tomorrow" state and skip the regen.
+  static int? get lastTentDhikrTs => _prefs?.getInt(_keyLastTentDhikrTs);
+
+  static Future<void> setLastTentDhikrTs(int ts) async =>
+      await _prefs?.setInt(_keyLastTentDhikrTs, ts);
+
+  /// True when the 24h window from the last tent tap has NOT yet passed.
+  /// Reads the wall clock at call time, so a user who changes their
+  /// system clock backwards still gets a `false` (locked) result because
+  /// the delta turns negative. Forward-clock-skew is unavoidable without
+  /// a server time source — deferred.
+  static bool get isTentDhikrLocked {
+    final last = lastTentDhikrTs;
+    if (last == null) return false;
+    final delta = DateTime.now().millisecondsSinceEpoch - last;
+    return delta >= 0 && delta < 86400000;
+  }
 
   // ── DISCOVERED SECRETS (Hidden Scene Elements) ─────────────────────────────
   static const String _keyDiscoveredSecrets = 'discovered_secrets';

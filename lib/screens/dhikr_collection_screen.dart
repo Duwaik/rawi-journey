@@ -176,27 +176,31 @@ class _FeaturedDhikrCard extends StatefulWidget {
 }
 
 class _FeaturedDhikrCardState extends State<_FeaturedDhikrCard> {
-  /// R26 S1v2-EE6: session-local "said today" flag. Prevents the user
-  /// from stacking regens by tapping I-said-it repeatedly. A full
-  /// "daily reset" would need a date-keyed pref; Khaled's spec note:
-  /// "don't over-engineer this" — session-scoped is enough until the
-  /// daily counter lands.
-  bool _saidThisSession = false;
+  /// R26 S1v3-EE6.4: 24h cooldown on the tent regen. v2 used a
+  /// session-local flag, but that reset on app restart so the user
+  /// could stack +25 regens by backgrounding. Now the timestamp
+  /// lives in prefs and the next tap is gated until 24h pass.
+  ///
+  /// [_isLockedForToday] is derived (read once at build + after tap)
+  /// from [PrefsService.isTentDhikrLocked]. Not live-ticking — the
+  /// user won't cross midnight while staring at the card, and a
+  /// state check on re-enter is enough.
   bool _busy = false;
+  bool get _isLockedForToday => PrefsService.isTentDhikrLocked;
 
   Future<void> _onSaidIt() async {
-    if (_saidThisSession || _busy) return;
+    if (_isLockedForToday || _busy) return;
     setState(() => _busy = true);
     HapticFeedback.mediumImpact();
     final before = PrefsService.noorLevel;
     await PrefsService.incrementDhikrCount();
     // Tent-side regen: +25 Light, clamped to 100 ceiling in setNoorLevel.
     await PrefsService.setNoorLevel(before + 25);
+    // Persist the tap timestamp so the 24h gate survives app restarts.
+    await PrefsService.setLastTentDhikrTs(
+        DateTime.now().millisecondsSinceEpoch);
     if (!mounted) return;
-    setState(() {
-      _saidThisSession = true;
-      _busy = false;
-    });
+    setState(() => _busy = false);
   }
 
   DhikrCard get card => widget.card;
@@ -277,37 +281,37 @@ class _FeaturedDhikrCardState extends State<_FeaturedDhikrCard> {
             ),
           ),
           const SizedBox(height: 16),
-          // R26 S1v2-EE6: tent-side dhikr regen — "I said it" button on
-          // the Dhikr of the Day featured card. Tapping increments the
-          // lifetime dhikr count and restores +25% Light (clamped to
-          // 100). After tap the button flips to a subtle "✓ Said"
-          // indicator for the rest of this session.
+          // R26 S1v3-EE6.4: tent-side dhikr regen gated by a 24h cooldown
+          // that survives app restarts. Before today's tap the button is
+          // active gold. After the tap it flips to a muted
+          // "✓ Said today · Return tomorrow" state and stays locked for
+          // 24h from the saved timestamp (see PrefsService.isTentDhikrLocked).
           Align(
             alignment: Alignment.center,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: _saidThisSession ? null : _onSaidIt,
+              onTap: _isLockedForToday ? null : _onSaidIt,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 padding: const EdgeInsets.symmetric(
                     horizontal: 22, vertical: 10),
                 decoration: BoxDecoration(
-                  color: _saidThisSession
+                  color: _isLockedForToday
                       ? AppColors.gold.withAlpha(30)
                       : AppColors.gold,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
                       color: AppColors.gold,
-                      width: _saidThisSession ? 0.8 : 1.2),
+                      width: _isLockedForToday ? 0.8 : 1.2),
                 ),
                 child: Text(
-                  _saidThisSession
-                      ? (isAr ? '✓ قلتها' : '✓ Said')
+                  _isLockedForToday
+                      ? (isAr ? '✓ قلتها اليوم · عد غدًا' : '✓ Said today · Return tomorrow')
                       : (isAr ? 'قلتها ✓' : "I've said it ✓"),
                   textDirection:
                       isAr ? TextDirection.rtl : TextDirection.ltr,
                   style: GoogleFonts.nunito(
-                    color: _saidThisSession
+                    color: _isLockedForToday
                         ? AppColors.gold.withAlpha(200)
                         : const Color(0xFF0A0E18),
                     fontSize: 14,
