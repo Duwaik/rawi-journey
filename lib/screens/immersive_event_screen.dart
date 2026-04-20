@@ -202,9 +202,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     // launch of the first event, after the intro video has completed
     // (this scene mounts AFTER VideoIntroScreen pops, so by here the
     // video is done). Never shown on events 2-155; never shown twice.
+    //
+    // R26 S1-TU1: trigger is deliberately locale-agnostic. No
+    // `languageCode == 'en'` or similar gate — grep-verified across
+    // lib/. AR + EN copy is inside Event1TutorialOverlay._spec.
+    // Emitting a debug trace so future AR repro attempts produce
+    // evidence of whether the overlay actually fires.
     if (widget.event.globalOrder == 1 &&
         !PrefsService.isEvent1TutorialShown) {
       _showEvent1Tutorial = true;
+      DebugLogService.log('tutorial',
+          'Event1 overlay armed (isAr=${PrefsService.isAr})');
     }
 
     // R20 Part B + C: compute effective hotspot positions once for this

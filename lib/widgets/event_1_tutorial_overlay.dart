@@ -114,7 +114,14 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
     final topPad = MediaQuery.of(context).padding.top;
     final size = MediaQuery.of(context).size;
 
-    return FadeTransition(
+    // R26 S1-TU1: explicit Directionality wrapper ensures Arabic text +
+    // RTL semantics render correctly even if the ambient Directionality
+    // doesn't propagate cleanly through the Positioned / FadeTransition /
+    // Stack chain the overlay sits inside. Individual Text widgets also
+    // pass textDirection explicitly; this is belt-and-suspenders.
+    return Directionality(
+      textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+      child: FadeTransition(
       opacity: CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut),
       child: Container(
         color: Colors.black.withAlpha(210),
@@ -234,6 +241,7 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
             ),
           ],
         ),
+      ),
       ),
     );
   }
