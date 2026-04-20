@@ -998,11 +998,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     _isAr ? TextDirection.rtl : TextDirection.ltr,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                // R26 S1-EE1: chapter subtitle now 11px italic (was 10px
+                // upright). No separate "Explore the scene · N/4" pill
+                // below the title — progress lives in the info-tab
+                // expansion (Section 2 "THIS EVENT").
                 style: GoogleFonts.nunito(
                   color: AppColors.gold.withAlpha(166), // 0.65
-                  fontSize: 10,
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
