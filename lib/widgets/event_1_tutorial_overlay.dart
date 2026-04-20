@@ -60,12 +60,13 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
   }
 
   Future<void> _advance() async {
-    // TODO: Sprint 4 — revisit step 1 copy if the mode toggle location
-    // changes when Sprint 4 moves the toggle to tent settings only.
-    // R26 S1-TU3: 4 steps total (0..3). Step 3 is the figure-movement
-    // explainer, added after the hotspot step so the user first
-    // understands WHERE to go, then HOW to get there.
-    if (_step < 3) {
+    // R26 S1v2-TU1: tutorial is now 3 steps (0..2). Mode-toggle step
+    // removed — mode toggle lives in tent settings only per Sprint 4
+    // lock; pointing users to the event-scene gear was incorrect.
+    //   Step 0 — Info tab        (was step 1)
+    //   Step 1 — Scene hotspot   (was step 2)
+    //   Step 2 — Figure movement (was step 3)
+    if (_step < 2) {
       setState(() => _step++);
       return;
     }
@@ -78,17 +79,10 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
 
   _StepSpec get _spec {
     final isAr = _isAr;
+    // R26 S1v2-TU1: 3 steps (0..2). Mode-toggle step removed per spec —
+    // mode toggle is tent-settings only.
     switch (_step) {
       case 0:
-        return _StepSpec(
-          icon: Icons.settings_rounded,
-          title: isAr ? 'وضع الاستكشاف والقراءة' : 'Explorer & Reader Modes',
-          subtitle: isAr
-              ? 'اضغط على الإعدادات في أي وقت للتبديل بين وضع الاستكشاف والقراءة.'
-              : 'Tap settings anytime to switch between Explorer and Reader mode.',
-          pointer: _PointerTarget.topRight,
-        );
-      case 1:
         return _StepSpec(
           icon: Icons.info_outline_rounded,
           title: isAr ? 'نورك والتقدّم' : 'Your Light & Progress',
@@ -97,7 +91,7 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
               : "Tap here to see your light and this event's progress.",
           pointer: _PointerTarget.leftMid,
         );
-      case 2:
+      case 1:
         return _StepSpec(
           icon: Icons.auto_awesome_rounded,
           title: isAr ? 'اللحظات المتوهّجة' : 'Glowing Moments',
@@ -107,9 +101,9 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
           pointer: _PointerTarget.demoHotspot,
         );
       default:
-        // R26 S1-TU3: figure-movement explainer. Placed last per spec
-        // so users already know WHY they're moving (to reach the
-        // glowing spot from step 2) before learning HOW.
+        // R26 S1-TU3: figure-movement explainer. Placed last so users
+        // already know WHY they're moving (to reach the glowing spot
+        // from the previous step) before learning HOW.
         return _StepSpec(
           icon: Icons.gamepad_rounded,
           title: isAr ? 'كيفية التحرك' : 'How to move',
@@ -238,7 +232,7 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
               left: 0, right: 0,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (i) {
+                children: List.generate(3, (i) {
                   final active = i == _step;
                   return Container(
                     margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -265,14 +259,10 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
   /// widget coordination needed — the overlay renders its own demo
   /// glyph next to the real element it's pointing at.
   Widget _buildPointer(_PointerTarget target, double topPad, Size size) {
+    // R26 S1v2-TU1: the `topRight` pointer (settings-gear arrow for the
+    // old mode-toggle step) is gone along with its step. Enum entry
+    // removed to keep the switch exhaustive-by-default.
     switch (target) {
-      case _PointerTarget.topRight:
-        // Arrow pointing up-right toward the settings gear.
-        return Positioned(
-          top: topPad + 52,
-          right: 24,
-          child: _buildArrow(Icons.arrow_upward_rounded),
-        );
       case _PointerTarget.leftMid:
         // Arrow pointing left toward the info tab at ~40% height.
         return Positioned(
@@ -364,7 +354,7 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
   }
 }
 
-enum _PointerTarget { topRight, leftMid, demoHotspot, bottomJoystick }
+enum _PointerTarget { leftMid, demoHotspot, bottomJoystick }
 
 class _StepSpec {
   final IconData icon;
