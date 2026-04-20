@@ -6,6 +6,7 @@ import 'app_colors.dart';
 import 'screens/splash_screen.dart';
 import 'services/audio_service.dart';
 import 'services/prefs_service.dart';
+import 'services/route_observer.dart';
 import 'widgets/debug_nav_observer.dart';
 import 'widgets/debug_reporter_overlay.dart';
 
@@ -80,8 +81,11 @@ class _RawiAppState extends State<RawiApp> with WidgetsBindingObserver {
     return MaterialApp(
       title: 'Rawi',
       debugShowCheckedModeBanner: false,
-      // R25-S1-6: every push/pop/replace funnels into DebugLogService
-      navigatorObservers: [DebugNavObserver()],
+      // R25-S1-6: every push/pop/replace funnels into DebugLogService.
+      // R26 S1v2-T2: appRouteObserver lets screens subscribe to route
+      // lifecycle events (e.g., tent refreshes when it becomes active
+      // again after an event-scene pop).
+      navigatorObservers: [DebugNavObserver(), appRouteObserver],
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.black,
         textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),

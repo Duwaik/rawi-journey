@@ -11,6 +11,7 @@ import '../models/journey_event.dart';
 import '../models/rawi_stage.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
+import '../services/route_observer.dart';
 import 'collection_gallery_screen.dart';
 import 'dhikr_collection_screen.dart';
 import 'event_launcher.dart';
@@ -32,7 +33,7 @@ class RawiTentScreen extends StatefulWidget {
   State<RawiTentScreen> createState() => _RawiTentScreenState();
 }
 
-class _RawiTentScreenState extends State<RawiTentScreen> {
+class _RawiTentScreenState extends State<RawiTentScreen> with RouteAware {
   bool get _isAr => PrefsService.isAr;
   String? _activeSheet;
 
@@ -131,6 +132,33 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
   void initState() {
     super.initState();
     _startTentAmbient();
+  }
+
+  /// R26 S1v2-T2: subscribe to route lifecycle so the tent re-reads
+  /// progress prefs the moment it becomes active again (e.g., user
+  /// backs out of the event scene). Without this the Continue button
+  /// label stays stale until the app is cold-restarted.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    appRouteObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  /// Fires when the tent becomes the top route again after a pop
+  /// (event scene → back → tent). Pull the prefs and rebuild so the
+  /// Start/Continue button + next-item title reflect the latest state.
+  @override
+  void didPopNext() {
+    if (mounted) setState(() {});
   }
 
   /// B13: Campfire ambient on the tent, looping. Fades in via playAmbient's

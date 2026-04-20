@@ -215,6 +215,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           'Event1 overlay armed (isAr=${PrefsService.isAr})');
     }
 
+    // R26 S1v2-T2: write the in-progress flag at scene ENTRY (not
+    // deferred to first HS discovery). Covers the "back out before
+    // any HS" scenario which v1 missed — tent will read this flag
+    // on didPopNext and render Continue instead of Start.
+    //
+    // Skipped for replays (event already completed) so revisiting a
+    // completed event doesn't re-flag it as in-progress.
+    if (!_alreadyCompleted) {
+      PrefsService.setInProgressEvent(widget.event.id);
+    }
+
     // R20 Part B + C: compute effective hotspot positions once for this
     // event. Completed-event replays keep the stored scene-config positions
     // so the re-read layout is stable; live runs get the mode-specific
