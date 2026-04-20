@@ -172,6 +172,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   double _figureScale = 1.0;
   double _figureBounceTarget = 0.05; // peak scale offset (0.05 = normal, 0.1 = celebration)
 
+  // R26 S1v2-EE2: 120ms ease-out snap controller. Tweens _companionX/Y
+  // from the current position to the hotspot center when proximity
+  // triggers. _hsTriggerLocked is already true for the duration so no
+  // other input can compete with this animation.
+  late final AnimationController _snapCtrl;
+  double _snapStartX = 0;
+  double _snapStartY = 0;
+  double _snapTargetX = 0;
+  double _snapTargetY = 0;
+
   // ── Feature: Hotspot proximity opacity ───────────────────────────────────
   final Map<String, double> _hotspotProximityOpacity = {};
 
@@ -280,6 +290,21 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         setState(() => _figureScale = 1.0);
         _figureBounceCtrl.reset();
       }
+    });
+
+    // R26 S1v2-EE2: snap animation. Duration 120ms per spec, ease-out
+    // curve. Listener interpolates _companionX/Y between start and
+    // target each tick; parallax recomputed on the fly.
+    _snapCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    )..addListener(() {
+      final t = Curves.easeOut.transform(_snapCtrl.value);
+      setState(() {
+        _companionX = _snapStartX + (_snapTargetX - _snapStartX) * t;
+        _companionY = _snapStartY + (_snapTargetY - _snapStartY) * t;
+        _parallaxOffset = -(_companionX - 0.5) * 0.8;
+      });
     });
 
     if (_alreadyCompleted) {
@@ -666,6 +691,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _gameLoop.removeListener(_onFrame);
     _gameLoop.dispose();
     _figureBounceCtrl.dispose();
+    _snapCtrl.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
     // Fade all audio for smooth exit (LOCKED RULE: no hard cuts)
@@ -1240,14 +1266,19 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _joyDy = 0;
     _gameLoop.stop();
     _gameLoop.reset();
-    // B15 / R26 S1-EE2: Snap figure to hotspot center (one-shot, not in
-    // movement loop). Instant snap — spec's 80ms tween would need an
-    // AnimationController specifically for this; the instant snap is
-    // imperceptible on A56 and doesn't add state to manage.
+    // R26 S1v2-EE2: 120ms ease-out tween to the hotspot center (was
+    // an instant snap in v1). _hsTriggerLocked already blocks game-
+    // loop + touch input for the duration so nothing competes with
+    // the tween. Content card still appears 400ms after trigger,
+    // giving the tween (~120ms) room to finish + ~280ms polish beat.
     final snapPos = _posFor(hotspot);
-    _companionX = snapPos.dx;
-    _companionY = snapPos.dy;
-    _parallaxOffset = -(_companionX - 0.5) * 0.8;
+    _snapStartX = _companionX;
+    _snapStartY = _companionY;
+    _snapTargetX = snapPos.dx;
+    _snapTargetY = snapPos.dy;
+    _snapCtrl
+      ..reset()
+      ..forward();
     setState(() {
       _pendingDiscovery.add(hotspot.id);
       _isWalking = false;
