@@ -117,6 +117,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // Auto-walk state (tap-to-walk)
   bool _autoWalking = false;
 
+  /// R26 S1-EE2: true from the moment a proximity trigger fires
+  /// (_activateHotspot entry) until the hotspot card is dismissed.
+  /// Blocks BOTH joystick ticks and finger-drag updates from moving
+  /// the figure while the snap-to-card handoff is in flight.
+  bool _hsTriggerLocked = false;
+
   // Parallax offset
   double _parallaxOffset = 0.0;
 
@@ -678,10 +684,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   bool _footstepPlaying = false;
 
   void _onFrame() {
-    // Absolute freeze during ANY overlay — no movement whatsoever
+    // Absolute freeze during ANY overlay — no movement whatsoever.
+    // R26 S1-EE2: _hsTriggerLocked is a sub-state of "about to show a
+    // hotspot card" where _activeHotspot isn't set yet but input must
+    // already be blocked so the snap holds.
     if (_activeHotspot != null || _showBranchCard || _showSettings ||
         _showBadgeOverlay || _showChapterComplete || _showXpAnimation ||
         _showTutorial ||
+        _hsTriggerLocked ||
         _phase == _Phase.verdict ||
         _phase == _Phase.complete) {
       return;
@@ -1195,12 +1205,20 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       AudioService.playSfx(hotspot.sfxPath!, volume: 0.4);
       _footstepPlaying = false;
     }
+    // R26 S1-EE2: lock input BEFORE the snap + content-reveal handoff
+    // so a fast finger-drag can't continue moving the figure past the
+    // hotspot marker during the 400ms window before _activeHotspot
+    // gets set. Reset in _dismissPanel.
+    _hsTriggerLocked = true;
     // Zero joystick + stop game loop to prevent stale movement after dismiss
     _joyDx = 0;
     _joyDy = 0;
     _gameLoop.stop();
     _gameLoop.reset();
-    // B15: Snap figure to hotspot center (one-shot, not in movement loop)
+    // B15 / R26 S1-EE2: Snap figure to hotspot center (one-shot, not in
+    // movement loop). Instant snap — spec's 80ms tween would need an
+    // AnimationController specifically for this; the instant snap is
+    // imperceptible on A56 and doesn't add state to manage.
     final snapPos = _posFor(hotspot);
     _companionX = snapPos.dx;
     _companionY = snapPos.dy;
@@ -1490,6 +1508,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     // Ensure joystick is clean — prevents stale movement after dismiss
     _joyDx = 0;
     _joyDy = 0;
+    // R26 S1-EE2: release the input lock set by _activateHotspot so
+    // the next movement gesture actually moves the figure again.
+    _hsTriggerLocked = false;
     final wasNewDiscovery = dismissed != null && _pendingDiscovery.contains(dismissed.id);
     setState(() {
       if (wasNewDiscovery) {
@@ -1926,7 +1947,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onPanUpdate: (details) {
-                  if (_activeHotspot != null || _showBranchCard) return;
+                  // R26 S1-EE2: the _hsTriggerLocked gate covers the
+                  // snap → card-reveal window so a fast finger-drag
+                  // can't push the figure past the hotspot marker
+                  // while the content is about to appear.
+                  if (_activeHotspot != null ||
+                      _showBranchCard ||
+                      _hsTriggerLocked) {
+                    return;
+                  }
                   final targetX = (details.localPosition.dx / screenW)
                       .clamp(0.05, 0.95);
                   final targetY = (details.localPosition.dy / screenH)
