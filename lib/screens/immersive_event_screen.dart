@@ -1051,11 +1051,16 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   /// R18-06: Fire-and-forget save of current progress (union of discovered + pending).
   /// Called immediately on every discovery state change so progress persists
   /// the moment it happens, eliminating exit-time race conditions.
+  ///
+  /// R26 S1-T2: also flips the "event in progress" flag + stamps the last
+  /// event ID so the tent's primary button can become Continue and route
+  /// directly back to this scene.
   void _saveProgressNow() {
     if (_alreadyCompleted || _isCompleting) return;
     final allFound = _discovered.union(_pendingDiscovery);
     if (allFound.isEmpty) return;
     PrefsService.saveHotspotProgress(widget.event.id, allFound);
+    PrefsService.setInProgressEvent(widget.event.id);
   }
 
   /// Header back button — saves progress and exits with audio cleanup.
@@ -1070,6 +1075,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       if (allFound.isNotEmpty) {
         await PrefsService.saveHotspotProgress(widget.event.id, allFound);
       }
+      // R26 S1-T2: stamp in-progress on every mid-event exit even if
+      // no new hotspots were discovered this session (e.g., user
+      // re-opened an in-progress event and backed straight out).
+      await PrefsService.setInProgressEvent(widget.event.id);
     }
     AudioService.stopSfx();
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
@@ -1084,6 +1093,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       if (allFound.isNotEmpty) {
         await PrefsService.saveHotspotProgress(widget.event.id, allFound);
       }
+      // R26 S1-T2: same stamp as _exitScene for the settings→Save-and-exit
+      // path. Tent will show Continue on next load.
+      await PrefsService.setInProgressEvent(widget.event.id);
     }
     // Fade everything for smooth exit
     AudioService.stopSfx();
@@ -1624,6 +1636,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // Write immediately — crash-safe. Badge+XP shown later on Continue tap.
         await PrefsService.completeEvent(widget.event.globalOrder, widget.event.xpReward);
         await PrefsService.clearHotspotProgress(widget.event.id);
+        // R26 S1-T2: event is now finalized — tent's primary button
+        // returns to "Start" for the next unplayed event.
+        await PrefsService.clearInProgressEvent();
         final badges = await PrefsService.checkAndAwardBadges();
         if (mounted && badges.isNotEmpty) {
           _newBadges = badges;

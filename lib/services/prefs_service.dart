@@ -37,6 +37,8 @@ class PrefsService {
   static const String _keyAgeTier          = 'age_tier';
   static const String _keyDebugOverlay     = 'debug_overlay_enabled';
   static const String _keyEvent1TutorialShown = 'tutorial_event1_shown';
+  static const String _keyLastEventId         = 'last_event_id';
+  static const String _keyEventInProgress     = 'event_in_progress';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
   static String get language => _prefs?.getString(_keyLanguage) ?? 'en';
@@ -302,6 +304,25 @@ class PrefsService {
       _prefs?.getBool(_keyEvent1TutorialShown) ?? false;
   static Future<void> setEvent1TutorialShown() async =>
       await _prefs?.setBool(_keyEvent1TutorialShown, true);
+
+  /// R26 S1-T2: "event in progress" flag + the event ID the user left
+  /// mid-play. Tent uses these to flip the primary button between
+  /// Start (fresh journey) and Continue (resume the saved event).
+  ///
+  /// Write path: every save-moment inside an event (hotspot discovery,
+  /// branch choice, mid-event exit) calls [setInProgressEvent]. The
+  /// event-completion path calls [clearInProgressEvent] so the tent
+  /// doesn't keep offering Continue on a finished event.
+  static String? get lastEventId => _prefs?.getString(_keyLastEventId);
+  static bool get isEventInProgress =>
+      _prefs?.getBool(_keyEventInProgress) ?? false;
+  static Future<void> setInProgressEvent(String eventId) async {
+    await _prefs?.setString(_keyLastEventId, eventId);
+    await _prefs?.setBool(_keyEventInProgress, true);
+  }
+  static Future<void> clearInProgressEvent() async {
+    await _prefs?.setBool(_keyEventInProgress, false);
+  }
 
   /// R25-S3-7: QA/dev helper — clear every tutorial-seen flag so the
   /// next run shows all overlays again. Gated behind kDebugMode at the

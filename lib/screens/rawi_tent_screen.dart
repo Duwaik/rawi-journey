@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../data/dhikr_data.dart';
 import '../data/m1_data.dart';
+import '../models/journey_event.dart';
 import '../models/rawi_stage.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
@@ -75,23 +76,46 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
     return c;
   }
 
-  /// R25-S2-4: true if the next progression item (event) has saved
-  /// mid-event hotspot progress — governs Start vs Continue button label.
-  /// Thresholds and fresh events return false.
+  /// R26 S1-T2: true when the last-launched event is flagged in-progress
+  /// in PrefsService. Drives the tent's primary button label
+  /// (Start → Continue) and the direct-resume routing below. This
+  /// replaces the older heuristic that peeked at hotspot progress of
+  /// the "next uncompleted" item — which mis-fired for users who
+  /// backed out of an event before discovering any hotspot.
   bool _hasInProgressNextItem() {
-    final item = currentProgressionItem();
-    if (item is EventItem) {
-      return PrefsService.loadHotspotProgress(item.event.id).isNotEmpty;
+    if (!PrefsService.isEventInProgress) return false;
+    final id = PrefsService.lastEventId;
+    if (id == null || id.isEmpty) return false;
+    // Safety: if the stored ID no longer exists in m1 (spec drift,
+    // dev resets), ignore and fall back to Start.
+    return m1Events.any((e) => e.id == id);
+  }
+
+  /// R26 S1-T2: the JourneyEvent the Continue button should route to,
+  /// or null if no in-progress event is recorded.
+  JourneyEvent? _inProgressEvent() {
+    final id = PrefsService.lastEventId;
+    if (id == null || id.isEmpty) return null;
+    for (final e in m1Events) {
+      if (e.id == id) return e;
     }
-    return false;
+    return null;
   }
 
   /// R25-S1-2: title of the current progression item — event OR threshold.
   /// When a threshold is pending before the next event, the progress card
   /// shows the threshold so the user knows what Start will actually launch.
+  ///
+  /// R26 S1-T2: when an in-progress event is flagged, the title reflects
+  /// THAT event (not the next uncompleted), so the Continue button's
+  /// label + title + route all point at the same thing.
   String _nextItemTitle(bool isComplete) {
     if (isComplete) {
       return _isAr ? 'اكتملت الرحلة' : 'Journey complete';
+    }
+    if (PrefsService.isEventInProgress) {
+      final ev = _inProgressEvent();
+      if (ev != null) return _isAr ? ev.titleAr : ev.title;
     }
     final item = currentProgressionItem();
     if (item is ThresholdItem) {
@@ -322,12 +346,27 @@ class _RawiTentScreenState extends State<RawiTentScreen> {
                   // directly — threshold → ThresholdScreen, event →
                   // VideoIntroScreen / EventIntroScreen / ImmersiveEventScreen.
                   // No events-list interstitial, no flash, no audio bleed.
+                  //
+                  // R26 S1-T2: when an in-progress event is flagged,
+                  // Continue routes directly to THAT event (not the
+                  // next uncompleted in sequence). The event scene's
+                  // own state rehydrates from loadHotspotProgress so
+                  // the user lands at the saved HS position.
                   onTap: () async {
                     HapticFeedback.lightImpact();
                     if (isComplete) {
                       await Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const EventListScreen()));
                       return;
+                    }
+                    if (isContinue) {
+                      final resumeEvent = _inProgressEvent();
+                      if (resumeEvent != null) {
+                        await launchEvent(context, resumeEvent);
+                        if (!mounted) return;
+                        setState(() {});
+                        return;
+                      }
                     }
                     await launchCurrentItem(context);
                     if (!mounted) return;
