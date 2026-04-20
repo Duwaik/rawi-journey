@@ -145,6 +145,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   static const double _hotspotRadius = 0.09;
   static const double _moveSpeed = 0.35;
 
+  /// R26 S1v3-EE9: tap-to-trigger distance window.
+  /// Walk-proximity auto-triggers when dist < 40px (`_hotspotRadius` at
+  /// a typical 400-420px phone width). Inside this [40, 100] px band
+  /// the user can tap the marker to finish the approach. Beyond 100px
+  /// taps are still ignored — otherwise the user could bypass the
+  /// walk-and-find beat entirely from anywhere on screen.
+  static const double _hsTapMinPx = 40.0;
+  static const double _hsTapMaxPx = 100.0;
+
   // Speech bubble state
   String _bubbleText = '';
   bool _bubbleVisible = false;
@@ -1449,8 +1458,22 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       if (hotspot.id != nextHotspotId) {
         return; // Locked hotspot — ignore tap
       }
-      // Explorer: proximity-based activation happens in _checkHotspotProximity,
-      // not here. Return silently — the user needs to walk closer.
+      // R26 S1v3-EE9: tap-to-trigger when the figure is already close
+      // enough to credibly "reach" the marker. The walk-proximity check
+      // in _checkHotspotProximity handles dist < _hotspotRadius (~40px
+      // at typical widths). Between 40–100px the user can tap the
+      // marker instead of dragging the last few pixels. Beyond 100px
+      // taps are ignored so the walk-and-find beat is preserved.
+      final size = MediaQuery.of(context).size;
+      final pos = _posFor(hotspot);
+      final dxPx = (_companionX - pos.dx) * size.width;
+      final dyPx = (_companionY - pos.dy) * size.height;
+      final distPx = sqrt(dxPx * dxPx + dyPx * dyPx);
+      if (distPx >= _hsTapMinPx && distPx <= _hsTapMaxPx) {
+        _activateHotspot(hotspot);
+        return;
+      }
+      // Still too far — return silently. User needs to walk closer.
       return;
     }
 
@@ -2099,11 +2122,23 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                     proximityOpacity = 0.0;
                   }
 
+                  // R26 S1v3-EE9: tap-ready flag for the pulse hint.
+                  // True only when this is the next HS AND the figure
+                  // is inside the tap band [40, 100] px.
+                  bool tapReady = false;
+                  if (isNext) {
+                    final dxPx = (_companionX - hPos.dx) * screenW;
+                    final dyPx = (_companionY - hPos.dy) * screenH;
+                    final dPx = sqrt(dxPx * dxPx + dyPx * dyPx);
+                    tapReady = dPx >= _hsTapMinPx && dPx <= _hsTapMaxPx;
+                  }
+
                   final marker = SceneHotspotMarker(
                     icon: h.icon,
                     label: _isAr ? h.labelAr : h.label,
                     discovered: isDiscovered,
                     active: isNext,
+                    tapReady: tapReady,
                     locked: isLocked,
                     onTap: () => _onHotspotTap(h),
                   );

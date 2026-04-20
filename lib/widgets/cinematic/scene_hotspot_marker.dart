@@ -16,6 +16,12 @@ class SceneHotspotMarker extends StatefulWidget {
   final bool locked;
   final VoidCallback? onTap;
 
+  /// R26 S1v3-EE9: stronger pulse amplitude when the figure is inside
+  /// the tap-to-trigger band (40–100 px from this marker). Signals
+  /// "you're close enough — tapping me will work". Parent computes
+  /// the distance each frame and flips this when in range.
+  final bool tapReady;
+
   const SceneHotspotMarker({
     super.key,
     required this.icon,
@@ -24,6 +30,7 @@ class SceneHotspotMarker extends StatefulWidget {
     this.active = false,
     this.locked = false,
     this.onTap,
+    this.tapReady = false,
   });
 
   @override
@@ -84,12 +91,16 @@ class _SceneHotspotMarkerState extends State<SceneHotspotMarker>
                   alignment: Alignment.center,
                   children: [
                     // Outer pulse ring (diamond, only when active)
+                    // R26 S1v3-EE9: amp scales from 20 → 24 when tapReady
+                    // so the marker visibly "invites" the tap once the
+                    // figure crosses into the 40–100px band.
                     if (isActive)
                       AnimatedBuilder(
                         animation: _pulse,
                         builder: (_, child) {
                           final v = _pulse.value;
-                          final size = 40.0 + v * 20;
+                          final amp = widget.tapReady ? 24.0 : 20.0;
+                          final size = 40.0 + v * amp;
                           return Transform.rotate(
                             angle: 0.7854,
                             child: Container(
