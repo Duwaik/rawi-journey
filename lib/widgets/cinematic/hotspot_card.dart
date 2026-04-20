@@ -109,8 +109,13 @@ class _HotspotCardState extends State<HotspotCard>
     final hasImage = widget.imagePath != null;
 
     return Positioned.fill(
+      // R26 S1v2-EE8: outer tap is a no-op (swallow) instead of a
+      // dismiss. Accidental taps on the scene behind the card used to
+      // advance past content the user meant to read. The "Tap to
+      // continue" pill below is now the only dismiss path.
       child: GestureDetector(
-        onTap: _dismiss,
+        onTap: () {},
+        behavior: HitTestBehavior.opaque,
         child: FadeTransition(
           opacity: _fadeAnim,
           child: Container(
@@ -350,23 +355,31 @@ class _HotspotCardState extends State<HotspotCard>
                             ),
                           ),
                         ],
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.gold.withAlpha(30),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: AppColors.gold.withAlpha(80),
-                              width: 1,
+                        // R26 S1v2-EE8: the pill is now THE dismiss
+                        // control — outer outside-tap no longer works.
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _dismiss,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold.withAlpha(30),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppColors.gold.withAlpha(80),
+                                width: 1,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            widget.isAr ? 'اضغط للمتابعة' : 'Tap to continue',
-                            style: GoogleFonts.nunito(
-                              color: AppColors.gold.withAlpha(220),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                            child: Text(
+                              widget.isAr
+                                  ? 'متابعة'
+                                  : 'Continue',
+                              style: GoogleFonts.nunito(
+                                color: AppColors.gold.withAlpha(220),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -399,8 +412,11 @@ class _HotspotCardState extends State<HotspotCard>
       bottom: 0,
       left: 0,
       right: 0,
+      // R26 S1v2-EE8: outer tap swallowed — dismiss lives on the
+      // "Tap to continue" pill below.
       child: GestureDetector(
-        onTap: _dismiss,
+        onTap: () {},
+        behavior: HitTestBehavior.opaque,
         child: SlideTransition(
           position: _slideAnim,
           child: FadeTransition(
@@ -506,23 +522,29 @@ class _HotspotCardState extends State<HotspotCard>
                   const SizedBox(height: 12),
 
                   Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.gold.withAlpha(30),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.gold.withAlpha(80),
-                          width: 1,
+                    // R26 S1v2-EE8: bottom-sheet pill also promoted to
+                    // the sole dismiss control.
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _dismiss,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withAlpha(30),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.gold.withAlpha(80),
+                            width: 1,
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        widget.isAr ? 'اضغط للمتابعة' : 'Tap to continue',
-                        style: GoogleFonts.nunito(
-                          color: AppColors.gold.withAlpha(200),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                        child: Text(
+                          widget.isAr ? 'متابعة' : 'Continue',
+                          style: GoogleFonts.nunito(
+                            color: AppColors.gold.withAlpha(200),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),

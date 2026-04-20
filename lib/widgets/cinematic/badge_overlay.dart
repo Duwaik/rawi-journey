@@ -81,7 +81,9 @@ class _BadgeOverlayState extends State<BadgeOverlay>
       animation: _ctrl,
       builder: (context, child) {
         return GestureDetector(
-          onTap: _dismiss,
+          // R26 S1v2-EE8: outside tap swallowed. The Continue pill
+          // inside the card is the only dismiss path.
+          onTap: () {},
           behavior: HitTestBehavior.opaque,
           child: Container(
             color: Colors.black.withAlpha((_cardFade.value * 216).round()), // 85%
@@ -172,15 +174,35 @@ class _BadgeOverlayState extends State<BadgeOverlay>
                             decoration: TextDecoration.none,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
 
-                        // Tap to continue
-                        Text(
-                          isAr ? 'انقر للمتابعة' : 'Tap to continue',
-                          style: GoogleFonts.nunito(
-                            color: AppColors.gold.withAlpha(128),
-                            fontSize: 12,
-                            decoration: TextDecoration.none,
+                        // R26 S1v2-EE8: explicit Continue pill — sole
+                        // dismiss path now that outside tap is swallowed.
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _dismiss,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 22, vertical: 9),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold.withAlpha(30),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                  color: AppColors.gold, width: 1.2),
+                            ),
+                            child: Text(
+                              isAr ? 'متابعة' : 'Continue',
+                              textDirection: isAr
+                                  ? TextDirection.rtl
+                                  : TextDirection.ltr,
+                              style: GoogleFonts.nunito(
+                                color: AppColors.gold,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
                           ),
                         ),
                       ],

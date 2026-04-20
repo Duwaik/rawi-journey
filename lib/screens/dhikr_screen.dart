@@ -162,12 +162,15 @@ class _DhikrScreenState extends State<DhikrScreen>
   }
 
   /// B24: One-time tooltip on first dhikr encounter. Explains that after
-  /// dhikr, the user will answer an Event Question. Tap anywhere to dismiss.
+  /// dhikr, the user will answer an Event Question.
+  ///
+  /// R26 S1v2-EE8: outside tap no longer dismisses. The "Tap to continue"
+  /// pill below is the only dismiss path.
   Widget _buildFirstTimeTooltip() {
     return Positioned.fill(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: _dismissTooltip,
+        onTap: () {},
         child: Container(
           color: Colors.black.withAlpha(210),
           child: SafeArea(
@@ -220,12 +223,33 @@ class _DhikrScreenState extends State<DhikrScreen>
                         height: 1.55,
                       ),
                     ),
-                    const SizedBox(height: 28),
-                    Text(
-                      _isAr ? 'انقر للمتابعة' : 'Tap to continue',
-                      style: GoogleFonts.nunito(
-                        fontSize: 13,
-                        color: AppColors.textMuted.withAlpha(160),
+                    const SizedBox(height: 24),
+                    // R26 S1v2-EE8: explicit Continue pill — sole
+                    // dismiss path now that outside tap is swallowed.
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _dismissTooltip,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 22, vertical: 9),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withAlpha(30),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                              color: AppColors.gold, width: 1.2),
+                        ),
+                        child: Text(
+                          _isAr ? 'متابعة' : 'Continue',
+                          textDirection: _isAr
+                              ? TextDirection.rtl
+                              : TextDirection.ltr,
+                          style: GoogleFonts.nunito(
+                            color: AppColors.gold,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     ),
                   ],
