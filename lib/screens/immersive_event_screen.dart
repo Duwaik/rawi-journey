@@ -2274,10 +2274,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           // ── R25-S3-6: Event-scene info tab (left edge, mid-height)
           // Collapsed = neutral info glyph; expanded = YOUR LIGHT
           // lifetime row + THIS EVENT 4-dot progress.
+          //
+          // R26 S1v3-EE8.2: wrap in Positioned.fill (was top: 40%, left: 0).
+          // The tab widget needs full-screen bounds so the scrim it
+          // paints when expanded actually covers the full scene and
+          // intercepts outside taps + pans before they reach the
+          // movement layer below. The tab itself still renders at 40%
+          // vertical / left edge — it positions itself internally.
           if (_phase == _Phase.explore && _activeHotspot == null)
-            Positioned(
-              top: screenH * 0.40,
-              left: 0,
+            Positioned.fill(
               child: EventSceneInfoTab(
                 totalHotspots: _scene.hotspots.length,
                 discoveredHotspots:

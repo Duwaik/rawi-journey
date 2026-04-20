@@ -76,22 +76,46 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
 
   @override
   Widget build(BuildContext context) {
-    // When expanded we render an additional full-screen scrim that dims
-    // the scene behind and absorbs taps to collapse. The tab itself is
-    // always on the left edge at ~40% vertical.
+    // R26 S1v3-EE8.2: the widget now expects to be wrapped in
+    // `Positioned.fill` (see immersive_event_screen.dart call site).
+    // Previously the parent passed only `top: 40%, left: 0` which gave
+    // this Stack tiny intrinsic bounds, so the `Positioned.fill` scrim
+    // only covered the tab's own footprint. Outside taps bled through
+    // to the movement GestureDetector below and moved the figure.
+    //
+    // Now:
+    //   - Stack fills the screen.
+    //   - When expanded: a full-screen scrim absorbs tap AND pan so
+    //     the movement layer never sees either. Tap collapses.
+    //   - The tab itself is repositioned internally to 40% vertical
+    //     on the left edge — preserving the previous visual layout.
+    final screenH = MediaQuery.of(context).size.height;
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         if (_expanded)
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _toggle,
+              // Swallow drag input so a tap-that-slightly-moves (common
+              // on touchscreens) doesn't get claimed by the movement
+              // GestureDetector living below this scrim in the parent
+              // Stack. No-op handlers + opaque hit-testing are enough
+              // to keep the gesture in the arena here.
+              onPanDown: (_) {},
+              onPanUpdate: (_) {},
+              onPanEnd: (_) {},
               child: Container(color: Colors.black.withAlpha(77)), // 0.30
             ),
           ),
-        AnimatedBuilder(
-          animation: _ctrl,
-          builder: (context, _) => _buildTab(),
+        Positioned(
+          top: screenH * 0.40,
+          left: 0,
+          child: AnimatedBuilder(
+            animation: _ctrl,
+            builder: (context, _) => _buildTab(),
+          ),
         ),
       ],
     );
