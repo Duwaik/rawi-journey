@@ -193,6 +193,30 @@ class PrefsService {
     await _prefs?.remove('$_keyHotspotProgress$eventId');
   }
 
+  /// R26 S1v3-T2.2: branching choice persistence. For branching events
+  /// the user picks an option on the Crossroads card; without this
+  /// persistence, resuming via Continue re-shows the Crossroads even
+  /// though the user already chose (because [_branchChoice] in the
+  /// scene widget defaults to null on a fresh initState).
+  ///
+  /// Stored value = the chosen BranchOption.targetHotspotId. On resume
+  /// the scene matches this back to one of the two options and
+  /// reconstructs the unlock order. The discovered hotspot set
+  /// (via [loadHotspotProgress]) tells the resume logic which branch
+  /// HS is the next one to show.
+  ///
+  /// Cleared on event completion alongside [clearHotspotProgress].
+  static const String _keyBranchChoice = 'branching_choice_';
+  static String? getBranchChoice(String eventId) =>
+      _prefs?.getString('$_keyBranchChoice$eventId');
+  static Future<void> setBranchChoice(
+      String eventId, String targetHotspotId) async {
+    await _prefs?.setString('$_keyBranchChoice$eventId', targetHotspotId);
+  }
+  static Future<void> clearBranchChoice(String eventId) async {
+    await _prefs?.remove('$_keyBranchChoice$eventId');
+  }
+
   // ── RAWI CALL (one-time story screen) ──────────────────────────────────
   static const String _keyRawiCallShown = 'rawi_call_shown';
 

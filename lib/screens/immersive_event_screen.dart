@@ -324,23 +324,53 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         _pathProgress = (_discovered.length / _scene.hotspots.length).clamp(0.0, 0.95);
         _updateCompanionFromPath();
       }
-      // B1 root cause fix: if this is a branching event and the anchor is
-      // already discovered but no branch choice has been made, restore the
-      // Crossroads card on the next frame. Without this, _branchUnlockOrder
-      // stays empty, _nextHotspotId returns null, and all branch hotspots
-      // remain invisible — the user is stuck.
+      // B1 root cause fix + R26 S1v3-T2.2:
+      // On resume of a branching event with anchor already discovered,
+      // first try to restore the user's previous choice from
+      // PrefsService.getBranchChoice. If a choice is persisted, skip
+      // the Crossroads and rebuild _branchUnlockOrder directly — the
+      // figure can advance to whichever branch HS is next per the
+      // existing discovered set. Only fall back to re-showing the
+      // Crossroads if truly no prior choice is known.
       if (_isBranching &&
           widget.event.anchorHotspotId != null &&
           _discovered.contains(widget.event.anchorHotspotId) &&
           _branchChoice == null &&
           _branchUnlockOrder.isEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            debugPrint('[B1] Restored Crossroads card on resume '
-                '(anchor discovered, no branch choice)');
-            setState(() => _showBranchCard = true);
+        final savedTargetId =
+            PrefsService.getBranchChoice(widget.event.id);
+        final bp = widget.event.branchPoint;
+        if (savedTargetId != null && bp != null) {
+          // Re-hydrate branch state from the saved choice. The two
+          // options each carry a targetHotspotId; match by that.
+          final isA = savedTargetId == bp.optionA.targetHotspotId;
+          final chosen = isA ? bp.optionA : bp.optionB;
+          final otherHotspotId = isA
+              ? bp.optionB.targetHotspotId
+              : bp.optionA.targetHotspotId;
+          _branchChoice = chosen;
+          _branchUnlockOrder = [
+            widget.event.anchorHotspotId!,
+            chosen.targetHotspotId,
+            otherHotspotId,
+            widget.event.convergenceHotspotId!,
+          ];
+          if (!isA && _scene.pathWaypointsAlt != null) {
+            _swapToAltPath();
           }
-        });
+          debugPrint('[R26 S1v3-T2.2] Restored branch choice from prefs: '
+              'eventId=${widget.event.id} chose=$savedTargetId');
+        } else {
+          // No prior choice persisted → legacy B1 behaviour: re-show
+          // the Crossroads so the user can still make a choice.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              debugPrint('[B1] Restored Crossroads card on resume '
+                  '(anchor discovered, no branch choice persisted)');
+              setState(() => _showBranchCard = true);
+            }
+          });
+        }
       }
       // R25-S3-HF-8: legacy TutorialOverlay retired. Event 1 tutorial
       // is now the sequential 3-step Event1TutorialOverlay (see
@@ -970,6 +1000,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     if (!isA && _scene.pathWaypointsAlt != null) {
       _swapToAltPath();
     }
+
+    // R26 S1v3-T2.2: persist the choice so resuming via tent Continue
+    // doesn't re-show the Crossroads card. Cleared on event completion.
+    PrefsService.setBranchChoice(event.id, selected.targetHotspotId);
 
     setState(() {
       _showBranchCard = false;
@@ -1718,6 +1752,9 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         // Write immediately — crash-safe. Badge+XP shown later on Continue tap.
         await PrefsService.completeEvent(widget.event.globalOrder, widget.event.xpReward);
         await PrefsService.clearHotspotProgress(widget.event.id);
+        // R26 S1v3-T2.2: clear branching choice so next fresh start
+        // of this event (e.g., replay) shows the Crossroads card again.
+        await PrefsService.clearBranchChoice(widget.event.id);
         // R26 S1-T2: event is now finalized — tent's primary button
         // returns to "Start" for the next unplayed event.
         await PrefsService.clearInProgressEvent();
