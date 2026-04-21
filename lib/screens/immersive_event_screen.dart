@@ -69,6 +69,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   // _showChoiceTutorial removed — Crossroads is self-explanatory
   bool _isCompleting = false;
   bool _showContinueButton = false;
+
+  /// R26 S1v4-EE6.2: true during the 3s fog-held + 1s quiet beat AFTER
+  /// the user answers the verdict. Hides the verdict card and the dim
+  /// overlay so only the revealed scene + figure remain on screen
+  /// during this cinematic moment, then auto-flows into the
+  /// UnifiedCompletionScreen (no "Continue" tap required).
+  bool _cinematicRevealActive = false;
   bool _showXpAnimation = false;
   bool _showBadgeOverlay = false;
   int _previousXp = 0;
@@ -1778,7 +1785,7 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       });
 
       if (!_alreadyCompleted) {
-        // Write immediately — crash-safe. Badge+XP shown later on Continue tap.
+        // Write immediately — crash-safe. Badge+XP shown inside Unified.
         await PrefsService.completeEvent(widget.event.globalOrder, widget.event.xpReward);
         await PrefsService.clearHotspotProgress(widget.event.id);
         // R26 S1v3-T2.2: clear branching choice so next fresh start
@@ -1791,9 +1798,28 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
         if (mounted && badges.isNotEmpty) {
           _newBadges = badges;
         }
-        // Show Continue button after a brief delay for explanation to settle
-        await Future.delayed(const Duration(milliseconds: 1500));
-        if (mounted) setState(() => _showContinueButton = true);
+
+        // R26 S1v4-EE6.2: cinematic reveal + auto-flow to Unified.
+        // Replaces the old `_showContinueButton = true` tap gate — the
+        // user no longer taps a Continue button to leave the scene.
+        //
+        // Timing (4 s total):
+        //   500 ms — let the verdict card finish its dismissal animation
+        //             (so the revealed scene isn't stabbed into view).
+        //   3000 ms — scene held with fog fully cleared (the spec's
+        //             "fog dissolves from current state to fully clear"
+        //             — fog is typically already 0 from _triggerFogReveal
+        //             pre-verdict, so this is a quiet 3 s scene-hold).
+        //   1000 ms — final held beat, no UI overlays, just figure + BG.
+        // Then `_completeAndPop()` pushes the UnifiedCompletionScreen.
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (!mounted) return;
+        setState(() => _cinematicRevealActive = true);
+        await Future.delayed(const Duration(milliseconds: 3000));
+        if (!mounted) return;
+        await Future.delayed(const Duration(milliseconds: 1000));
+        if (!mounted) return;
+        await _completeAndPop();
       } else {
         // Replay — show Continue immediately
         setState(() => _showContinueButton = true);
@@ -2260,10 +2286,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
               ),
 
           // ── Dim overlay (non-interactive) ──────────────────────────
+          // R26 S1v4-EE6.2: during the cinematic reveal beat the dim
+          // overlay fades out too, so the revealed scene reads cleanly
+          // for the held 4 s before the Unified screen pushes.
           if (_phase == _Phase.verdict || _phase == _Phase.complete)
             IgnorePointer(
               child: AnimatedOpacity(
-                opacity: _phase != _Phase.explore ? 0.35 : 0.0,
+                opacity: _cinematicRevealActive
+                    ? 0.0
+                    : (_phase != _Phase.explore ? 0.35 : 0.0),
                 duration: const Duration(milliseconds: 500),
                 child: Container(color: Colors.black),
               ),
@@ -2470,8 +2501,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           // ── The Verdict (all events — unified gold card UI) ────────
           // B24: Event Question tooltip moved to DhikrScreen (was here
           // before; it obscured the question content).
+          // R26 S1v4-EE6.2: hide the verdict card during the cinematic
+          // reveal beat so only the revealed scene + figure are on
+          // screen during the 4 s held moment.
           if ((_phase == _Phase.verdict || _phase == _Phase.complete)
-              && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay)
+              && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay
+              && !_cinematicRevealActive)
             _buildConvergenceQuestion(bottomPad),
 
           // ── The Crossroads (choice card after The Gate) ────────────
