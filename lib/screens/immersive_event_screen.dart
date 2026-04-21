@@ -154,6 +154,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   static const double _hsTapMinPx = 40.0;
   static const double _hsTapMaxPx = 100.0;
 
+  /// R26 S1v4-EE6.1: scene-illumination halo base unit (px). Multiplier
+  /// from `noorLevel` is `(noorLevel / 25).clamp(0.5, 4.0)`, so at 60 px:
+  ///   100% → 240 px, 75% → 180, 50% → 120, 25% → 60, 10% → 30 (floor).
+  /// Tune on device if the 100% radius feels too big/small on the A56.
+  static const double _haloBaseUnit = 60.0;
+
   // Speech bubble state
   String _bubbleText = '';
   bool _bubbleVisible = false;
@@ -2028,6 +2034,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
             )),
 
           // ── Fog of War (Explorer only, non-interactive) ────────────
+          // R26 S1v4-EE6.1: halo radius math — scene illumination around
+          // Rawi scales as multiplier × base unit, where
+          //   multiplier = (noorLevel / 25).clamp(0.5, 4.0)
+          // 100% → 4x, 75% → 3x, 50% → 2x, 25% → 1x, 10% → 0.5x (floor).
+          // Base unit `_haloBaseUnit` is the device-tuning knob (60 px
+          // starting value per spec). HS hotspot halos are unchanged —
+          // they still render at 70 px in FogOverlay itself.
           if (_phase == _Phase.explore && !_alreadyCompleted && _explorerMode)
             Positioned.fill(
               child: IgnorePointer(child: FogOverlay(
@@ -2041,7 +2054,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                 discoveredCount: _discovered.length + _pendingDiscovery.length,
                 sceneRevealed: _fogSceneRevealed,
                 sceneOffset: sceneOffset,
-                rawiLightRadius: 25.0 + (PrefsService.noorLevel / 100.0) * 95.0,
+                rawiLightRadius: _haloBaseUnit *
+                    (PrefsService.noorLevel / 25.0).clamp(0.5, 4.0),
               )),
             ),
 
