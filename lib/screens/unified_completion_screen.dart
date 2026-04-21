@@ -190,7 +190,20 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
         _scrollShimmerCtrl.forward().then((_) {
           if (!mounted) return;
           setState(() => _scrollShimmerDone = true);
-          _startXpCountUp();
+          // R26 S1v4-EE6.3: after scroll shimmer, wait out the 7 s
+          // auto-read timer (3 s reveal + ~0.2 s shimmer already spent,
+          // so ~3.8 s remaining) before fading in the dhikr section.
+          // Dhikr is the only user-gated step now; everything else
+          // auto-flows. Skip the wait and go straight to XP if there
+          // is no dhikr for this event.
+          Future.delayed(const Duration(milliseconds: 3800), () {
+            if (!mounted) return;
+            if (_hasDhikr) {
+              _dhikrFade.forward();
+            } else {
+              _startXpCountUp();
+            }
+          });
         });
       }
     });
@@ -302,16 +315,20 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
 
   void _afterXp() {
     if (!mounted) return;
-    if (_hasDhikr) {
-      _dhikrFade.forward();
-    } else {
-      // No dhikr — reveal Continue immediately
-      setState(() {
-        _dhikrResolved = true;
-        _canExit = true;
-      });
+    // R26 S1v4-EE6.3: XP is the LAST beat now. After the count-up
+    // completes, hold on the XP card for 4 s (spec "4-second display,
+    // no tap required") and then auto-exit to the tent. On replays
+    // we still fall back to the Continue button so the user can
+    // linger on a past event without being auto-kicked out.
+    if (widget.alreadyCompleted) {
+      setState(() => _canExit = true);
       _continueFade.forward();
+      return;
     }
+    Future.delayed(const Duration(milliseconds: 4000), () {
+      if (!mounted) return;
+      _continueJourney();
+    });
   }
 
   // ── Dhikr hold helpers ───────────────────────────────────────────────
@@ -358,9 +375,10 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       _dhikrCelebrating = true;
       _dhikrResolved = true;
       _dhikrAcknowledged = true; // R26 S1v2-EE6
-      _canExit = true;
     });
-    _continueFade.forward();
+    // R26 S1v4-EE6.3: dhikr resolved → fade in XP, run count-up, then
+    // _afterXp auto-exits to tent. No Continue button between steps.
+    _startXpCountUp();
   }
 
   // ── Dhikr actions ────────────────────────────────────────────────────
@@ -378,9 +396,9 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     setState(() {
       _dhikrResolved = true;
       _dhikrAcknowledged = true; // R26 S1v2-EE6
-      _canExit = true;
     });
-    _continueFade.forward();
+    // R26 S1v4-EE6.3: flow to XP (not Continue).
+    _startXpCountUp();
   }
 
   /// R26 S1v2-EE6: Skip path. If the user is at Light == 25 AND hasn't
@@ -404,11 +422,11 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
         return;
       }
     }
-    setState(() {
-      _dhikrResolved = true;
-      _canExit = true;
-    });
-    _continueFade.forward();
+    setState(() => _dhikrResolved = true);
+    // R26 S1v4-EE6.3: skip still flows into XP → auto-exit. The
+    // -25% Light penalty lands in `_continueJourney` since
+    // `_dhikrAcknowledged` stays false.
+    _startXpCountUp();
   }
 
   /// R26 S1v2-EE6: warning popup when Light = 25 and user is skipping
@@ -580,24 +598,21 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   Widget build(BuildContext context) {
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
+    // R26 S1v4-EE6.3: transparent Scaffold + a mid-strength scrim over
+    // the revealed event scene (the previous route is kept mounted by
+    // `PageRouteBuilder(opaque: false)` in `_completeAndPop`). The
+    // scene reads behind and around the cards — scroll / dhikr / XP —
+    // connecting the cinematic reveal to the closing flow.
     return PopScope(
       canPop: _canExit,
       child: Scaffold(
-        backgroundColor: const Color(0xFF04060D),
+        backgroundColor: Colors.transparent,
         body: FadeTransition(
           opacity: _screenFade,
           child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF04060D),
-                  Color(0xFF0B1E2D),
-                  Color(0xFF04060D),
-                ],
-              ),
-            ),
+            // Darkening scrim so card text stays readable on bright
+            // scene BGs (and gives the usual navy look on black BGs).
+            color: const Color(0xFF04060D).withValues(alpha: 0.72),
             child: SafeArea(
               child: ListView(
                 padding: EdgeInsets.fromLTRB(24, 24, 24, bottomPad + 24),
@@ -611,13 +626,16 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   }
 
   // ── R18-01: Section assembly with dividers between blocks ───────────
+  // R26 S1v4-EE6.3: order is scroll → dhikr → XP (was scroll → XP →
+  // dhikr). Chapter + badge stay first when present — spec doesn't
+  // cover those rare sections, so their placement is unchanged.
   List<Widget> _buildSectionChildren() {
     final blocks = <Widget>[];
     if (_showChapter) blocks.add(_buildChapterSection());
     if (_hasBadges) blocks.add(_buildBadgeSection());
     blocks.add(_buildScrollSection());
-    blocks.add(_buildXpSection());
     if (_hasDhikr) blocks.add(_buildDhikrSection());
+    blocks.add(_buildXpSection());
 
     // Weave 24px spacers + gold divider lines between each section.
     final children = <Widget>[];
@@ -1268,15 +1286,11 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
         ),
         const SizedBox(height: 16),
         _buildHoldRing(size: 120, ringSize: 110, strokeWidth: 6, iconSize: 48),
-        const SizedBox(height: 12),
-        Text(
-          _isAr ? 'نور +٥٠٪' : 'Noor +50%',
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            color: AppColors.gold.withAlpha(160),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        // R26 S1v4-EE6.3: "Noor +50%" label removed. The old +50
+        // rechargeNoor was deleted in v2-EE6; the only regen path is
+        // now the tent-side dhikr at +25%. Keeping the copy here
+        // misrepresents what happens — spec explicitly requires the
+        // label gone.
         const SizedBox(height: 16),
         _buildSkipLink(),
       ],

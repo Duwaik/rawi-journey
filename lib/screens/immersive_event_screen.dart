@@ -1878,15 +1878,32 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     //
     // All five steps now live inside UnifiedCompletionScreen as sections.
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => UnifiedCompletionScreen(
-          event: widget.event,
-          xpEarned: xpEarned,
-          previousXp: previousXp,
-          newBadges: newBadges,
-          isChapterEnd: isChapterEnd,
-          alreadyCompleted: _alreadyCompleted,
+    // R26 S1v4-EE6.3: push as a non-opaque route so this event scene
+    // stays mounted behind the UnifiedCompletionScreen. The scrim +
+    // cards on that screen sit over the revealed scene — spec calls
+    // for the BG of the completion flow to be the same scene the user
+    // just finished, not a fresh dark gradient. Unified clears both
+    // routes via `pushAndRemoveUntil(tent, (r) => false)` when done,
+    // so this screen is never reachable by back-nav.
+    //
+    // Note: `push` (not `pushReplacement`) to keep this scene alive
+    // while Unified is visible. PopScope inside Unified already
+    // blocks Android back until its own exit path is ready.
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (ctx, anim, sec) => FadeTransition(
+          opacity: anim,
+          child: UnifiedCompletionScreen(
+            event: widget.event,
+            xpEarned: xpEarned,
+            previousXp: previousXp,
+            newBadges: newBadges,
+            isChapterEnd: isChapterEnd,
+            alreadyCompleted: _alreadyCompleted,
+          ),
         ),
       ),
     );
