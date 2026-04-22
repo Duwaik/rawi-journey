@@ -658,10 +658,13 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   Widget _buildStatPillsContainer(int completed) {
     final explorer = PrefsService.isExplorerMode;
     final statRows = <StatRow>[
+      // R27 S1-TENT4: drop "Your" from the Light pill. Shorter, clearer,
+      // less verbose on the already-tight tent stat row. "Your" was
+      // redundant — it's the user's tent, everything here is theirs.
       StatRow(
         icon: Icons.auto_awesome_rounded,
-        label: 'Your Light',
-        labelAr: 'نورك',
+        label: 'Light',
+        labelAr: 'النور',
         value: '${PrefsService.noorLevel}%',
       ),
       StatRow(
