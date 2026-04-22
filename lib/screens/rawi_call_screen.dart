@@ -238,7 +238,15 @@ class _RawiCallScreenState extends State<RawiCallScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Line 4 — closing
+              // Line 4 — closing promise.
+              // R27 S1-REG2: restyled to match Line 1 (gold Lora 16px,
+              // height 1.8). Previously 15px fully-opaque white with
+              // height 1.8 — that combination read as larger AND
+              // heavier than the white italic body (Lines 2-3 at 14px
+              // α200 italic h2.0), breaking the screen's rhythm. The
+              // screen now bookends in gold: Line 1 (identity) and
+              // Line 4 (promise) share styling; body stays in white
+              // italic.
               Opacity(
                 opacity: _line4Opacity,
                 child: Text(
@@ -246,8 +254,8 @@ class _RawiCallScreenState extends State<RawiCallScreen> {
                   textAlign: TextAlign.center,
                   textDirection: textDir,
                   style: GoogleFonts.lora(
-                    fontSize: 15,
-                    color: Colors.white,
+                    fontSize: 16,
+                    color: AppColors.gold,
                     height: 1.8,
                   ),
                 ),
