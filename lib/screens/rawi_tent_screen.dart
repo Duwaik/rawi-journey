@@ -646,31 +646,50 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                                       isContinue),
                                 ),
                               ),
-                              // R27 S1.3-TENT2: counter visual weight
-                              // boost. Needed to read EQUAL to the
-                              // "Start"/"Continue" label. Changes:
-                              //   - Color: α230 gold → solid warmer
-                              //     #F0D070 (matches button label)
-                              //   - Size: 12 → 14 (matches button's 13
-                              //     but counter needs 1 px more to
-                              //     balance against bold button text)
-                              //   - Weight: stays w700
-                              //   - Faint halo so glyphs don't wash
-                              //     out on bright tent variants
+                              // R27 S1.3-TENT2 + S2-EL2: counter has
+                              // extra visual weight (#F0D070 w700 14 px
+                              // with a faint gold halo so it reads
+                              // equal-priority to the button label)
+                              // AND an explicit "Completed" prefix so
+                              // users don't confuse it with an event
+                              // number (BUG-D from Apr 21: users read
+                              // `#/155` as "this is event #" rather
+                              // than "I've done #").
                               Expanded(
                                 child: Center(
-                                  child: Text(
-                                    '$completed / ${m1Events.length}',
-                                    style: GoogleFonts.nunito(
-                                      color: const Color(0xFFF0D070),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      shadows: [
-                                        Shadow(
-                                          offset: Offset.zero,
-                                          blurRadius: 8,
-                                          color: AppColors.gold
-                                              .withAlpha(77),
+                                  child: RichText(
+                                    textDirection: _isAr
+                                        ? TextDirection.rtl
+                                        : TextDirection.ltr,
+                                    text: TextSpan(
+                                      style: GoogleFonts.nunito(
+                                        color: const Color(0xFFF0D070),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        shadows: [
+                                          Shadow(
+                                            offset: Offset.zero,
+                                            blurRadius: 8,
+                                            color: AppColors.gold
+                                                .withAlpha(77),
+                                          ),
+                                        ],
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: _isAr
+                                              ? 'مكتمل '
+                                              : 'Completed ',
+                                          style: TextStyle(
+                                            color: AppColors.gold
+                                                .withAlpha(180),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text:
+                                              '$completed / ${m1Events.length}',
                                         ),
                                       ],
                                     ),
