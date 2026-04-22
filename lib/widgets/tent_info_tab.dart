@@ -192,17 +192,20 @@ class _TentInfoTabState extends State<TentInfoTab>
     );
   }
 
-  /// R27 S1.1-TENT2: 44×44 hit target with a 24 px visual chevron
-  /// circle centered inside. Invisible padding carries the taps;
-  /// `HitTestBehavior.opaque` absorbs them so they never reach any
-  /// tent CTA beneath this widget.
+  /// R27 S1.2-TENT3: hit target doubled 44 → 88 px. Visual chevron
+  /// stays 24 px; only the invisible padding around it grows. Makes
+  /// the tab effortless to tap even under one-thumb use on a phone
+  /// as large as the A56. `HitTestBehavior.opaque` on the outer
+  /// GestureDetector absorbs the tap before it can reach anything
+  /// beneath (the tent has no figure-walk concern, but this keeps
+  /// the pattern identical to the event scene tab where it matters).
   Widget _buildChevronCircle() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _toggle,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 88,
+        height: 88,
         alignment: Alignment.center,
         color: Colors.transparent,
         child: Container(

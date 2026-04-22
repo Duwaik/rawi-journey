@@ -140,22 +140,21 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     );
   }
 
-  /// R27 S1-TENT6: the toggle chevron lives in a 24 px visual circle
-  /// that straddles the panel's right border.
-  ///
-  /// R27 S1.1-TENT2: wrapped in a 44×44 invisible hit target so the
-  /// tap no longer falls through the GestureDetector's child bounds
-  /// into the movement / walk-to-tap handler beneath. This is the
-  /// same EE8.2 pattern used for the expanded scrim — opaque hit
-  /// behavior + transparent padding container absorbs the tap before
-  /// the walk handler sees it. Visual chevron kept at 24 px.
+  /// R27 S1-TENT6 / S1.1-TENT2 / S1.2-TENT3: the toggle chevron
+  /// lives in a 24 px visual circle straddling the panel's right
+  /// border, wrapped in an 88 × 88 invisible hit target so fast taps
+  /// never fall through to the walk handler beneath. Doubled from 44
+  /// in S1.1 after device verify showed the figure still sometimes
+  /// moved on tab taps — more headroom is free because the hit area
+  /// is invisible. `HitTestBehavior.opaque` keeps the tap in the
+  /// arena here (same R26 S1v3-EE8.2 pattern).
   Widget _buildChevronCircle() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _toggle,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 88,
+        height: 88,
         alignment: Alignment.center,
         color: Colors.transparent,
         child: Container(
