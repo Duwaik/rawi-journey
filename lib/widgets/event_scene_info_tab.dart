@@ -127,7 +127,10 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
               children: [
                 _buildTab(),
                 Positioned(
-                  right: -12,
+                  // R27 S1.3-TENT1: -12 → -44 so the 88 px hit
+                  // container's center sits on the panel's right
+                  // border and the 42 px visual circle straddles.
+                  right: -44,
                   top: 0,
                   bottom: 0,
                   child: Center(child: _buildChevronCircle()),
@@ -140,14 +143,13 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     );
   }
 
-  /// R27 S1-TENT6 / S1.1-TENT2 / S1.2-TENT3: the toggle chevron
-  /// lives in a 24 px visual circle straddling the panel's right
-  /// border, wrapped in an 88 × 88 invisible hit target so fast taps
-  /// never fall through to the walk handler beneath. Doubled from 44
-  /// in S1.1 after device verify showed the figure still sometimes
-  /// moved on tab taps — more headroom is free because the hit area
-  /// is invisible. `HitTestBehavior.opaque` keeps the tap in the
-  /// arena here (same R26 S1v3-EE8.2 pattern).
+  /// R27 S1-TENT6 / S1.1-TENT2 / S1.2-TENT3 / S1.3-TENT1: visual
+  /// chevron 24 → 42 px so the handle reads at a glance. Hit target
+  /// stays 88 × 88 via transparent outer Container. With the 42 px
+  /// visual and `right: -44` on the Positioned, the circle straddles
+  /// the panel border 21 px in / 21 px out. Chevron glyph 16 → 26.
+  /// `HitTestBehavior.opaque` preserves R26 S1v3-EE8.2 gesture
+  /// exclusivity — fast taps never reach the walk handler beneath.
   Widget _buildChevronCircle() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -158,25 +160,25 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
         alignment: Alignment.center,
         color: Colors.transparent,
         child: Container(
-          width: 24,
-          height: 24,
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF0A0E18).withValues(alpha: 0.92),
+            color: const Color(0xFF0A0E18).withValues(alpha: 0.94),
             border: Border.all(
-                color: AppColors.gold.withAlpha(140), width: 0.8),
+                color: AppColors.gold.withAlpha(170), width: 1.0),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withAlpha(100),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1)),
+                  color: Colors.black.withAlpha(120),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2)),
             ],
           ),
           child: Icon(
             _expanded
                 ? Icons.chevron_left_rounded
                 : Icons.chevron_right_rounded,
-            size: 16,
+            size: 26,
             color: AppColors.gold,
           ),
         ),

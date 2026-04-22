@@ -108,13 +108,16 @@ class _TentInfoTabState extends State<TentInfoTab>
               children: [
                 _buildTab(),
                 Positioned(
-                  right: -12,
+                  // R27 S1.3-TENT1: shifted -12 → -44 so the 88 px hit
+                  // container's CENTER lines up with the panel's right
+                  // border. The 42 px visual circle inside is then
+                  // centered on the border too — 21 px inside panel,
+                  // 21 px outside on scene/tent BG. S1.2 used -12
+                  // which put the entire circle inside the panel and
+                  // made the handle look floating, not straddling.
+                  right: -44,
                   top: 0,
                   bottom: 0,
-                  // R27 S1.1-TENT2: 44×44 hit target via invisible
-                  // padding in the GestureDetector — visual circle
-                  // stays 24 px. `HitTestBehavior.opaque` absorbs the
-                  // tap so it never bubbles to any tent CTAs beneath.
                   child: Center(child: _buildChevronCircle()),
                 ),
               ],
@@ -192,13 +195,13 @@ class _TentInfoTabState extends State<TentInfoTab>
     );
   }
 
-  /// R27 S1.2-TENT3: hit target doubled 44 → 88 px. Visual chevron
-  /// stays 24 px; only the invisible padding around it grows. Makes
-  /// the tab effortless to tap even under one-thumb use on a phone
-  /// as large as the A56. `HitTestBehavior.opaque` on the outer
-  /// GestureDetector absorbs the tap before it can reach anything
-  /// beneath (the tent has no figure-walk concern, but this keeps
-  /// the pattern identical to the event scene tab where it matters).
+  /// R27 S1.3-TENT1: visual chevron enlarged 24 → 42 px so the handle
+  /// reads at a glance (S1.2 kept it tiny at 24). Hit target stays
+  /// 88 × 88 via the transparent outer Container. Circle is positioned
+  /// at `right: -12` on the panel's Stack and Positioned top:0 bottom:0
+  /// with Center — at 42 px diameter it straddles the border 21 px
+  /// in / 21 px out. Chevron glyph scales 16 → 26 to stay proportional.
+  /// `HitTestBehavior.opaque` preserved from S1.2 (EE8.2 gesture pattern).
   Widget _buildChevronCircle() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -209,25 +212,25 @@ class _TentInfoTabState extends State<TentInfoTab>
         alignment: Alignment.center,
         color: Colors.transparent,
         child: Container(
-          width: 24,
-          height: 24,
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF0A0E18).withValues(alpha: 0.92),
+            color: const Color(0xFF0A0E18).withValues(alpha: 0.94),
             border: Border.all(
-                color: AppColors.gold.withAlpha(140), width: 0.8),
+                color: AppColors.gold.withAlpha(170), width: 1.0),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withAlpha(100),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1)),
+                  color: Colors.black.withAlpha(120),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2)),
             ],
           ),
           child: Icon(
             _expanded
                 ? Icons.chevron_left_rounded
                 : Icons.chevron_right_rounded,
-            size: 16,
+            size: 26,
             color: AppColors.gold,
           ),
         ),
