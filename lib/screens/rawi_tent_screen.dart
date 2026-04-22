@@ -388,7 +388,14 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                 right: 10,
                 child: Column(
                   children: [
-                    _navIcon('📋', _isAr ? 'الأحداث' : 'Events', () {
+                    // R27 S1-TENT3: Material icon instead of 📋 emoji.
+                    // `Icons.view_list_rounded` reads unambiguously as
+                    // a list — distinct from 📜 (scroll) + 🏛️
+                    // (collections) below, so the three adjacent icons
+                    // no longer cluster visually.
+                    _navIconMaterial(
+                        Icons.view_list_rounded,
+                        _isAr ? 'الأحداث' : 'Events', () {
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const EventListScreen()));
                     }),
@@ -611,6 +618,30 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             border: Border.all(color: AppColors.gold.withAlpha(40)),
           ),
           child: Text(icon, style: const TextStyle(fontSize: 22)),
+        ),
+      ),
+    );
+  }
+
+  /// R27 S1-TENT3: same frame as [_navIcon], but renders a Material
+  /// IconData instead of an emoji string. Introduced so the Events
+  /// List slot can use `Icons.view_list_rounded` — the old 📋 emoji
+  /// didn't read as "list" and clustered visually with 📜 / 🏛️.
+  Widget _navIconMaterial(
+      IconData icon, String label, VoidCallback onTap) {
+    return Tooltip(
+      message: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 44, height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withAlpha(180),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.gold.withAlpha(40)),
+          ),
+          child: Icon(icon, size: 22, color: AppColors.gold),
         ),
       ),
     );
