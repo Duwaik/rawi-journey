@@ -140,35 +140,46 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     );
   }
 
-  /// R27 S1-TENT6: the toggle chevron now lives in a 24 px circle
-  /// that straddles the panel's right border. Half inside the panel,
-  /// half in the scene. Icon flips (> when collapsed, < when expanded)
-  /// via the same [_expanded] flag that drives the width animation.
+  /// R27 S1-TENT6: the toggle chevron lives in a 24 px visual circle
+  /// that straddles the panel's right border.
+  ///
+  /// R27 S1.1-TENT2: wrapped in a 44×44 invisible hit target so the
+  /// tap no longer falls through the GestureDetector's child bounds
+  /// into the movement / walk-to-tap handler beneath. This is the
+  /// same EE8.2 pattern used for the expanded scrim — opaque hit
+  /// behavior + transparent padding container absorbs the tap before
+  /// the walk handler sees it. Visual chevron kept at 24 px.
   Widget _buildChevronCircle() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _toggle,
       child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0xFF0A0E18).withValues(alpha: 0.92),
-          border: Border.all(
-              color: AppColors.gold.withAlpha(140), width: 0.8),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withAlpha(100),
-                blurRadius: 4,
-                offset: const Offset(0, 1)),
-          ],
-        ),
-        child: Icon(
-          _expanded
-              ? Icons.chevron_left_rounded
-              : Icons.chevron_right_rounded,
-          size: 16,
-          color: AppColors.gold,
+        width: 44,
+        height: 44,
+        alignment: Alignment.center,
+        color: Colors.transparent,
+        child: Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFF0A0E18).withValues(alpha: 0.92),
+            border: Border.all(
+                color: AppColors.gold.withAlpha(140), width: 0.8),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withAlpha(100),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1)),
+            ],
+          ),
+          child: Icon(
+            _expanded
+                ? Icons.chevron_left_rounded
+                : Icons.chevron_right_rounded,
+            size: 16,
+            color: AppColors.gold,
+          ),
         ),
       ),
     );
