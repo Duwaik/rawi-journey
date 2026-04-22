@@ -1030,14 +1030,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Divider(color: AppColors.gold.withAlpha(20), height: 24),
           // R21-04: Joystick position (Explorer Mode only).
+          // R27 S1.3-SET2: added 4th "Hide" option for users who
+          // prefer touch-to-move exclusively. When selected, the
+          // joystick doesn't render on event scenes; touch-to-move
+          // on the scene BG continues working as always.
           _segmentedPrefRow(
             icon: Icons.gamepad_rounded,
             label: _isAr ? 'موقع عصا التحكم' : 'Joystick Position',
             picker: SegmentedPicker<String>(
-              values: const ['left', 'center', 'right'],
+              values: const ['left', 'center', 'right', 'hidden'],
               labels: _isAr
-                  ? const ['ي', 'و', 'ش']
-                  : const ['L', 'C', 'R'],
+                  ? const ['ي', 'و', 'ش', '⊘']
+                  : const ['L', 'C', 'R', '⊘'],
               selected: _joystickPos,
               onChanged: _setJoystickPos,
             ),

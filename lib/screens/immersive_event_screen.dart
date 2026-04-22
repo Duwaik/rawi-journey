@@ -2405,9 +2405,15 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           // Android nav).
 
           // ── Virtual joystick ───────────────────────────────────────
-          // B14: hide on revisit to avoid collision with replay buttons
+          // B14: hide on revisit to avoid collision with replay buttons.
+          // R27 S1.3-SET2: added `hidden` option — when the user picks
+          // "Hide" in Settings, don't render the joystick at all. Touch-
+          // to-move on the scene BG (see the Positioned.fill gesture
+          // layer around line 2060) still works — this only affects the
+          // joystick visual.
           if (_explorerMode && _phase == _Phase.explore
-              && _activeHotspot == null && !_alreadyCompleted)
+              && _activeHotspot == null && !_alreadyCompleted
+              && PrefsService.joystickPosition != 'hidden')
             Positioned(
               bottom: bottomPad + 16,
               left: PrefsService.joystickPosition == 'left'
