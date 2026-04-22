@@ -109,15 +109,68 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
               child: Container(color: Colors.black.withAlpha(77)), // 0.30
             ),
           ),
+        // R27 S1-TENT6: nudged down from 0.40 → 0.45 of screen height
+        // so the collapsed handle no longer overlaps Rawi's figure
+        // (the figure's head/hat sits roughly 0.40-0.45 when the user
+        // first enters a scene — was clipping the chevron circle).
+        //
+        // Stack wraps the panel + the chevron-circle ornament. The
+        // circle straddles the right border (half in, half out) via
+        // Positioned(right: -12) + clipBehavior: Clip.none.
         Positioned(
-          top: screenH * 0.40,
+          top: screenH * 0.45,
           left: 0,
           child: AnimatedBuilder(
             animation: _ctrl,
-            builder: (context, _) => _buildTab(),
+            builder: (context, _) => Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _buildTab(),
+                Positioned(
+                  right: -12,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(child: _buildChevronCircle()),
+                ),
+              ],
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  /// R27 S1-TENT6: the toggle chevron now lives in a 24 px circle
+  /// that straddles the panel's right border. Half inside the panel,
+  /// half in the scene. Icon flips (> when collapsed, < when expanded)
+  /// via the same [_expanded] flag that drives the width animation.
+  Widget _buildChevronCircle() {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _toggle,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF0A0E18).withValues(alpha: 0.92),
+          border: Border.all(
+              color: AppColors.gold.withAlpha(140), width: 0.8),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withAlpha(100),
+                blurRadius: 4,
+                offset: const Offset(0, 1)),
+          ],
+        ),
+        child: Icon(
+          _expanded
+              ? Icons.chevron_left_rounded
+              : Icons.chevron_right_rounded,
+          size: 16,
+          color: AppColors.gold,
+        ),
+      ),
     );
   }
 
@@ -163,25 +216,19 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     );
   }
 
-  /// Collapsed content: neutral info glyph + tiny rightward chevron.
-  /// Uses a GestureDetector here instead of InkWell — the spec says no
-  /// ripple on this tab; tapping reveals, chevron collapses.
+  /// Collapsed content: just the neutral info glyph. The expand/collapse
+  /// chevron moved out of here in R27 S1-TENT6 and now lives in a
+  /// circle on the panel's right border (see [_buildChevronCircle]).
+  /// The whole panel is still tappable — any tap on the collapsed
+  /// handle toggles expansion via this GestureDetector.
   Widget _buildCollapsedContent() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _toggle,
       child: SizedBox(
         width: _collapsedWidth - 18, // internal area (minus padding)
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.info_outline_rounded,
-                size: 14, color: AppColors.gold),
-            const SizedBox(height: 2),
-            Icon(Icons.chevron_right_rounded,
-                size: 12, color: AppColors.gold.withAlpha(160)),
-          ],
-        ),
+        child: Icon(Icons.info_outline_rounded,
+            size: 14, color: AppColors.gold),
       ),
     );
   }
@@ -280,20 +327,9 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
             ],
           ),
         ),
-        // Collapse chevron on the right border at mid-height
-        Positioned(
-          right: -4,
-          top: 0,
-          bottom: 0,
-          child: Center(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _toggle,
-              child: Icon(Icons.chevron_left_rounded,
-                  size: 20, color: AppColors.gold.withAlpha(200)),
-            ),
-          ),
-        ),
+        // R27 S1-TENT6: the old in-body collapse chevron lived here.
+        // Moved to the [_buildChevronCircle] ornament that straddles
+        // the right border in both collapsed and expanded states.
       ],
       ),
     );
