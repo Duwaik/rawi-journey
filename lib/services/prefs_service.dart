@@ -331,13 +331,24 @@ class PrefsService {
 
   /// R27 S1-TENT1: one-time first-visit tent tutorial cinematic.
   /// 5-screen cinematic that runs on the user's first-ever tent visit
-  /// after registration. Flipped true when the cinematic completes;
-  /// never fires again except via [resetAllTutorials].
+  /// after registration. R27 S1.1-TENT4 moved the write to FIRST-tap
+  /// so a force-quit mid-cinematic doesn't replay it.
   static const String _keyTentTutorialShown = 'tent_tutorial_shown';
   static bool get isTentTutorialShown =>
       _prefs?.getBool(_keyTentTutorialShown) ?? false;
   static Future<void> setTentTutorialShown() async =>
       await _prefs?.setBool(_keyTentTutorialShown, true);
+
+  /// R27 S1.1-TENT5: one-time icon coach-mark tutorial that fires
+  /// immediately after the tent cinematic completes. 5 sequential
+  /// highlights over the right-side nav icons (Events, Stars,
+  /// Scroll, Dhikr, Collections). Flag set true on completion OR
+  /// on Skip; never re-fires until [resetAllTutorials].
+  static const String _keyTentIconTutorialShown = 'tent_icon_tutorial_shown';
+  static bool get isTentIconTutorialShown =>
+      _prefs?.getBool(_keyTentIconTutorialShown) ?? false;
+  static Future<void> setTentIconTutorialShown() async =>
+      await _prefs?.setBool(_keyTentIconTutorialShown, true);
 
   /// R26 S1-T2: "event in progress" flag + the event ID the user left
   /// mid-play. Tent uses these to flip the primary button between

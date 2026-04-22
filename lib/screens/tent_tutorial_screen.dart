@@ -4,16 +4,22 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
 
-/// R27 S1-TENT1: first-visit tent tutorial cinematic.
+/// R27 S1-TENT1 + S1.1-TENT4: first-visit tent tutorial cinematic.
 ///
-/// Reuses the Witness Moment visual style — gold italic serif on
-/// black with sparse gold-dust particles — but advances on tap
-/// instead of auto-timer, because 5 screens on auto-timer would
-/// exceed the attention budget for a first-time tutorial.
+/// Plays on top of the tent (not a black background) so the user
+/// sees where they are while the cinematic text walks them through
+/// what's around them. The caller pushes this via
+/// `PageRouteBuilder(opaque: false)` so the tent underneath remains
+/// visible; this screen paints a dim scrim (0 → 0.50 over 400 ms)
+/// between the tent and the text so the gold stays readable.
 ///
-/// Gated by [PrefsService.isTentTutorialShown]; [RawiTentScreen]
-/// pushes this in `initState` only when the flag is false, then
-/// calls [PrefsService.setTentTutorialShown] before popping back.
+/// Visual language still reuses Witness Moment — gold italic Lora
+/// serif + sparse gold-dust particles — but advances on tap.
+///
+/// Flag persistence: [PrefsService.setTentTutorialShown] fires on
+/// the FIRST tap (not on final-screen completion), so a force-quit
+/// mid-sequence doesn't cause the cinematic to replay on next launch
+/// — user has seen enough by screen 2 to know what it is.
 class TentTutorialScreen extends StatefulWidget {
   final VoidCallback onComplete;
 
@@ -23,11 +29,14 @@ class TentTutorialScreen extends StatefulWidget {
   State<TentTutorialScreen> createState() => _TentTutorialScreenState();
 }
 
-class _TentTutorialScreenState extends State<TentTutorialScreen> {
+class _TentTutorialScreenState extends State<TentTutorialScreen>
+    with SingleTickerProviderStateMixin {
   int _currentScreen = 0;
   double _opacity = 0.0;
+  double _dimOpacity = 0.0;
   bool _disposed = false;
   bool _advancing = false;
+  bool _flagSaved = false;
 
   bool get _isAr => PrefsService.isAr;
 
@@ -51,22 +60,37 @@ class _TentTutorialScreenState extends State<TentTutorialScreen> {
   @override
   void initState() {
     super.initState();
-    _fadeIn();
+    _runInitialSequence();
   }
 
-  Future<void> _fadeIn() async {
+  /// Dim tween first (400 ms) → text fade-in (500 ms). User sees
+  /// the tent behind the dim as the darkness lands.
+  Future<void> _runInitialSequence() async {
+    await _animateDim(0.5, 400);
+    if (_disposed) return;
     await _animateOpacity(1.0, 500);
   }
 
   Future<void> _advance() async {
     if (_advancing || _disposed) return;
     _advancing = true;
+
+    // R27 S1.1-TENT4: save flag on FIRST tap so a force-quit
+    // mid-cinematic doesn't replay on next launch.
+    if (!_flagSaved) {
+      _flagSaved = true;
+      await PrefsService.setTentTutorialShown();
+      if (_disposed) return;
+    }
+
     await _animateOpacity(0.0, 300);
     if (_disposed) return;
     final lines = _isAr ? _linesAr : _linesEn;
     if (_currentScreen + 1 >= lines.length) {
-      // Final screen done — flip the pref, pop back to tent.
-      await PrefsService.setTentTutorialShown();
+      // Final screen done — lift the dim scrim, then invoke the
+      // caller-supplied completion (which typically pops back to
+      // tent and triggers the icon coach-mark tutorial).
+      await _animateDim(0.0, 400);
       if (_disposed) return;
       widget.onComplete();
       return;
@@ -89,6 +113,19 @@ class _TentTutorialScreenState extends State<TentTutorialScreen> {
     if (!_disposed) setState(() => _opacity = target);
   }
 
+  Future<void> _animateDim(double target, int ms) async {
+    final steps = (ms / 16).round();
+    final start = _dimOpacity;
+    final delta = target - start;
+    for (int s = 1; s <= steps; s++) {
+      if (_disposed) return;
+      await Future.delayed(const Duration(milliseconds: 16));
+      if (_disposed) return;
+      setState(() => _dimOpacity = start + delta * (s / steps));
+    }
+    if (!_disposed) setState(() => _dimOpacity = target);
+  }
+
   @override
   void dispose() {
     _disposed = true;
@@ -102,14 +139,26 @@ class _TentTutorialScreenState extends State<TentTutorialScreen> {
     final linesTotal = lines.length;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      // R27 S1.1-TENT4: transparent so the tent BG behind the route
+      // is visible. The dim scrim painted below handles contrast.
+      backgroundColor: Colors.transparent,
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: _advance,
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // Animated dim scrim over the tent.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  color: Colors.black.withValues(alpha: _dimOpacity),
+                ),
+              ),
+            ),
+            // Particles (same positions as Witness Moment).
             CustomPaint(painter: _TentTutorialParticlePainter()),
+            // Centered line.
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 48),
@@ -137,18 +186,19 @@ class _TentTutorialScreenState extends State<TentTutorialScreen> {
               left: 0,
               right: 0,
               child: Center(
-                child: Text(
-                  _isAr ? 'خيمتك' : 'Your Tent',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    color: AppColors.gold.withAlpha(80),
-                    letterSpacing: 2,
+                child: Opacity(
+                  opacity: _dimOpacity * 2, // fades in with the scrim
+                  child: Text(
+                    _isAr ? 'خيمتك' : 'Your Tent',
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      color: AppColors.gold.withAlpha(80),
+                      letterSpacing: 2,
+                    ),
                   ),
                 ),
               ),
             ),
-            // Tap-to-advance hint (dim, fades when user has tapped at
-            // least once so it doesn't linger).
             if (_currentScreen == 0)
               Positioned(
                 bottom: MediaQuery.of(context).padding.bottom + 28,
@@ -168,31 +218,33 @@ class _TentTutorialScreenState extends State<TentTutorialScreen> {
                   ),
                 ),
               ),
-            // Progress dots at the bottom so the user knows how far
-            // through the sequence they are.
             Positioned(
               bottom: MediaQuery.of(context).padding.bottom + 12,
               left: 0,
               right: 0,
               child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(linesTotal, (i) {
-                    final active = i == _currentScreen;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: Container(
-                        width: active ? 8 : 6,
-                        height: active ? 8 : 6,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: active
-                              ? AppColors.gold
-                              : AppColors.gold.withAlpha(60),
+                child: Opacity(
+                  opacity: _dimOpacity * 2,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(linesTotal, (i) {
+                      final active = i == _currentScreen;
+                      return Padding(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 3),
+                        child: Container(
+                          width: active ? 8 : 6,
+                          height: active ? 8 : 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: active
+                                ? AppColors.gold
+                                : AppColors.gold.withAlpha(60),
+                          ),
                         ),
-                      ),
-                    );
-                  }),
+                      );
+                    }),
+                  ),
                 ),
               ),
             ),
@@ -203,8 +255,6 @@ class _TentTutorialScreenState extends State<TentTutorialScreen> {
   }
 }
 
-/// Matches the Witness Moment particle layout so the tutorial feels
-/// like the same visual family.
 class _TentTutorialParticlePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

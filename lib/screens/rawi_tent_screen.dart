@@ -148,28 +148,61 @@ class _RawiTentScreenState extends State<RawiTentScreen>
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
     _startTentAmbient();
-    // R27 S1-TENT1: first-visit tent tutorial cinematic. Gated on the
-    // persisted flag so it only fires once per install (or until a dev
-    // call to [PrefsService.resetAllTutorials]).
-    if (!PrefsService.isTentTutorialShown) {
+    // R27 S1-TENT1 + S1.1-TENT4: first-visit tent tutorial cinematic.
+    //
+    // v1 fired the cinematic immediately on a black backdrop — user
+    // saw gold text saying "Welcome to your tent" without ever seeing
+    // the tent first. New sequence:
+    //   1. User arrives at tent, sees it for 1s (anchor beat — fire
+    //      ambient plays, flame flickers).
+    //   2. TentTutorialScreen pushes as non-opaque route. It paints
+    //      its own 0 → 0.50 dim scrim over the (still-visible) tent,
+    //      then fades text in and accepts tap-to-advance.
+    //   3. On final-screen advance, dim lifts, route pops.
+    //   4. If the icon coach-mark tutorial hasn't been seen either,
+    //      it fires immediately (see [_maybeShowIconTutorial]).
+    //
+    // Gated by BOTH pref flags: either tutorial still pending means
+    // we still do the settle-beat work. Cinematic writes its flag on
+    // FIRST tap (not final-screen) so a force-quit doesn't replay it.
+    if (!PrefsService.isTentTutorialShown ||
+        !PrefsService.isTentIconTutorialShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).push(
-          PageRouteBuilder(
-            opaque: false,
-            transitionDuration: const Duration(milliseconds: 400),
-            pageBuilder: (ctx, anim, sec) => FadeTransition(
-              opacity: anim,
-              child: TentTutorialScreen(
-                onComplete: () {
-                  if (mounted) Navigator.of(context).pop();
-                },
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (!mounted) return;
+          if (!PrefsService.isTentTutorialShown) {
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                opaque: false,
+                transitionDuration: const Duration(milliseconds: 300),
+                pageBuilder: (ctx, anim, sec) => FadeTransition(
+                  opacity: anim,
+                  child: TentTutorialScreen(
+                    onComplete: () {
+                      if (!mounted) return;
+                      Navigator.of(context).pop();
+                      _maybeShowIconTutorial();
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
+            );
+          } else {
+            // Cinematic already seen on a prior launch — go straight
+            // to the icon tutorial if it hasn't been seen yet.
+            _maybeShowIconTutorial();
+          }
+        });
       });
     }
+  }
+
+  /// R27 S1.1-TENT5: fires the sequential icon coach-mark tutorial
+  /// over the tent's right-side nav. Wired in the next commit; for
+  /// now this method exists so TENT4's handoff chain has a target.
+  void _maybeShowIconTutorial() {
+    if (PrefsService.isTentIconTutorialShown) return;
+    // Hookup added in R27 S1.1-TENT5 (next commit).
   }
 
   /// R26 S1v2-T2: subscribe to route lifecycle so the tent re-reads
