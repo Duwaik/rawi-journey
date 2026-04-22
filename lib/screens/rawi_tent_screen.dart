@@ -21,6 +21,7 @@ import 'seerah_sky_screen.dart';
 import 'settings_screen.dart';
 import 'tent_tutorial_screen.dart';
 import '../widgets/stat_row_group.dart';
+import '../widgets/tent_icon_tutorial_overlay.dart';
 import '../widgets/tent_info_tab.dart';
 
 /// R22 Part 3 / R24 A-01 — Rawi's Tent V2 (cinematic campfire home).
@@ -39,6 +40,12 @@ class _RawiTentScreenState extends State<RawiTentScreen>
     with RouteAware, SingleTickerProviderStateMixin {
   bool get _isAr => PrefsService.isAr;
   String? _activeSheet;
+
+  /// R27 S1.1-TENT5: true while the icon coach-mark overlay is
+  /// rendering. Drives the conditional render at the end of the
+  /// tent Stack. Flipped true by [_maybeShowIconTutorial] and
+  /// false by the overlay's `onFinished` callback.
+  bool _iconTutorialActive = false;
 
   /// R27 S1-TENT2: subtle warm-light flicker over the campfire area of
   /// the tent BG. The fire itself is baked into the JPG (tent BG is
@@ -198,11 +205,19 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   }
 
   /// R27 S1.1-TENT5: fires the sequential icon coach-mark tutorial
-  /// over the tent's right-side nav. Wired in the next commit; for
-  /// now this method exists so TENT4's handoff chain has a target.
+  /// over the tent's right-side nav. Called from the cinematic's
+  /// onComplete callback (fresh install) or directly from initState
+  /// when the cinematic flag is already set but this one isn't.
   void _maybeShowIconTutorial() {
     if (PrefsService.isTentIconTutorialShown) return;
-    // Hookup added in R27 S1.1-TENT5 (next commit).
+    if (!mounted) return;
+    // Brief breath so the cinematic's dim has fully lifted before
+    // the coach-mark's own scrim lands.
+    Future.delayed(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      if (PrefsService.isTentIconTutorialShown) return;
+      setState(() => _iconTutorialActive = true);
+    });
   }
 
   /// R26 S1v2-T2: subscribe to route lifecycle so the tent re-reads
@@ -641,6 +656,20 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                     : _activeSheet == 'dhikr'
                         ? _dhikrContent(completed)
                         : const SizedBox.shrink(),
+              ),
+
+            // ── R27 S1.1-TENT5: icon coach-mark overlay ─────────────
+            // Rendered last so it sits above everything else in the
+            // tent (nav icons, info tab, progress card). The overlay
+            // absorbs every tap itself, so nothing underneath fires
+            // while it's visible.
+            if (_iconTutorialActive)
+              TentIconTutorialOverlay(
+                onFinished: () {
+                  if (mounted) {
+                    setState(() => _iconTutorialActive = false);
+                  }
+                },
               ),
           ],
         ),
