@@ -539,6 +539,11 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                         // between them as before — the container is
                         // just no longer stretched. Counter is bold
                         // now so it reads as a primary metric.
+                        // R27 S1.1-TENT3: gap widened 14 → 26 px so
+                        // the button and counter have proper breathing
+                        // room (previous version sat too close per
+                        // device feedback). Both elements stay centered
+                        // as a unit — only the inner gap grows.
                         if (!isComplete)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -547,7 +552,7 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                                 : TextDirection.ltr,
                             children: [
                               _buildStartContinueButton(isContinue),
-                              const SizedBox(width: 14),
+                              const SizedBox(width: 26),
                               Text(
                                 '$completed / ${m1Events.length}',
                                 style: GoogleFonts.nunito(
@@ -731,36 +736,44 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   /// no icon, no number badge.
   Widget _buildStartContinueButton(bool isContinue) {
     // R27 S1-TENT5: gold-filled primary CTA (was outlined translucent).
-    // Matches the primary-CTA treatment used elsewhere — solid gold
-    // fill with dark navy text. Continue vs Start differ only in
-    // label and a tiny elevation hint (Continue has the faint glow
-    // so the resume state reads slightly warmer).
+    //
+    // R27 S1.1-TENT3: fixed width so "Start"/"ابدأ" (short) and
+    // "Continue"/"متابعة" (longer) render at IDENTICAL widths. Flipping
+    // between states causes zero row reflow now — previously the row
+    // jittered when a fresh install (Start) turned into a mid-event
+    // resume (Continue) with its longer label. The width is sized to
+    // fit "Continue" at 13 px w800 + 32 px horizontal padding on each
+    // side ≈ 128 px. AR "متابعة" lands comfortably inside the same box.
     final label = isContinue
         ? (_isAr ? 'متابعة' : 'Continue')
         : (_isAr ? 'ابدأ' : 'Start');
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(vertical: 9, horizontal: 32),
-      decoration: BoxDecoration(
-        color: AppColors.gold,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: isContinue
-            ? [
-                BoxShadow(
-                    color: AppColors.gold.withAlpha(60),
-                    blurRadius: 12,
-                    spreadRadius: 1),
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.nunito(
-          color: const Color(0xFF0B1E2D),
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
+    return SizedBox(
+      width: 128,
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(vertical: 9),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.gold,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isContinue
+              ? [
+                  BoxShadow(
+                      color: AppColors.gold.withAlpha(60),
+                      blurRadius: 12,
+                      spreadRadius: 1),
+                ]
+              : null,
         ),
-        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+        child: Text(
+          label,
+          style: GoogleFonts.nunito(
+            color: const Color(0xFF0B1E2D),
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+        ),
       ),
     );
   }
