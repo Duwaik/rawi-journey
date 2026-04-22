@@ -622,26 +622,41 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                         // between them as before — the container is
                         // just no longer stretched. Counter is bold
                         // now so it reads as a primary metric.
-                        // R27 S1.1-TENT3: gap widened 14 → 26 px so
-                        // the button and counter have proper breathing
-                        // room (previous version sat too close per
-                        // device feedback). Both elements stay centered
-                        // as a unit — only the inner gap grows.
+                        // R27 S1.2-TENT6: half-and-half centered layout.
+                        // Each element sits at the visual center of its
+                        // 50% slice — button in the left half, counter
+                        // in the right half. Replaces S1.1-TENT3's
+                        // "move both inward + fixed gap" approach with a
+                        // clean geometric split. `Expanded` gives each
+                        // child a matching flex of 1; the `Center`
+                        // inside each Expanded horizontally centers the
+                        // element in its slice. AR RTL swaps the
+                        // children order via the Row's textDirection —
+                        // counter on left, button on right in Arabic
+                        // locale (still centered in their own halves).
                         if (!isComplete)
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
                             textDirection: _isAr
                                 ? TextDirection.rtl
                                 : TextDirection.ltr,
                             children: [
-                              _buildStartContinueButton(isContinue),
-                              const SizedBox(width: 26),
-                              Text(
-                                '$completed / ${m1Events.length}',
-                                style: GoogleFonts.nunito(
-                                  color: AppColors.gold.withAlpha(230),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
+                              Expanded(
+                                child: Center(
+                                  child: _buildStartContinueButton(
+                                      isContinue),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    '$completed / ${m1Events.length}',
+                                    style: GoogleFonts.nunito(
+                                      color: AppColors.gold
+                                          .withAlpha(230),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
