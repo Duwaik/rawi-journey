@@ -1,34 +1,30 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
 
-/// R27 S1.1-TENT1: tent-side info tab widget. Mirrors the event scene
-/// info tab (`lib/widgets/event_scene_info_tab.dart`) in look and
-/// behavior — chevron-on-border collapse toggle, left-edge panel,
-/// ~40-60 px below the default anchor so it clears the Rawi figure's
-/// head on the tent scene.
+/// R27 S1.1-TENT1 + S1.2-TENT1: tent-side info tab. Shell-only widget
+/// — collapse animation, chevron-on-border ornament, left-edge panel
+/// at `screenH * 0.45`, full-screen scrim when expanded with
+/// tap-to-dismiss + pan-swallow (R26 S1v3-EE8.2 pattern). The
+/// EXPANDED content is supplied by the caller via [expandedContent].
 ///
-/// Differs only in content: Section 2 shows JOURNEY progress
-/// (`X of 155 events completed`) instead of per-event hotspot dots,
-/// because the tent is where the user lives between events and
-/// there's no "this event" context until one is launched.
+/// S1.2 consolidation: the tent used to render a SEPARATE always-on
+/// Light/XP/Dhikr stat-pills block at top-left (`_buildStatPillsContainer`).
+/// That block is gone — those three pills now live INSIDE this info
+/// tab's expanded content instead. One widget, one tap, one source
+/// of truth for tent stats.
 class TentInfoTab extends StatefulWidget {
-  /// Count of events the user has completed (same source the tent's
-  /// progress card already uses — `_completedCount`).
-  final int completedEvents;
-
-  /// Total events in the journey (155 at time of writing, passed in
-  /// so the widget doesn't reach into m1_data directly).
-  final int totalEvents;
+  /// The content rendered inside the expanded panel. Caller builds a
+  /// StatRowGroup (or whatever) and passes it in — no coupling to
+  /// specific row shapes.
+  final Widget expandedContent;
 
   const TentInfoTab({
     super.key,
-    required this.completedEvents,
-    required this.totalEvents,
+    required this.expandedContent,
   });
 
   @override
@@ -181,92 +177,17 @@ class _TentInfoTabState extends State<TentInfoTab>
     );
   }
 
+  /// R27 S1.2-TENT1: the expanded panel now just renders whatever the
+  /// caller passed in via `widget.expandedContent`. The tent supplies
+  /// a StatRowGroup with Light / XP / Dhikr rows — the old YOUR LIGHT
+  /// + JOURNEY content is gone, replaced by the pills that used to
+  /// live in the deleted standalone top-left block.
   Widget _buildExpandedContent() {
     return Directionality(
       textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
       child: Padding(
         padding: const EdgeInsets.only(right: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── Section 1: YOUR LIGHT (lifetime) ───────────────────
-            Text(
-              _isAr ? 'نورك' : 'Your Light',
-              textDirection:
-                  _isAr ? TextDirection.rtl : TextDirection.ltr,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold.withAlpha(217),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-            ),
-            Text(
-              _isAr ? 'عبر كل الأحداث' : 'across all events',
-              textDirection:
-                  _isAr ? TextDirection.rtl : TextDirection.ltr,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold.withAlpha(128),
-                fontSize: 9,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${PrefsService.noorLevel}%',
-              style: GoogleFonts.nunito(
-                color: const Color(0xFFE8D8B8),
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                height: 1.0,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(height: 0.5, color: AppColors.gold.withAlpha(46)),
-            const SizedBox(height: 12),
-            // ── Section 2: JOURNEY (events completed / 155) ────────
-            Text(
-              _isAr ? 'الرحلة' : 'Journey',
-              textDirection:
-                  _isAr ? TextDirection.rtl : TextDirection.ltr,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold.withAlpha(217),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-            ),
-            Text(
-              _isAr
-                  ? '${_toArabicNumeral(widget.completedEvents)} من '
-                      '${_toArabicNumeral(widget.totalEvents)} حدثاً'
-                  : '${widget.completedEvents} of '
-                      '${widget.totalEvents} events',
-              textDirection:
-                  _isAr ? TextDirection.rtl : TextDirection.ltr,
-              style: GoogleFonts.nunito(
-                color: AppColors.gold.withAlpha(128),
-                fontSize: 9,
-              ),
-            ),
-            const SizedBox(height: 6),
-            // Slim progress bar, visually balanced with the 4-dot row
-            // used in the event scene tab.
-            ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: widget.totalEvents == 0
-                    ? 0.0
-                    : (widget.completedEvents / widget.totalEvents)
-                        .clamp(0.0, 1.0),
-                minHeight: 4,
-                backgroundColor: AppColors.gold.withAlpha(40),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.gold),
-              ),
-            ),
-          ],
-        ),
+        child: widget.expandedContent,
       ),
     );
   }
@@ -311,8 +232,4 @@ class _TentInfoTabState extends State<TentInfoTab>
     );
   }
 
-  static String _toArabicNumeral(int n) {
-    const digits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-    return n.toString().split('').map((d) => digits[int.parse(d)]).join();
-  }
 }

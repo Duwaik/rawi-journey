@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -409,23 +407,12 @@ class _RawiTentScreenState extends State<RawiTentScreen>
               ),
             ),
 
-            // ── R25-S2-1/S2-2: Stat pills container (left side) ──────
-            // Three rows: Light, XP, Dhikr. Labels are constant across
-            // modes (S3-5 / S3-HF-7 consolidation — Light is always
-            // "Your Light" / "نورك", never "Knowledge"). Reader mode
-            // still swaps XP value → events-completed count (B11).
-            // Single container with faint gold dividers and backdrop blur.
-            //
-            // Device-test fix (Apr 19): original spec top: 0.44 landed on
-            // the hooded figure's body in tent_day.jpg — the 0.55-alpha
-            // pill had zero contrast against the dark robes and appeared
-            // invisible. Moved to top: 0.22 so it sits in the sunrise sky
-            // just below the greeting, above the figure.
-            Positioned(
-              top: screenH * 0.22,
-              left: 10,
-              child: _buildStatPillsContainer(completed),
-            ),
+            // R27 S1.2-TENT1: the standalone top-left stat pills block
+            // (shipped in R25-S2-1/S2-2, Positioned at top: 0.22, left: 10
+            // with _buildStatPillsContainer) is DELETED. Those pills
+            // now live inside the tent info tab's expanded state —
+            // one tappable widget replaces two always-visible blocks,
+            // letting the Rawi figure + fire be the hero.
 
             // ── Right-side navigation (5 square icons) ───────────────
             // B5: nav stack = 5 icons (Events, Stars, Scroll, Dhikr,
@@ -632,19 +619,18 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                 ),
               ),
 
-            // ── R27 S1.1-TENT1: tent info tab (left edge, collapsed) ──
-            // Mirrors the event scene info tab (chevron-on-border,
-            // collapse animation, YOUR LIGHT + JOURNEY sections).
-            // Wrapped in Positioned.fill so the widget's internal
-            // scrim covers the whole tent when expanded — same
-            // gesture-exclusivity pattern as R26 S1v3-EE8.2.
-            // Hidden while a bottom sheet is open so the sheet scrim
-            // doesn't fight the tab's own scrim.
+            // ── R27 S1.1-TENT1 + S1.2-TENT1: tent info tab ───────────
+            // Single consolidated widget. Expanded content = the
+            // three stat pills (Light / XP / Dhikr) that used to
+            // live in the now-deleted top-left standalone block.
+            // Positioned.fill so the internal scrim covers the full
+            // tent when expanded (R26 S1v3-EE8.2 gesture pattern).
+            // Hidden while a bottom sheet is open so the two scrims
+            // don't fight.
             if (_activeSheet == null)
               Positioned.fill(
                 child: TentInfoTab(
-                  completedEvents: completed,
-                  totalEvents: m1Events.length,
+                  expandedContent: _buildInfoTabStatRows(completed),
                 ),
               ),
 
@@ -736,12 +722,16 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   ///
   /// Reader mode still swaps the XP value→events-completed count (B11).
   /// Labels stay constant across modes (S3-5 consolidation).
-  Widget _buildStatPillsContainer(int completed) {
+  /// R27 S1.2-TENT1: builds the three Light / XP / Dhikr rows that
+  /// render inside the tent info tab's expanded panel. Replaces the
+  /// old `_buildStatPillsContainer` whose chrome (SizedBox width 155,
+  /// ClipRRect, BackdropFilter, Container decoration) is redundant
+  /// now that the info tab's panel already provides blur + gold
+  /// border + dark fill. Returning just the StatRowGroup keeps the
+  /// expanded-panel content clean and lets TentInfoTab own the frame.
+  Widget _buildInfoTabStatRows(int completed) {
     final explorer = PrefsService.isExplorerMode;
     final statRows = <StatRow>[
-      // R27 S1-TENT4: drop "Your" from the Light pill. Shorter, clearer,
-      // less verbose on the already-tight tent stat row. "Your" was
-      // redundant — it's the user's tent, everything here is theirs.
       StatRow(
         icon: Icons.auto_awesome_rounded,
         label: 'Light',
@@ -761,36 +751,7 @@ class _RawiTentScreenState extends State<RawiTentScreen>
         value: '${PrefsService.dhikrCompletedCount}',
       ),
     ];
-    // R25-S3-HF-1: explicit width = 155. StatRowGroup rows contain a
-    // Spacer() between label and value; inside a Positioned with no
-    // right bound, the row had zero bounded width, the Spacer couldn't
-    // flex, and the whole container collapsed to 0 width — invisible
-    // on device despite the widget being mounted. The info tab renders
-    // fine because its parent supplies an explicit width animation.
-    // Container chrome kept from the S2-1 device-test fix: bg 0.72,
-    // gold 0.32 border, blur 8. Renders legibly against any time-of-
-    // day scene variant.
-    return SizedBox(
-      width: 155,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 9),
-            decoration: BoxDecoration(
-              color: const Color.fromRGBO(10, 14, 24, 0.72),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.gold.withAlpha(82),
-                width: 0.8,
-              ),
-            ),
-            child: StatRowGroup(rows: statRows, showDividers: true),
-          ),
-        ),
-      ),
-    );
+    return StatRowGroup(rows: statRows, showDividers: true);
   }
 
   /// R25-S2-4: Start / Continue button. Same generous padding in both
