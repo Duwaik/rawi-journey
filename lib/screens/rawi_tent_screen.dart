@@ -21,6 +21,7 @@ import 'seerah_sky_screen.dart';
 import 'settings_screen.dart';
 import 'tent_tutorial_screen.dart';
 import '../widgets/stat_row_group.dart';
+import '../widgets/tent_info_tab.dart';
 
 /// R22 Part 3 / R24 A-01 — Rawi's Tent V2 (cinematic campfire home).
 ///
@@ -575,6 +576,22 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                       ],
                     ),
                   ),
+                ),
+              ),
+
+            // ── R27 S1.1-TENT1: tent info tab (left edge, collapsed) ──
+            // Mirrors the event scene info tab (chevron-on-border,
+            // collapse animation, YOUR LIGHT + JOURNEY sections).
+            // Wrapped in Positioned.fill so the widget's internal
+            // scrim covers the whole tent when expanded — same
+            // gesture-exclusivity pattern as R26 S1v3-EE8.2.
+            // Hidden while a bottom sheet is open so the sheet scrim
+            // doesn't fight the tab's own scrim.
+            if (_activeSheet == null)
+              Positioned.fill(
+                child: TentInfoTab(
+                  completedEvents: completed,
+                  totalEvents: m1Events.length,
                 ),
               ),
 
