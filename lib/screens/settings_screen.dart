@@ -30,9 +30,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _vo = PrefsService.voEnabled;
   bool _sfx = PrefsService.sfxEnabled;
   String _lang = PrefsService.language;
-  final String _gender = PrefsService.userGender;
+  String _gender = PrefsService.userGender;
 
   bool get _isAr => _lang == 'ar';
+
+  /// R27 S1.3-SET1: editable-profile state. Flipped true when the
+  /// user taps Edit. Holds draft values until Save commits them or
+  /// Cancel discards. `_editNameError` / `_editAgeError` are filled
+  /// by validation and drive inline error rendering.
+  bool _editingProfile = false;
+  final TextEditingController _editNameCtrl = TextEditingController();
+  final TextEditingController _editAgeCtrl = TextEditingController();
+  String _editGender = 'male';
+  String? _editNameError;
+  String? _editAgeError;
+  bool _profileSavedToast = false;
+
+  /// R27 S1.3-SET1: same charset + blocklist as S1-REG1. Kept in sync
+  /// manually; if you change one, change the other (or extract to
+  /// `lib/utils/name_validator.dart` when a third caller appears).
+  static final RegExp _nameAllowedChars =
+      RegExp(r"^[a-zA-Z؀-ۿ \'\-]+$");
+  static const Set<String> _nameBlocklist = {
+    'allah', 'god', 'rabb', 'lord',
+    'الله', 'اللّه', 'الرب', 'رب',
+  };
+
+  @override
+  void dispose() {
+    _editNameCtrl.dispose();
+    _editAgeCtrl.dispose();
+    super.dispose();
+  }
 
   // ── Card styling constants ────────────────────────────────────────────────
   static final Color _cardBg = const Color(0xFF0A0E14).withAlpha(200);
@@ -300,8 +329,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // ── 1. Profile card ─────────────────────────────────────────────────────
+  //
+  // R27 S1.3-SET1: switchable read-only / edit view. Read-only shows
+  // the existing portrait + name + role + stage and adds a small
+  // Edit pill. Tapping Edit swaps the card content to an edit form
+  // (name input, age input, gender select, Save/Cancel row). Save
+  // validates + writes to PrefsService + shows a brief toast; Cancel
+  // reverts unsaved changes.
 
   Widget _buildProfileCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: _sectionDecoration,
+      child: _editingProfile ? _buildProfileEditForm() : _buildProfileRead(),
+    );
+  }
+
+  Widget _buildProfileRead() {
     final name = PrefsService.userName.isNotEmpty
         ? PrefsService.userName
         : (_isAr ? 'رحّال' : 'Traveler');
@@ -309,76 +353,401 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ? (_isAr ? 'الراوية' : 'Rawiah')
         : (_isAr ? 'الراوي' : 'Rawi');
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: _sectionDecoration,
-      child: Row(
-        textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-        children: [
-          // Gold-bordered portrait (carrying pose)
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.gold, width: 2.5),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.gold.withAlpha(40),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                ),
-              ],
+    return Row(
+      textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.gold, width: 2.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gold.withAlpha(40),
+                blurRadius: 12,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: Image.asset(
+              CharacterArt.carrying(),
+              width: 64,
+              height: 64,
+              fit: BoxFit.cover,
             ),
-            child: ClipOval(
-              child: Image.asset(
-                CharacterArt.carrying(),
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: GoogleFonts.nunito(
+                  fontSize: 18,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                roleLabel,
+                style: GoogleFonts.lora(
+                  fontSize: 13,
+                  color: AppColors.gold.withAlpha(180),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                RawiStage.stageName(
+                  RawiStage.getStage(
+                    (PrefsService.currentOrder - 1).clamp(0, m1EventCount),
+                  ),
+                  isAr: _isAr,
+                ),
+                style: GoogleFonts.lora(
+                  fontSize: 11,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Edit pill — small, gold outline, defers to the form swap.
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _startEditProfile,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withAlpha(26),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                  color: AppColors.gold.withAlpha(160), width: 1),
+            ),
+            child: Text(
+              _isAr ? 'تعديل' : 'Edit',
+              style: GoogleFonts.nunito(
+                color: AppColors.gold,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              // R19-16: `start` respects ambient textDirection from the Row,
-              // so text hugs the side adjacent to the image in both LTR and
-              // RTL (previously inverted, causing a large AR gap).
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  roleLabel,
-                  style: GoogleFonts.lora(
-                    fontSize: 13,
-                    color: AppColors.gold.withAlpha(180),
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  RawiStage.stageName(
-                    RawiStage.getStage(
-                      (PrefsService.currentOrder - 1).clamp(0, m1EventCount),
-                    ),
-                    isAr: _isAr,
-                  ),
-                  style: GoogleFonts.lora(
-                    fontSize: 11,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-              ],
+        ),
+      ],
+    );
+  }
+
+  void _startEditProfile() {
+    setState(() {
+      _editingProfile = true;
+      _editNameCtrl.text = PrefsService.userName;
+      _editAgeCtrl.text = PrefsService.userAge.toString();
+      _editGender = _gender;
+      _editNameError = null;
+      _editAgeError = null;
+    });
+  }
+
+  void _cancelEditProfile() {
+    setState(() {
+      _editingProfile = false;
+      _editNameError = null;
+      _editAgeError = null;
+    });
+  }
+
+  String? _validateEditName(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) {
+      return _isAr ? 'الاسم مطلوب.' : 'Name is required.';
+    }
+    if (trimmed.length < 2 || trimmed.length > 15) {
+      return _isAr
+          ? 'الاسم يجب أن يكون 2-15 حرفاً.'
+          : 'Name must be 2-15 characters.';
+    }
+    if (!_nameAllowedChars.hasMatch(trimmed)) {
+      return _isAr
+          ? 'مسموح بالحروف والمسافات والرموز - \' فقط.'
+          : "Only letters, spaces, and - ' allowed.";
+    }
+    if (_nameBlocklist.contains(trimmed.toLowerCase())) {
+      return _isAr ? 'يرجى استخدام اسم شخصي.' : 'Please use a personal name.';
+    }
+    return null;
+  }
+
+  String? _validateEditAge(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) {
+      return _isAr ? 'العمر مطلوب.' : 'Age is required.';
+    }
+    final parsed = int.tryParse(trimmed);
+    if (parsed == null) {
+      return _isAr ? 'أدخل رقماً صحيحاً.' : 'Enter a valid number.';
+    }
+    if (parsed < 4 || parsed > 120) {
+      return _isAr
+          ? 'العمر يجب أن يكون بين 4 و 120.'
+          : 'Age must be between 4 and 120.';
+    }
+    return null;
+  }
+
+  Future<void> _saveEditProfile() async {
+    final nameErr = _validateEditName(_editNameCtrl.text);
+    final ageErr = _validateEditAge(_editAgeCtrl.text);
+    if (nameErr != null || ageErr != null) {
+      setState(() {
+        _editNameError = nameErr;
+        _editAgeError = ageErr;
+      });
+      return;
+    }
+    // Persist — setUserName capitalizes the first letter for us.
+    await PrefsService.setUserName(_editNameCtrl.text);
+    await PrefsService.setUserAge(int.parse(_editAgeCtrl.text));
+    await PrefsService.setUserGender(_editGender);
+    if (!mounted) return;
+    setState(() {
+      _gender = _editGender;
+      _editingProfile = false;
+      _editNameError = null;
+      _editAgeError = null;
+      _profileSavedToast = true;
+    });
+    // Toast auto-hides after 2 seconds.
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() => _profileSavedToast = false);
+    });
+  }
+
+  Widget _buildProfileEditForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Name field
+        Text(
+          _isAr ? 'الاسم' : 'Name',
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          style: GoogleFonts.nunito(
+            fontSize: 11,
+            color: AppColors.gold.withAlpha(180),
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _editNameCtrl,
+          maxLength: 15,
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          style: GoogleFonts.nunito(
+            fontSize: 15,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            counterText: '',
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                  color: AppColors.gold.withAlpha(80), width: 1),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.gold, width: 1.5),
+            ),
+          ),
+        ),
+        if (_editNameError != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            _editNameError!,
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              color: const Color(0xFFE27979),
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
+        const SizedBox(height: 16),
+
+        // Age field
+        Text(
+          _isAr ? 'العمر' : 'Age',
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          style: GoogleFonts.nunito(
+            fontSize: 11,
+            color: AppColors.gold.withAlpha(180),
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _editAgeCtrl,
+          keyboardType: TextInputType.number,
+          maxLength: 3,
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          style: GoogleFonts.nunito(
+            fontSize: 15,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            counterText: '',
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                  color: AppColors.gold.withAlpha(80), width: 1),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: AppColors.gold, width: 1.5),
+            ),
+          ),
+        ),
+        if (_editAgeError != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            _editAgeError!,
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              color: const Color(0xFFE27979),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+
+        // Gender toggle
+        Text(
+          _isAr ? 'الشخصية' : 'Companion',
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          style: GoogleFonts.nunito(
+            fontSize: 11,
+            color: AppColors.gold.withAlpha(180),
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _editGenderChip('male',
+                  label: _isAr ? 'راوي' : 'Rawi'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _editGenderChip('female',
+                  label: _isAr ? 'راوية' : 'Rawiah'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+
+        // Save / Cancel row
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _cancelEditProfile,
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: AppColors.gold.withAlpha(120), width: 1),
+                  ),
+                  child: Text(
+                    _isAr ? 'إلغاء' : 'Cancel',
+                    style: GoogleFonts.nunito(
+                      color: AppColors.gold,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _saveEditProfile,
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _isAr ? 'حفظ' : 'Save',
+                    style: GoogleFonts.nunito(
+                      color: const Color(0xFF0B1E2D),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (_profileSavedToast) ...[
+          const SizedBox(height: 10),
+          Text(
+            _isAr ? 'تم الحفظ ✓' : 'Saved ✓',
+            textAlign: TextAlign.center,
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              color: AppColors.gold,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _editGenderChip(String value, {required String label}) {
+    final selected = _editGender == value;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() => _editGender = value),
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.gold.withAlpha(60)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+              color: selected
+                  ? AppColors.gold
+                  : AppColors.gold.withAlpha(80),
+              width: selected ? 1.5 : 1),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.nunito(
+            color: selected
+                ? AppColors.gold
+                : AppColors.textMuted,
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
