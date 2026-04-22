@@ -204,9 +204,41 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   // ── Page 1: Identity (name + companion) ───────────────────────────────────
 
+  /// R27 S1-REG1: allowed character set for names.
+  /// Latin letters (a-z/A-Z), Arabic letters (U+0600–U+06FF),
+  /// spaces, apostrophe ('), hyphen (-). Everything else rejected.
+  static final RegExp _nameAllowedChars = RegExp(r"^[a-zA-Z؀-ۿ \'\-]+$");
+
+  /// R27 S1-REG1: exact-match blocklist. Matched case-insensitively
+  /// against the trimmed + single-token normalized input. Compound
+  /// names like "Abdullah" or "عبد الله" pass — only the standalone
+  /// divine name is blocked.
+  static const Set<String> _nameBlocklist = {
+    'allah', 'god', 'rabb', 'lord',
+    'الله', 'اللّه', 'الرب', 'رب',
+  };
+
+  /// Returns null if valid, otherwise a localized error string.
+  String? _validateName(String raw, bool isAr) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return null; // empty is not an error, just invalid
+    if (!_nameAllowedChars.hasMatch(trimmed)) {
+      return isAr
+          ? 'مسموح بالحروف والمسافات والرموز - \' فقط.'
+          : "Only letters, spaces, and - ' allowed.";
+    }
+    if (_nameBlocklist.contains(trimmed.toLowerCase())) {
+      return isAr ? 'يرجى استخدام اسم شخصي.' : 'Please use a personal name.';
+    }
+    return null;
+  }
+
   Widget _buildIdentityPage(bool isAr) {
     final name = _nameCtrl.text.trim();
-    final valid = name.length >= 2 && name.length <= 15;
+    final validationError = _validateName(name, isAr);
+    final valid = name.length >= 2 &&
+        name.length <= 15 &&
+        validationError == null;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -269,7 +301,42 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 32),
+
+          // R27 S1-REG1: permanent inline hint + rejection error.
+          // Hint is always visible so the user knows what counts as
+          // a valid name. Error replaces/augments the hint only when
+          // the current input violates a rule.
+          const SizedBox(height: 10),
+          Text(
+            isAr
+                ? 'يرجى كتابة اسمك بشكل واضح، مثلاً عبدالله (كلمة واحدة). '
+                    'يمكنك استخدام أحد أسمائك إذا أردت.'
+                : 'Please enter your name clearly, e.g. Abdullah '
+                    '(one word). Use one of your given names if you prefer.',
+            textAlign: TextAlign.center,
+            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              height: 1.5,
+              color: AppColors.textMuted.withAlpha(160),
+            ),
+          ),
+          if (validationError != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              validationError,
+              textAlign: TextAlign.center,
+              textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.nunito(
+                fontSize: 11,
+                height: 1.4,
+                color: const Color(0xFFE27979),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 24),
 
           // Companion selection
           Text(
