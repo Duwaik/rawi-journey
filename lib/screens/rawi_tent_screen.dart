@@ -646,15 +646,33 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                                       isContinue),
                                 ),
                               ),
+                              // R27 S1.3-TENT2: counter visual weight
+                              // boost. Needed to read EQUAL to the
+                              // "Start"/"Continue" label. Changes:
+                              //   - Color: α230 gold → solid warmer
+                              //     #F0D070 (matches button label)
+                              //   - Size: 12 → 14 (matches button's 13
+                              //     but counter needs 1 px more to
+                              //     balance against bold button text)
+                              //   - Weight: stays w700
+                              //   - Faint halo so glyphs don't wash
+                              //     out on bright tent variants
                               Expanded(
                                 child: Center(
                                   child: Text(
                                     '$completed / ${m1Events.length}',
                                     style: GoogleFonts.nunito(
-                                      color: AppColors.gold
-                                          .withAlpha(230),
-                                      fontSize: 12,
+                                      color: const Color(0xFFF0D070),
+                                      fontSize: 14,
                                       fontWeight: FontWeight.w700,
+                                      shadows: [
+                                        Shadow(
+                                          offset: Offset.zero,
+                                          blurRadius: 8,
+                                          color: AppColors.gold
+                                              .withAlpha(77),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
