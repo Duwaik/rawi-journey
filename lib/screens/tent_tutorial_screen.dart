@@ -190,24 +190,13 @@ class _TentTutorialScreenState extends State<TentTutorialScreen>
                 ),
               ),
             ),
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 20,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Opacity(
-                  opacity: _dimOpacity * 2, // fades in with the scrim
-                  child: Text(
-                    _isAr ? 'خيمتك' : 'Your Tent',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      color: AppColors.gold.withAlpha(80),
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            // R27 S1.2-TENT5: the old "Your Tent" / "خيمتك" top label
+            // was removed here. Device-verify screenshot showed it
+            // reading as a stray title ABOVE the greeting (during the
+            // brief window when the S1.1 dim wasn't landing, both the
+            // greeting and this label were visible simultaneously).
+            // The cinematic text itself is the only title the screen
+            // needs — no pre-label required.
             if (_currentScreen == 0)
               Positioned(
                 bottom: MediaQuery.of(context).padding.bottom + 28,
