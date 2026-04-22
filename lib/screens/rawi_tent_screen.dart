@@ -532,44 +532,41 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        // R25-S2-4: button + count on same line
+                        // R27 S1-TENT5: button + counter centered as a
+                        // unit (was spaceBetween, which spread them to
+                        // the card's outer edges). Same 14 px gap
+                        // between them as before — the container is
+                        // just no longer stretched. Counter is bold
+                        // now so it reads as a primary metric.
                         if (!isComplete)
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 4),
-                            child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              textDirection: _isAr
-                                  ? TextDirection.rtl
-                                  : TextDirection.ltr,
-                              children: [
-                                _buildStartContinueButton(isContinue),
-                                const SizedBox(width: 14),
-                                Padding(
-                                  padding: EdgeInsetsDirectional.only(
-                                      end: _isAr ? 0 : 4,
-                                      start: _isAr ? 4 : 0),
-                                  child: Text(
-                                    '$completed / ${m1Events.length}',
-                                    style: GoogleFonts.nunito(
-                                      color: AppColors.gold.withAlpha(191),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            textDirection: _isAr
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
+                            children: [
+                              _buildStartContinueButton(isContinue),
+                              const SizedBox(width: 14),
+                              Text(
+                                '$completed / ${m1Events.length}',
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.gold.withAlpha(230),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        // R25-S2-4: thin 2px progress bar
+                        // R27 S1-TENT5: progress bar 2 → 8 px, radius
+                        // bumped to circular(4) so it stays a clean
+                        // pill at the taller height. Colors unchanged.
                         const SizedBox(height: 11),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(1),
+                          borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: (completed / m1Events.length)
                                 .clamp(0.0, 1.0),
-                            minHeight: 2,
+                            minHeight: 8,
                             backgroundColor: AppColors.gold.withAlpha(26),
                             valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppColors.gold),
@@ -716,12 +713,11 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   /// states so the card doesn't shift when the label swaps. Label only,
   /// no icon, no number badge.
   Widget _buildStartContinueButton(bool isContinue) {
-    // Start:    bg 0.15 gold, border 0.4, text #d4a843
-    // Continue: bg 0.18 gold, border 0.5, text #e8c04d (slightly warmer)
-    final bgAlpha = isContinue ? 46 : 38; // 0.18 vs 0.15
-    final borderAlpha = isContinue ? 128 : 102; // 0.5 vs 0.4
-    final textColor =
-        isContinue ? const Color(0xFFE8C04D) : AppColors.gold;
+    // R27 S1-TENT5: gold-filled primary CTA (was outlined translucent).
+    // Matches the primary-CTA treatment used elsewhere — solid gold
+    // fill with dark navy text. Continue vs Start differ only in
+    // label and a tiny elevation hint (Continue has the faint glow
+    // so the resume state reads slightly warmer).
     final label = isContinue
         ? (_isAr ? 'متابعة' : 'Continue')
         : (_isAr ? 'ابدأ' : 'Start');
@@ -729,17 +725,23 @@ class _RawiTentScreenState extends State<RawiTentScreen>
       padding:
           const EdgeInsets.symmetric(vertical: 9, horizontal: 32),
       decoration: BoxDecoration(
-        color: AppColors.gold.withAlpha(bgAlpha),
+        color: AppColors.gold,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-            color: AppColors.gold.withAlpha(borderAlpha), width: 1),
+        boxShadow: isContinue
+            ? [
+                BoxShadow(
+                    color: AppColors.gold.withAlpha(60),
+                    blurRadius: 12,
+                    spreadRadius: 1),
+              ]
+            : null,
       ),
       child: Text(
         label,
         style: GoogleFonts.nunito(
-          color: textColor,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+          color: const Color(0xFF0B1E2D),
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
         ),
         textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
       ),
