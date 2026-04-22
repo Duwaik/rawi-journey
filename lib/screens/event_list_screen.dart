@@ -430,44 +430,50 @@ class _EventListScreenState extends State<EventListScreen>
                   child: Opacity(
                     opacity: locked ? 0.5 : 1.0,
                     child: Row(
+                      // R27 S2-EL1: RTL mirror so the number always sits
+                      // on the leading side and the status icon on the
+                      // trailing side, regardless of locale.
+                      textDirection:
+                          isAr ? TextDirection.rtl : TextDirection.ltr,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Number or check
-                        if (completed)
-                          Container(
-                            width: 32, height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.gold.withAlpha(20),
+                        // R27 S2-EL1: event number ALWAYS shown (was: left
+                        // circle had either a tick on completed OR a
+                        // number otherwise, which hid the number on
+                        // completed events AND duplicated the right-side
+                        // tick). Number badge is the stable identifier
+                        // across all three card states; the right-side
+                        // slot handles status (tick / Start / lock).
+                        Container(
+                          width: 32, height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: completed
+                                ? AppColors.gold.withAlpha(20)
+                                : const Color(0xFF1A2030),
+                            border: Border.all(
+                              color: completed
+                                  ? AppColors.gold.withAlpha(64)
+                                  : isNext
+                                      ? AppColors.gold.withAlpha(100)
+                                      : const Color(0xFF2A4050),
                             ),
-                            child: const Icon(Icons.check_rounded,
-                                color: AppColors.gold, size: 16),
-                          )
-                        else
-                          Container(
-                            width: 32, height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: const Color(0xFF1A2030),
-                              border: Border.all(
-                                color: isNext
-                                    ? AppColors.gold.withAlpha(100)
-                                    : const Color(0xFF2A4050),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${event.globalOrder}',
-                                style: GoogleFonts.nunito(
-                                  color: isNext
-                                      ? AppColors.gold
-                                      : const Color(0xFF3A5A5A),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${event.globalOrder}',
+                              style: GoogleFonts.nunito(
+                                color: completed
+                                    ? AppColors.gold.withAlpha(200)
+                                    : isNext
+                                        ? AppColors.gold
+                                        : const Color(0xFF5A7A7A),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
+                        ),
                         const SizedBox(width: 10),
 
                         // Title + subtitle + progress dots
