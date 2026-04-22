@@ -119,6 +119,16 @@ class PrefsService {
     await prefs.setInt(_keyDhikrCount, 0);
     await setNoorLevel(100);
     await prefs.setBool(_keyDhikrTutorialSeen, false);
+    // R27 S1.1-TENT6: also reset all three cinematic/coach-mark
+    // tutorial flags so a different user inheriting the device
+    // gets the full fresh-install tutorial loop (tent cinematic →
+    // icon coach-mark → Event 1 tutorial on first event launch).
+    await prefs.remove(_keyTentTutorialShown);
+    await prefs.remove(_keyTentIconTutorialShown);
+    await prefs.remove(_keyEvent1TutorialShown);
+    // Reset tent-dhikr 24 h lock too — a new user shouldn't inherit
+    // the previous owner's cooldown timestamp.
+    await prefs.remove(_keyLastTentDhikrTs);
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────
