@@ -45,6 +45,15 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   /// false by the overlay's `onFinished` callback.
   bool _iconTutorialActive = false;
 
+  /// R27 S1.2-TENT4: true while the tent tutorial cinematic is on
+  /// top of the tent route. Drives AnimatedOpacity wrappers on the
+  /// progress card + nav + info tab so the tent chrome fades to 0
+  /// during the cinematic and back to 1 when it ends. The cinematic
+  /// itself paints a dim scrim over the tent BG, so this flag
+  /// handles the chrome layers the scrim doesn't reach (they'd
+  /// otherwise block the "Tap to continue" hint at the bottom).
+  bool _cinematicActive = false;
+
   /// R27 S1-TENT2: subtle warm-light flicker over the campfire area of
   /// the tent BG. The fire itself is baked into the JPG (tent BG is
   /// permanently frozen — see locked decisions), so we can't animate
@@ -176,6 +185,11 @@ class _RawiTentScreenState extends State<RawiTentScreen>
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (!mounted) return;
           if (!PrefsService.isTentTutorialShown) {
+            // R27 S1.2-TENT4: flip the flag BEFORE pushing so the
+            // tent chrome's AnimatedOpacity starts fading out while
+            // the route transition + cinematic dim are landing —
+            // chrome, dim, and text all coming into place together.
+            setState(() => _cinematicActive = true);
             Navigator.of(context).push(
               PageRouteBuilder(
                 opaque: false,
@@ -186,6 +200,10 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                     onComplete: () {
                       if (!mounted) return;
                       Navigator.of(context).pop();
+                      // Chrome fades BACK in now that the cinematic
+                      // is done. Then the icon coach-mark takes over
+                      // and paints its own dim + highlights.
+                      setState(() => _cinematicActive = false);
                       _maybeShowIconTutorial();
                     },
                   ),
@@ -363,10 +381,17 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             // ── Greeting (top center) ────────────────────────────────
             // R25-S2-6: single-line inline greeting "Assalamu Alaykom,
             // {name}" / "السلام عليكم، {name}". Rank subtitle unchanged.
+            // R27 S1.2-TENT4: wrapped in AnimatedOpacity keyed on
+            // `_cinematicActive` so the greeting fades out during the
+            // tent tutorial cinematic (otherwise it sits on top of the
+            // dim scrim and steals focus).
             Positioned(
               top: topPad + 40,
               left: 16, right: 16,
-              child: Column(
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 400),
+                opacity: _cinematicActive ? 0.0 : 1.0,
+                child: Column(
                 children: [
                   Text(
                     _greeting,
@@ -404,6 +429,7 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                     ),
                   ),
                 ],
+                ),
               ),
             ),
 
@@ -418,11 +444,18 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             // B5: nav stack = 5 icons (Events, Stars, Scroll, Dhikr,
             // Collections). Settings moved OUT of nav stack to its own
             // gear in the top-right corner (consistent with event screens).
+            // R27 S1.2-TENT4: nav column fades during cinematic so
+            // the right edge of the screen is dim + empty while the
+            // tutorial plays; no icon taps can land mid-tutorial
+            // even if the user tries.
             if (_activeSheet == null)
               Positioned(
                 top: screenH * 0.28,
                 right: 10,
-                child: Column(
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 400),
+                  opacity: _cinematicActive ? 0.0 : 1.0,
+                  child: Column(
                   children: [
                     // R27 S1-TENT3: Material icon instead of 📋 emoji.
                     // `Icons.view_list_rounded` reads unambiguously as
@@ -458,15 +491,20 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                           builder: (_) => const CollectionGalleryScreen()));
                     }),
                   ],
+                  ),
                 ),
               ),
 
             // ── Settings gear (top-right corner, 30x30, glass) ──────
+            // R27 S1.2-TENT4: fades during cinematic.
             if (_activeSheet == null)
               Positioned(
                 top: MediaQuery.of(context).padding.top + 10,
                 right: 12,
-                child: GestureDetector(
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 400),
+                  opacity: _cinematicActive ? 0.0 : 1.0,
+                  child: GestureDetector(
                   onTap: () => Navigator.push(context, MaterialPageRoute(
                       builder: (_) => const SettingsScreen())),
                   child: Container(
@@ -480,6 +518,7 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                     child: const Icon(Icons.settings_rounded,
                         size: 16, color: AppColors.gold),
                   ),
+                  ),
                 ),
               ),
 
@@ -488,6 +527,12 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             // progress card's event title is already the hero.
 
             // ── Progress card (bottom, integrated CTA) ───────────────
+            // R27 S1.2-TENT4: wrapped in AnimatedOpacity so the card
+            // (and the "Tap to continue" cinematic hint that sits at
+            // the same vertical position) don't compete during the
+            // tutorial. Spec option B — hide chrome during cinematic,
+            // restore after. Fade synced with the tent dim + route
+            // transition via the shared `_cinematicActive` flag.
             if (_activeSheet == null)
               Positioned(
                 bottom: bottomPad + 16,
@@ -495,7 +540,10 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                 // B8: progress card is the single tappable action zone.
                 // Row: current/next event name + Start/Continue label.
                 // Progress count uses matched sizes (no big/small split).
-                child: GestureDetector(
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 400),
+                  opacity: _cinematicActive ? 0.0 : 1.0,
+                  child: GestureDetector(
                   // R25-S1-1 / S1-2: launch the current progression item
                   // directly — threshold → ThresholdScreen, event →
                   // VideoIntroScreen / EventIntroScreen / ImmersiveEventScreen.
@@ -616,6 +664,7 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                       ],
                     ),
                   ),
+                  ),
                 ),
               ),
 
@@ -626,8 +675,10 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             // Positioned.fill so the internal scrim covers the full
             // tent when expanded (R26 S1v3-EE8.2 gesture pattern).
             // Hidden while a bottom sheet is open so the two scrims
-            // don't fight.
-            if (_activeSheet == null)
+            // don't fight, AND while the cinematic is on top — the
+            // cinematic paints its own dim and we don't want the
+            // info-tab gesture layer swallowing the tutorial tap.
+            if (_activeSheet == null && !_cinematicActive)
               Positioned.fill(
                 child: TentInfoTab(
                   expandedContent: _buildInfoTabStatRows(completed),

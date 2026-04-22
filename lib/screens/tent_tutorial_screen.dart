@@ -65,8 +65,10 @@ class _TentTutorialScreenState extends State<TentTutorialScreen>
 
   /// Dim tween first (400 ms) → text fade-in (500 ms). User sees
   /// the tent behind the dim as the darkness lands.
+  /// R27 S1.2-TENT4: target bumped 0.50 → 0.55 for clearer contrast
+  /// against bright tent variants (tent_dawn.jpg in particular).
   Future<void> _runInitialSequence() async {
-    await _animateDim(0.5, 400);
+    await _animateDim(0.55, 400);
     if (_disposed) return;
     await _animateOpacity(1.0, 500);
   }
@@ -148,11 +150,18 @@ class _TentTutorialScreenState extends State<TentTutorialScreen>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Animated dim scrim over the tent.
+            // R27 S1.2-TENT4: dim scrim over the tent.
+            // S1.1 used `Colors.black.withValues(alpha: _dimOpacity)` —
+            // device verify showed it never landed (tent stayed fully
+            // bright). Replaced with the explicit `Color.fromARGB` form
+            // which is less sensitive to Flutter's float-alpha precision
+            // drift, and using a `ColoredBox` so Flutter short-circuits
+            // the paint when alpha is 0.
             Positioned.fill(
               child: IgnorePointer(
-                child: Container(
-                  color: Colors.black.withValues(alpha: _dimOpacity),
+                child: ColoredBox(
+                  color: Color.fromARGB(
+                      (255 * _dimOpacity).round(), 0, 0, 0),
                 ),
               ),
             ),
