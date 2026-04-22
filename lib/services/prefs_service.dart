@@ -329,6 +329,16 @@ class PrefsService {
   static Future<void> setEvent1TutorialShown() async =>
       await _prefs?.setBool(_keyEvent1TutorialShown, true);
 
+  /// R27 S1-TENT1: one-time first-visit tent tutorial cinematic.
+  /// 5-screen cinematic that runs on the user's first-ever tent visit
+  /// after registration. Flipped true when the cinematic completes;
+  /// never fires again except via [resetAllTutorials].
+  static const String _keyTentTutorialShown = 'tent_tutorial_shown';
+  static bool get isTentTutorialShown =>
+      _prefs?.getBool(_keyTentTutorialShown) ?? false;
+  static Future<void> setTentTutorialShown() async =>
+      await _prefs?.setBool(_keyTentTutorialShown, true);
+
   /// R26 S1-T2: "event in progress" flag + the event ID the user left
   /// mid-play. Tent uses these to flip the primary button between
   /// Start (fresh journey) and Continue (resume the saved event).

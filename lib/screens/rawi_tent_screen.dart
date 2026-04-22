@@ -19,6 +19,7 @@ import 'event_list_screen.dart';
 import 'scroll_viewer_screen.dart';
 import 'seerah_sky_screen.dart';
 import 'settings_screen.dart';
+import 'tent_tutorial_screen.dart';
 import '../widgets/stat_row_group.dart';
 
 /// R22 Part 3 / R24 A-01 — Rawi's Tent V2 (cinematic campfire home).
@@ -132,6 +133,28 @@ class _RawiTentScreenState extends State<RawiTentScreen> with RouteAware {
   void initState() {
     super.initState();
     _startTentAmbient();
+    // R27 S1-TENT1: first-visit tent tutorial cinematic. Gated on the
+    // persisted flag so it only fires once per install (or until a dev
+    // call to [PrefsService.resetAllTutorials]).
+    if (!PrefsService.isTentTutorialShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            opaque: false,
+            transitionDuration: const Duration(milliseconds: 400),
+            pageBuilder: (ctx, anim, sec) => FadeTransition(
+              opacity: anim,
+              child: TentTutorialScreen(
+                onComplete: () {
+                  if (mounted) Navigator.of(context).pop();
+                },
+              ),
+            ),
+          ),
+        );
+      });
+    }
   }
 
   /// R26 S1v2-T2: subscribe to route lifecycle so the tent re-reads
