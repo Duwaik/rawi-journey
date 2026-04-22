@@ -34,9 +34,19 @@ class RawiTentScreen extends StatefulWidget {
   State<RawiTentScreen> createState() => _RawiTentScreenState();
 }
 
-class _RawiTentScreenState extends State<RawiTentScreen> with RouteAware {
+class _RawiTentScreenState extends State<RawiTentScreen>
+    with RouteAware, SingleTickerProviderStateMixin {
   bool get _isAr => PrefsService.isAr;
   String? _activeSheet;
+
+  /// R27 S1-TENT2: subtle warm-light flicker over the campfire area of
+  /// the tent BG. The fire itself is baked into the JPG (tent BG is
+  /// permanently frozen — see locked decisions), so we can't animate
+  /// the actual flame. Instead we lay a radial warm-amber glow just
+  /// below the center of the screen and pulse its opacity + scale on
+  /// a 1200 ms sinusoidal loop. Looks like firelight breathing without
+  /// ever touching the BG image.
+  late final AnimationController _firelightCtrl;
 
   String _tentScenePath() {
     final hour = DateTime.now().hour;
@@ -132,6 +142,10 @@ class _RawiTentScreenState extends State<RawiTentScreen> with RouteAware {
   @override
   void initState() {
     super.initState();
+    _firelightCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
     _startTentAmbient();
     // R27 S1-TENT1: first-visit tent tutorial cinematic. Gated on the
     // persisted flag so it only fires once per install (or until a dev
@@ -173,6 +187,7 @@ class _RawiTentScreenState extends State<RawiTentScreen> with RouteAware {
   @override
   void dispose() {
     appRouteObserver.unsubscribe(this);
+    _firelightCtrl.dispose();
     super.dispose();
   }
 
@@ -246,6 +261,51 @@ class _RawiTentScreenState extends State<RawiTentScreen> with RouteAware {
                     end: Alignment.bottomCenter,
                     colors: [Color(0xFF05080F), Color(0xFF1A1510)],
                   ),
+                ),
+              ),
+            ),
+
+            // ── R27 S1-TENT2: firelight flicker overlay ──────────────
+            // Warm amber radial glow centered on the campfire region of
+            // the tent BG. Opacity + scale breathe on a 1200 ms sine
+            // loop driven by _firelightCtrl. Non-destructive — the BG
+            // JPG is unchanged, this is an overlay layer.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _firelightCtrl,
+                  builder: (context, _) {
+                    // 0 → 1 → 0 triangle from reverse:true. Map to a
+                    // 0.82 → 1.0 opacity range and 0.95 → 1.06 scale
+                    // so the pulse reads as breath rather than blink.
+                    final v = _firelightCtrl.value;
+                    final opacity = 0.82 + v * 0.18;
+                    final scale = 0.95 + v * 0.11;
+                    return Align(
+                      alignment: const Alignment(0.0, 0.55),
+                      child: Transform.scale(
+                        scale: scale,
+                        child: Opacity(
+                          opacity: opacity,
+                          child: Container(
+                            width: 260,
+                            height: 260,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [
+                                  const Color(0xFFFFA040).withAlpha(70),
+                                  const Color(0xFFFF7020).withAlpha(30),
+                                  Colors.transparent,
+                                ],
+                                stops: const [0.0, 0.45, 1.0],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
