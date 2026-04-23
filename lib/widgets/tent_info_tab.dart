@@ -38,7 +38,10 @@ class _TentInfoTabState extends State<TentInfoTab>
   late final Animation<double> _widthAnim;
   late final Animation<double> _contentOpacity;
 
-  static const double _collapsedWidth = 32;
+  // R27 S1.4-INFO1: collapsed panel widens 32 → 62 so the larger info
+  // icon (28 px) inside its circular 44 px border has breathing room.
+  // Expanded width unchanged so the tween still ends at 180.
+  static const double _collapsedWidth = 62;
   static const double _expandedWidth = 180;
 
   @override
@@ -170,13 +173,25 @@ class _TentInfoTabState extends State<TentInfoTab>
     );
   }
 
-  /// Matches event scene info tab: just the info glyph. The collapse
-  /// chevron moved out to [_buildChevronCircle].
+  /// R27 S1.4-INFO1: info icon + border sized to be the PRIMARY
+  /// visual element of the collapsed panel. S1.3 had this at 14 px
+  /// icon with no border — the chevron circle next to it (42 px
+  /// from S1.3-TENT1) read as larger, inverting the hierarchy.
+  /// Now: 28 px `ⓘ` glyph inside a 44 px gold-outlined circle,
+  /// with the chevron kept as the secondary "pull me out" handle.
   Widget _buildCollapsedContent() {
-    return SizedBox(
-      width: _collapsedWidth - 18,
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.gold.withAlpha(20),
+        border: Border.all(
+            color: AppColors.gold.withAlpha(150), width: 1.2),
+      ),
+      alignment: Alignment.center,
       child: Icon(Icons.info_outline_rounded,
-          size: 14, color: AppColors.gold),
+          size: 28, color: AppColors.gold),
     );
   }
 

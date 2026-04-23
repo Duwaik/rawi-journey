@@ -39,7 +39,10 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
   late final Animation<double> _widthAnim;
   late final Animation<double> _contentOpacity;
 
-  static const double _collapsedWidth = 32;
+  // R27 S1.4-INFO1: collapsed panel widens 32 → 62 so the larger info
+  // icon (28 px) inside a circular 44 px border has breathing room.
+  // Expanded width unchanged.
+  static const double _collapsedWidth = 62;
   static const double _expandedWidth = 180;
 
   @override
@@ -228,19 +231,28 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     );
   }
 
-  /// Collapsed content: just the neutral info glyph. The expand/collapse
-  /// chevron moved out of here in R27 S1-TENT6 and now lives in a
-  /// circle on the panel's right border (see [_buildChevronCircle]).
-  /// The whole panel is still tappable — any tap on the collapsed
-  /// handle toggles expansion via this GestureDetector.
+  /// R27 S1.4-INFO1: collapsed content is now a 28 px info glyph
+  /// inside a 44 px gold-outlined circle — the primary visual anchor
+  /// of the panel. The chevron circle from S1.3-TENT1 (42 px at the
+  /// right border) stays as a secondary "pull me out" handle.
+  /// Whole area still tappable; `HitTestBehavior.opaque` absorbs the
+  /// tap so it never bubbles to the figure walk handler.
   Widget _buildCollapsedContent() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _toggle,
-      child: SizedBox(
-        width: _collapsedWidth - 18, // internal area (minus padding)
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.gold.withAlpha(20),
+          border: Border.all(
+              color: AppColors.gold.withAlpha(150), width: 1.2),
+        ),
+        alignment: Alignment.center,
         child: Icon(Icons.info_outline_rounded,
-            size: 14, color: AppColors.gold),
+            size: 28, color: AppColors.gold),
       ),
     );
   }
