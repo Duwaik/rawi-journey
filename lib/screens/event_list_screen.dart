@@ -693,12 +693,30 @@ class _EventListScreenState extends State<EventListScreen>
                         border: Border.all(
                             color: AppColors.textMuted.withAlpha(40)),
                       ),
-                      child: Icon(
-                        isAr
-                            ? Icons.arrow_forward_ios_rounded
-                            : Icons.arrow_back_ios_new_rounded,
-                        size: 14,
-                        color: AppColors.textMuted,
+                      // R27 S3-EVENTS-LIST1: AR must render a
+                      // right-pointing arrow (RTL back semantics).
+                      // Before: `isAr ? arrow_forward_ios_rounded :
+                      // arrow_back_ios_new_rounded` — on device BOTH
+                      // rendered as left-pointing, because the ambient
+                      // `Directionality.rtl` wrapper at the app root
+                      // auto-mirrors the `*_ios*` arrow glyphs (they
+                      // carry `matchTextDirection: true` in the Material
+                      // IconData table). The conditional picked a
+                      // forward-glyph that then got flipped right back
+                      // to left.
+                      //
+                      // Fix: use ONE fixed icon and flip it manually.
+                      // `textDirection: ltr` on the Icon defeats the
+                      // auto-mirror, then `Transform.scale(scaleX: -1)`
+                      // in AR produces the right-pointing mirror.
+                      child: Transform.scale(
+                        scaleX: isAr ? -1.0 : 1.0,
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 14,
+                          color: AppColors.textMuted,
+                          textDirection: TextDirection.ltr,
+                        ),
                       ),
                     ),
                   ),
