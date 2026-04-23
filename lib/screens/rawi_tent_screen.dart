@@ -262,14 +262,13 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   /// (event scene → back → tent). Pull the prefs and rebuild so the
   /// Start/Continue button + next-item title reflect the latest state.
   ///
-  /// R27 S1.4-AUDIO1: also restart the tent fire ambient. Without this
-  /// call, the previous screen's ambient kept playing after return to
-  /// tent (Events List / Scroll / Dhikr / Collections all had their own
-  /// L1 ambient controllers that didn't auto-dispose on pop).
-  /// `AudioService.playAmbient` short-circuits if the same path is
-  /// already current (returns true immediately), so this is a no-op
-  /// in the "back from event scene where no other ambient was
-  /// playing" case — clean for both paths.
+  /// R27 S1.4-AUDIO1 + S1.5-AUDIO1: also fade the tent fire ambient
+  /// back in (300 ms ramp 0 → 0.14). Previously the ambient hard-cut
+  /// back to target volume on return; now it envelopes gracefully.
+  /// `playAmbient` with `fadeInDuration` handles both cases — if tent
+  /// fire is still current (fast bounce), it ramps volume back up; if
+  /// another screen took over, it fades out previous + starts at 0
+  /// and ramps to target.
   @override
   void didPopNext() {
     if (!mounted) return;
@@ -277,18 +276,34 @@ class _RawiTentScreenState extends State<RawiTentScreen>
     _startTentAmbient();
   }
 
-  /// B13: Campfire ambient on the tent, looping. Fades in via playAmbient's
-  /// built-in cross-fade. Falls back to ambient_intro.mp3 until Khaled
-  /// provides the fire track (asset may be missing — try/catch handles it).
+  /// R27 S1.5-AUDIO1: fires when user navigates AWAY from tent to
+  /// any other route (Events List, Scroll, Dhikr, Collections, Stars,
+  /// Settings, or any event). Fades the tent fire ambient to 0 over
+  /// 300 ms before the next screen's ambient controller kicks in, so
+  /// the transition isn't a hard cut. The player stays alive at
+  /// volume 0 — the next `didPopNext` ramps it back up.
+  @override
+  void didPushNext() {
+    AudioService.fadeAmbientTo(0.0,
+        duration: const Duration(milliseconds: 300));
+  }
+
+  /// B13 + R27 S1.5-AUDIO1: Campfire ambient on the tent, looping.
+  /// 300 ms fade-in envelope (0 → 0.14) smooths the landing — avoids
+  /// the hard audible cut that S1.4 shipped. Falls back to
+  /// ambient_intro.mp3 if the fire track is missing.
   Future<void> _startTentAmbient() async {
+    const fade = Duration(milliseconds: 300);
     final ok = await AudioService.playAmbient(
       'assets/audio/ambient/ambient_tent_fire.mp3',
       volume: 0.14,
+      fadeInDuration: fade,
     );
     if (!ok) {
       await AudioService.playAmbient(
         'assets/audio/ambient/ambient_intro.mp3',
         volume: 0.12,
+        fadeInDuration: fade,
       );
     }
   }

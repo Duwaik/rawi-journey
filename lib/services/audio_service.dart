@@ -44,14 +44,25 @@ class AudioService {
   static Future<bool> playAmbient(String assetPath, {
     double volume = 0.3,
     bool loop = true,
+    Duration fadeInDuration = Duration.zero,
   }) async {
     if (!PrefsService.musicEnabled) return false;
     // R25-S1 followup: skip silently if this path already failed once.
     // Caller (e.g. tent fire ambient) treats false as "try fallback".
     if (_isKnownMissing(assetPath)) return false;
-    // If the same ambient is already playing, don't restart it —
-    // let it carry continuously across screens.
-    if (_ambient != null && _currentAmbientPath == assetPath) return true;
+    // R27 S1.5-AUDIO1: if the same ambient is already playing, don't
+    // restart it — but DO ramp its volume back to target. Tent's
+    // `didPushNext` now fades the ambient down before leaving, so a
+    // quick return (tent → events list → back within the fade window)
+    // finds the tent fire at volume < target and needs a ramp-up.
+    if (_ambient != null && _currentAmbientPath == assetPath) {
+      if (fadeInDuration > Duration.zero) {
+        await fadeAmbientTo(volume, duration: fadeInDuration);
+      } else {
+        await _ambient!.setVolume(volume);
+      }
+      return true;
+    }
     // LOCKED RULE: fade previous ambient briefly before new one starts
     await fadeOut(duration: const Duration(milliseconds: 200));
     _currentAmbientPath = assetPath;
@@ -59,9 +70,21 @@ class AudioService {
     try {
       await _ambient!.setAsset(assetPath);
       await _ambient!.setLoopMode(loop ? LoopMode.one : LoopMode.off);
-      await _ambient!.setVolume(volume);
-      _ambient!.play();
-      DebugLogService.log('audio', 'ambient play $assetPath vol=$volume');
+      // R27 S1.5-AUDIO1: when fadeInDuration > 0, start at volume 0
+      // and ramp to target via fadeAmbientTo. Otherwise set volume
+      // directly (matches pre-S1.5 behaviour for all existing callers
+      // that pass the default Duration.zero).
+      if (fadeInDuration > Duration.zero) {
+        await _ambient!.setVolume(0.0);
+        _ambient!.play();
+        DebugLogService.log('audio',
+            'ambient play $assetPath vol=0→$volume fade=${fadeInDuration.inMilliseconds}ms');
+        await fadeAmbientTo(volume, duration: fadeInDuration);
+      } else {
+        await _ambient!.setVolume(volume);
+        _ambient!.play();
+        DebugLogService.log('audio', 'ambient play $assetPath vol=$volume');
+      }
       return true;
     } catch (e) {
       _markMissing(assetPath, 'audio', e);
