@@ -259,9 +259,20 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   /// Fires when the tent becomes the top route again after a pop
   /// (event scene → back → tent). Pull the prefs and rebuild so the
   /// Start/Continue button + next-item title reflect the latest state.
+  ///
+  /// R27 S1.4-AUDIO1: also restart the tent fire ambient. Without this
+  /// call, the previous screen's ambient kept playing after return to
+  /// tent (Events List / Scroll / Dhikr / Collections all had their own
+  /// L1 ambient controllers that didn't auto-dispose on pop).
+  /// `AudioService.playAmbient` short-circuits if the same path is
+  /// already current (returns true immediately), so this is a no-op
+  /// in the "back from event scene where no other ambient was
+  /// playing" case — clean for both paths.
   @override
   void didPopNext() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    _startTentAmbient();
   }
 
   /// B13: Campfire ambient on the tent, looping. Fades in via playAmbient's
