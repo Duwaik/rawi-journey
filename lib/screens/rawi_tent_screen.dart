@@ -54,13 +54,13 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   /// otherwise block the "Tap to continue" hint at the bottom).
   bool _cinematicActive = false;
 
-  /// R27 S1-TENT2: subtle warm-light flicker over the campfire area of
-  /// the tent BG. The fire itself is baked into the JPG (tent BG is
-  /// permanently frozen — see locked decisions), so we can't animate
-  /// the actual flame. Instead we lay a radial warm-amber glow just
-  /// below the center of the screen and pulse its opacity + scale on
-  /// a 1200 ms sinusoidal loop. Looks like firelight breathing without
-  /// ever touching the BG image.
+  /// R27 S1-TENT2 + S1.4-ANIM1: warm-light flicker over the campfire
+  /// area of the tent BG. S1-TENT2 shipped this at 1200 ms period
+  /// with base alphas 70 / 30 + opacity 0.82-1.0 + scale 0.95-1.06,
+  /// which was imperceptible on device (Khaled reported "no animation,
+  /// none" during S1.3 verify). Amplified to 900 ms period + base
+  /// alphas 120 / 60 + opacity 0.70-1.0 + scale 0.92-1.12 — still
+  /// subtle enough to read as breathing, not a strobe.
   late final AnimationController _firelightCtrl;
 
   String _tentScenePath() {
@@ -159,7 +159,9 @@ class _RawiTentScreenState extends State<RawiTentScreen>
     super.initState();
     _firelightCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      // R27 S1.4-ANIM1: 1200 → 900 ms. Shorter period reads as
+      // breathing rather than static at the new amplitude.
+      duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
     _startTentAmbient();
     // R27 S1-TENT1 + S1.1-TENT4: first-visit tent tutorial cinematic.
@@ -351,12 +353,15 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                 child: AnimatedBuilder(
                   animation: _firelightCtrl,
                   builder: (context, _) {
-                    // 0 → 1 → 0 triangle from reverse:true. Map to a
-                    // 0.82 → 1.0 opacity range and 0.95 → 1.06 scale
-                    // so the pulse reads as breath rather than blink.
+                    // R27 S1.4-ANIM1: amplitudes widened.
+                    // opacity: 0.82-1.0 → 0.70-1.0  (range 18% → 30%)
+                    // scale:   0.95-1.06 → 0.92-1.12 (range 11% → 20%)
+                    // base alphas in gradient: 70/30 → 120/60 so the
+                    // glow itself is visible enough for the pulse to
+                    // register on bright tent_day.jpg.
                     final v = _firelightCtrl.value;
-                    final opacity = 0.82 + v * 0.18;
-                    final scale = 0.95 + v * 0.11;
+                    final opacity = 0.70 + v * 0.30;
+                    final scale = 0.92 + v * 0.20;
                     return Align(
                       alignment: const Alignment(0.0, 0.55),
                       child: Transform.scale(
@@ -370,8 +375,8 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                               shape: BoxShape.circle,
                               gradient: RadialGradient(
                                 colors: [
-                                  const Color(0xFFFFA040).withAlpha(70),
-                                  const Color(0xFFFF7020).withAlpha(30),
+                                  const Color(0xFFFFA040).withAlpha(120),
+                                  const Color(0xFFFF7020).withAlpha(60),
                                   Colors.transparent,
                                 ],
                                 stops: const [0.0, 0.45, 1.0],
