@@ -450,7 +450,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             child: RotatedBox(
               quarterTurns: 3,
               child: ListWheelScrollView.useDelegate(
-                itemExtent: 44,
+                // R27 S1.5-REG1: itemExtent 44 → 64. After the outer
+                // RotatedBox rotates the wheel 90°, itemExtent is the
+                // effective horizontal slot width per age. At 44 px,
+                // two-digit numbers (20/40/60/80/90) at the selected
+                // font size (34 px Cinzel w700) didn't fit on one line
+                // and soft-wrapped: "2" on top, "0" below. 64 px fits
+                // "99" comfortably with ~8 px of horizontal padding.
+                itemExtent: 64,
                 perspective: 0.003,
                 diameterRatio: 1.6,
                 physics: const FixedExtentScrollPhysics(),
@@ -477,8 +484,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     return RotatedBox(
                       quarterTurns: 1,
                       child: Center(
+                        // R27 S1.5-REG1: belt-and-suspenders guard
+                        // against wrap even if itemExtent gets
+                        // regressed in a future refactor. Text-scale
+                        // changes in accessibility can shrink the
+                        // effective per-slot space; maxLines: 1 +
+                        // softWrap: false prevents that from silently
+                        // breaking the layout.
                         child: Text(
                           '$age',
+                          maxLines: 1,
+                          softWrap: false,
                           style: GoogleFonts.cinzelDecorative(
                             fontSize: isSelected ? 34 : 20,
                             fontWeight: FontWeight.w700,
