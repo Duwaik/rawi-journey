@@ -646,52 +646,33 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                                       isContinue),
                                 ),
                               ),
-                              // R27 S1.3-TENT2 + S2-EL2: counter has
-                              // extra visual weight (#F0D070 w700 14 px
-                              // with a faint gold halo so it reads
-                              // equal-priority to the button label)
-                              // AND an explicit "Completed" prefix so
-                              // users don't confuse it with an event
-                              // number (BUG-D from Apr 21: users read
-                              // `#/155` as "this is event #" rather
-                              // than "I've done #").
+                              // R27 S1.4-PROG1: removed the "Completed"
+                              // wording (S2-EL2) — Khaled wanted visual
+                              // treatment, not a label. Number now sits
+                              // inside a gold-outlined pill (Option A
+                              // from spec — matches the Start/Continue
+                              // button's border/fill vocabulary so the
+                              // two halves of the card feel equal).
                               Expanded(
                                 child: Center(
-                                  child: RichText(
-                                    textDirection: _isAr
-                                        ? TextDirection.rtl
-                                        : TextDirection.ltr,
-                                    text: TextSpan(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.gold.withAlpha(20),
+                                      borderRadius:
+                                          BorderRadius.circular(10),
+                                      border: Border.all(
+                                          color: AppColors.gold,
+                                          width: 1.5),
+                                    ),
+                                    child: Text(
+                                      '$completed / ${m1Events.length}',
                                       style: GoogleFonts.nunito(
                                         color: const Color(0xFFF0D070),
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
-                                        shadows: [
-                                          Shadow(
-                                            offset: Offset.zero,
-                                            blurRadius: 8,
-                                            color: AppColors.gold
-                                                .withAlpha(77),
-                                          ),
-                                        ],
                                       ),
-                                      children: [
-                                        TextSpan(
-                                          text: _isAr
-                                              ? 'مكتمل '
-                                              : 'Completed ',
-                                          style: TextStyle(
-                                            color: AppColors.gold
-                                                .withAlpha(180),
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text:
-                                              '$completed / ${m1Events.length}',
-                                        ),
-                                      ],
                                     ),
                                   ),
                                 ),
