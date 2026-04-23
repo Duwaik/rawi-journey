@@ -677,18 +677,23 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                                       isContinue),
                                 ),
                               ),
-                              // R27 S1.4-PROG1: removed the "Completed"
-                              // wording (S2-EL2) — Khaled wanted visual
-                              // treatment, not a label. Number now sits
-                              // inside a gold-outlined pill (Option A
-                              // from spec — matches the Start/Continue
-                              // button's border/fill vocabulary so the
-                              // two halves of the card feel equal).
+                              // R27 S1.4-PROG1: gold-outlined pill
+                              // around the number (matches Start/Continue
+                              // button's border vocabulary).
+                              // R27 S1.5-PROG1: explicit `height: 40`
+                              // locked to match the button's height —
+                              // no more baseline drift between the two
+                              // halves of the card. Padding only
+                              // horizontal now that height is forced;
+                              // text centers via Alignment.center.
                               Expanded(
                                 child: Center(
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 6),
+                                    height: 40,
+                                    padding:
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 14),
+                                    alignment: Alignment.center,
                                     decoration: BoxDecoration(
                                       color: AppColors.gold.withAlpha(20),
                                       borderRadius:
@@ -885,11 +890,13 @@ class _RawiTentScreenState extends State<RawiTentScreen>
     final label = isContinue
         ? (_isAr ? 'متابعة' : 'Continue')
         : (_isAr ? 'ابدأ' : 'Start');
+    // R27 S1.5-PROG1: explicit `height: 40` so the button and the
+    // #/155 outlined pill (same height below) render at identical
+    // heights regardless of label length or text-scale setting.
     return SizedBox(
       width: 128,
+      height: 40,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: AppColors.gold,
