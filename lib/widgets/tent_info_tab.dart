@@ -38,10 +38,14 @@ class _TentInfoTabState extends State<TentInfoTab>
   late final Animation<double> _widthAnim;
   late final Animation<double> _contentOpacity;
 
-  // R27 S1.4-INFO1: collapsed panel widens 32 → 62 so the larger info
-  // icon (28 px) inside its circular 44 px border has breathing room.
-  // Expanded width unchanged so the tween still ends at 180.
-  static const double _collapsedWidth = 62;
+  // R27 S1.5-INFO1: panel widened 62 → 90 to fit the enlarged info
+  // circle (52 px) AND the chevron (42 px, straddling right border)
+  // without visual overlap. Info circle spans [9, 61] inside the
+  // panel (9 padding + 52 diameter); chevron visual spans [69, 111]
+  // centered on the 90 px border. 8 px gap between them — clear
+  // breathing room, chevron clearly "secondary", info clearly
+  // "primary". Expanded width unchanged.
+  static const double _collapsedWidth = 90;
   static const double _expandedWidth = 180;
 
   @override
@@ -173,25 +177,29 @@ class _TentInfoTabState extends State<TentInfoTab>
     );
   }
 
-  /// R27 S1.4-INFO1: info icon + border sized to be the PRIMARY
-  /// visual element of the collapsed panel. S1.3 had this at 14 px
-  /// icon with no border — the chevron circle next to it (42 px
-  /// from S1.3-TENT1) read as larger, inverting the hierarchy.
-  /// Now: 28 px `ⓘ` glyph inside a 44 px gold-outlined circle,
-  /// with the chevron kept as the secondary "pull me out" handle.
+  /// R27 S1.5-INFO1: info circle bumped 44 → 52 (10 px larger than
+  /// the 42 px chevron per spec's "info dominates" rule). Glyph
+  /// scales 28 → 32 to stay proportional. Panel widened to 90 px
+  /// (see `_collapsedWidth`) so the two circles sit side-by-side
+  /// with an 8 px gap, no overlap. `Align(Alignment.centerLeft)` so
+  /// the info circle hugs the panel's left edge rather than centering
+  /// in the wider panel — keeps the chevron space clear on the right.
   Widget _buildCollapsedContent() {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.gold.withAlpha(20),
-        border: Border.all(
-            color: AppColors.gold.withAlpha(150), width: 1.2),
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.gold.withAlpha(20),
+          border: Border.all(
+              color: AppColors.gold.withAlpha(150), width: 1.2),
+        ),
+        alignment: Alignment.center,
+        child: Icon(Icons.info_outline_rounded,
+            size: 32, color: AppColors.gold),
       ),
-      alignment: Alignment.center,
-      child: Icon(Icons.info_outline_rounded,
-          size: 28, color: AppColors.gold),
     );
   }
 

@@ -39,10 +39,11 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
   late final Animation<double> _widthAnim;
   late final Animation<double> _contentOpacity;
 
-  // R27 S1.4-INFO1: collapsed panel widens 32 → 62 so the larger info
-  // icon (28 px) inside a circular 44 px border has breathing room.
+  // R27 S1.5-INFO1: panel widened 62 → 90 to fit the 52 px info
+  // circle + the 42 px chevron straddling the right border with
+  // 8 px breathing gap — no visual overlap, info dominates.
   // Expanded width unchanged.
-  static const double _collapsedWidth = 62;
+  static const double _collapsedWidth = 90;
   static const double _expandedWidth = 180;
 
   @override
@@ -231,28 +232,33 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     );
   }
 
-  /// R27 S1.4-INFO1: collapsed content is now a 28 px info glyph
-  /// inside a 44 px gold-outlined circle — the primary visual anchor
-  /// of the panel. The chevron circle from S1.3-TENT1 (42 px at the
-  /// right border) stays as a secondary "pull me out" handle.
-  /// Whole area still tappable; `HitTestBehavior.opaque` absorbs the
-  /// tap so it never bubbles to the figure walk handler.
+  /// R27 S1.5-INFO1: info circle 44 → 52, glyph 28 → 32. Sits
+  /// side-by-side with the 42 px chevron (which straddles the right
+  /// border), 8 px gap between them. Panel widened to 90 px (see
+  /// `_collapsedWidth`) to fit both. `Align(Alignment.centerLeft)`
+  /// hugs the info circle to the leading edge so the gap lands
+  /// on the chevron side consistently across scene BGs.
+  /// `HitTestBehavior.opaque` preserves the R26 S1v3-EE8.2 gesture
+  /// exclusivity — tap won't bleed to the figure walk handler.
   Widget _buildCollapsedContent() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _toggle,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.gold.withAlpha(20),
-          border: Border.all(
-              color: AppColors.gold.withAlpha(150), width: 1.2),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.gold.withAlpha(20),
+            border: Border.all(
+                color: AppColors.gold.withAlpha(150), width: 1.2),
+          ),
+          alignment: Alignment.center,
+          child: Icon(Icons.info_outline_rounded,
+              size: 32, color: AppColors.gold),
         ),
-        alignment: Alignment.center,
-        child: Icon(Icons.info_outline_rounded,
-            size: 28, color: AppColors.gold),
       ),
     );
   }
