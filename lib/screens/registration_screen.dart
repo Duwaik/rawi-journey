@@ -429,48 +429,68 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
           ),
           const SizedBox(height: 10),
+          // R27 S1.4-REG1: horizontal age picker via
+          // `RotatedBox(quarterTurns: 3)` wrapping the existing
+          // ListWheelScrollView. Wheel rotates 90° so vertical-up
+          // becomes horizontal-left; users now swipe L/R to change
+          // age (matches the directional language of the other
+          // toggles on this screen).
+          //
+          // Each item inside counter-rotates `quarterTurns: 1` so
+          // the age numbers stay upright. `itemExtent: 44` now
+          // describes horizontal extent — ~8 ages visible across an
+          // A56-width screen with the current one centered.
+          //
+          // Native horizontal scroll isn't supported on
+          // ListWheelScrollView (scrollDirection is fixed to vertical
+          // internally); RotatedBox is the stable workaround. No
+          // scroll / physics / controller changes required.
           SizedBox(
             height: 110,
-            child: ListWheelScrollView.useDelegate(
-              itemExtent: 44,
-              perspective: 0.003,
-              diameterRatio: 1.6,
-              physics: const FixedExtentScrollPhysics(),
-              controller: FixedExtentScrollController(
-                initialItem: _selectedAge - minAge,
-              ),
-              onSelectedItemChanged: (i) {
-                setState(() {
-                  _selectedAge = minAge + i;
-                  // Auto-preselect mode from age until the user explicitly
-                  // picks a mode card below.
-                  if (!_modeChosen) {
-                    _selectedMode = _selectedAge < 13
-                        ? 'explorer'
-                        : _selectedAge >= 40
-                            ? 'reader'
-                            : 'explorer';
-                  }
-                });
-              },
-              childDelegate: ListWheelChildBuilderDelegate(
-                childCount: maxAge - minAge + 1,
-                builder: (context, index) {
-                  final age = minAge + index;
-                  final isSelected = age == _selectedAge;
-                  return Center(
-                    child: Text(
-                      '$age',
-                      style: GoogleFonts.cinzelDecorative(
-                        fontSize: isSelected ? 34 : 20,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected
-                            ? AppColors.gold
-                            : AppColors.textMuted.withAlpha(100),
-                      ),
-                    ),
-                  );
+            child: RotatedBox(
+              quarterTurns: 3,
+              child: ListWheelScrollView.useDelegate(
+                itemExtent: 44,
+                perspective: 0.003,
+                diameterRatio: 1.6,
+                physics: const FixedExtentScrollPhysics(),
+                controller: FixedExtentScrollController(
+                  initialItem: _selectedAge - minAge,
+                ),
+                onSelectedItemChanged: (i) {
+                  setState(() {
+                    _selectedAge = minAge + i;
+                    if (!_modeChosen) {
+                      _selectedMode = _selectedAge < 13
+                          ? 'explorer'
+                          : _selectedAge >= 40
+                              ? 'reader'
+                              : 'explorer';
+                    }
+                  });
                 },
+                childDelegate: ListWheelChildBuilderDelegate(
+                  childCount: maxAge - minAge + 1,
+                  builder: (context, index) {
+                    final age = minAge + index;
+                    final isSelected = age == _selectedAge;
+                    return RotatedBox(
+                      quarterTurns: 1,
+                      child: Center(
+                        child: Text(
+                          '$age',
+                          style: GoogleFonts.cinzelDecorative(
+                            fontSize: isSelected ? 34 : 20,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected
+                                ? AppColors.gold
+                                : AppColors.textMuted.withAlpha(100),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
