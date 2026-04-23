@@ -18,6 +18,7 @@ import 'scroll_viewer_screen.dart';
 import 'seerah_sky_screen.dart';
 import 'settings_screen.dart';
 import 'tent_tutorial_screen.dart';
+import '../widgets/rawi_dialog.dart';
 import '../widgets/stat_row_group.dart';
 import '../widgets/tent_icon_tutorial_overlay.dart';
 import '../widgets/tent_info_tab.dart';
@@ -336,7 +337,23 @@ class _RawiTentScreenState extends State<RawiTentScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        SystemNavigator.pop();
+        // R27 S3-TENT1: Android back on the tent no longer slams the
+        // app shut — gate on a confirmation dialog first. Cancel keeps
+        // the user on the tent; Exit closes cleanly via SystemNavigator.
+        // Sub-screens (Scroll, Events List, Dhikr, etc.) don't trigger
+        // this — PopScope is scoped to the tent route, so their back
+        // presses pop to tent via normal navigation.
+        final confirmed = await showRawiDialog(
+          context: context,
+          title: _isAr ? 'هل تريد الخروج من التطبيق؟' : 'Exit app?',
+          body: _isAr ? 'تقدّمك محفوظ.' : 'Your progress is saved.',
+          cancelLabel: _isAr ? 'إلغاء' : 'Cancel',
+          confirmLabel: _isAr ? 'خروج' : 'Exit',
+          isAr: _isAr,
+        );
+        if (confirmed == true) {
+          SystemNavigator.pop();
+        }
       },
       // R25-S2-7: clamp system text scaler to [1.0, 1.3] at the tent
       // root. Android accessibility can push scaling to 2.0× which
