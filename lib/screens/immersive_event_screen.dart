@@ -24,6 +24,7 @@ import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
 import '../widgets/event_1_tutorial_overlay.dart';
 import '../widgets/event_scene_info_tab.dart';
+import '../widgets/rawi_dialog.dart';
 import '../widgets/scroll_hint_wrapper.dart';
 import '../widgets/top_bar_icon_button.dart';
 import '../widgets/cinematic/xp_reward_animation.dart';
@@ -1936,9 +1937,29 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        _exitScene();
+        // R27 S3-EVENT1: confirm before exit. Dialog gate runs BEFORE
+        // `_exitScene()` so the save-and-pop path is only taken on
+        // confirm — Cancel keeps all in-memory scene state
+        // (hotspots visited, branching, XP, phase) untouched. Verdict
+        // card + end-of-event flow have their own navigation and do
+        // NOT route through this handler.
+        final confirmed = await showRawiDialog(
+          context: context,
+          title: _isAr
+              ? 'الخروج من هذا الحدث؟ تم حفظ التقدم.'
+              : 'Exit event? Progress saved.',
+          body: _isAr
+              ? 'ستعود إلى خيمتك.'
+              : 'You\'ll return to your tent.',
+          cancelLabel: _isAr ? 'إلغاء' : 'Cancel',
+          confirmLabel: _isAr ? 'خروج' : 'Exit',
+          isAr: _isAr,
+        );
+        if (confirmed == true) {
+          _exitScene();
+        }
       },
       // R25-S3-1: clamp system text scaler to [1.0, 1.3] on the event
       // scene root (same cap as the tent in S2-7). Large accessibility
