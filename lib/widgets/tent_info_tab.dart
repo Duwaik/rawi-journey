@@ -5,17 +5,21 @@ import 'package:flutter/material.dart';
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
 
-/// R27 S1.1-TENT1 + S1.2-TENT1: tent-side info tab. Shell-only widget
-/// — collapse animation, chevron-on-border ornament, left-edge panel
-/// at `screenH * 0.45`, full-screen scrim when expanded with
-/// tap-to-dismiss + pan-swallow (R26 S1v3-EE8.2 pattern). The
-/// EXPANDED content is supplied by the caller via [expandedContent].
+/// R27 S3-INFO1: tent-side info tab redesigned.
+/// - Collapsed: only the 42 px (ⓘ) circle. No chevron ornament.
+///   Tapping the panel (ⓘ) expands.
+/// - Expanded: full panel + a `<` close chevron on the right edge.
+///   Tapping the chevron — or outside the panel — collapses.
+/// - Sizes: circle 52 → 42 (–20 %), glyph 32 → 26 (proportional).
+///   Supersedes the S1.5 baseline.
+/// - Vertical position: panel top aligns the 42 px circle's vertical
+///   center with the bottom-most right-side nav icon (Collections) on
+///   the tent, so the expanded panel no longer overlaps Rawi's figure.
+/// - Outside-tap dismiss + pan swallow (R26 S1v3-EE8.2) preserved.
 ///
-/// S1.2 consolidation: the tent used to render a SEPARATE always-on
-/// Light/XP/Dhikr stat-pills block at top-left (`_buildStatPillsContainer`).
-/// That block is gone — those three pills now live INSIDE this info
-/// tab's expanded content instead. One widget, one tap, one source
-/// of truth for tent stats.
+/// Shell-only widget. The EXPANDED content is supplied by the caller
+/// via [expandedContent] (tent passes a StatRowGroup with Light / XP /
+/// Dhikr rows).
 class TentInfoTab extends StatefulWidget {
   /// The content rendered inside the expanded panel. Caller builds a
   /// StatRowGroup (or whatever) and passes it in — no coupling to
@@ -38,15 +42,18 @@ class _TentInfoTabState extends State<TentInfoTab>
   late final Animation<double> _widthAnim;
   late final Animation<double> _contentOpacity;
 
-  // R27 S1.5-INFO1: panel widened 62 → 90 to fit the enlarged info
-  // circle (52 px) AND the chevron (42 px, straddling right border)
-  // without visual overlap. Info circle spans [9, 61] inside the
-  // panel (9 padding + 52 diameter); chevron visual spans [69, 111]
-  // centered on the 90 px border. 8 px gap between them — clear
-  // breathing room, chevron clearly "secondary", info clearly
-  // "primary". Expanded width unchanged.
-  static const double _collapsedWidth = 90;
+  // R27 S3-INFO1: collapsed width shrunk from 90 to 50 — just enough
+  // to hold the 42 px info circle with a 4 px side pad. The S1.5
+  // always-visible chevron ornament is gone, so the wider panel it
+  // required goes with it. Expanded width unchanged.
+  static const double _collapsedWidth = 50;
   static const double _expandedWidth = 180;
+
+  // R27 S3-INFO1: info circle 52 → 42 (–20 %). Glyph 32 → 26
+  // (proportional, keeps the visual weight). The expanded-state close
+  // chevron reuses the same circle + glyph size for visual parity.
+  static const double _circleSize = 42;
+  static const double _glyphSize = 26;
 
   @override
   void initState() {
@@ -86,6 +93,22 @@ class _TentInfoTabState extends State<TentInfoTab>
     // we paint when expanded covers the full scene (mirrors the fix
     // from R26 S1v3-EE8.2 on the event scene tab).
     final screenH = MediaQuery.of(context).size.height;
+
+    // R27 S3-INFO1: vertically center the 42 px circle on the tent's
+    // bottom-most right-side icon (Collections). Right-side nav stack
+    // starts at 0.28 × H with five 44 px icons and four 8 px gaps, so
+    // the bottom icon's vertical center is (0.28 × H) + 4 × (44 + 8) + 22
+    // = (0.28 × H) + 230. Inside the collapsed panel the circle sits
+    // with 4 px top pad and is 42 px tall, so its center is
+    // (panelTop) + 4 + 21 = (panelTop) + 25. Solve for panelTop:
+    //   panelTop = (0.28 × H + 230) - 25 = (0.28 × H) + 205.
+    // Formula — not a fixed fraction — so it stays correct at every
+    // screen height. Clamped to at least 0.45 × H (the S1.5 position)
+    // so on unusually tall screens the tab never climbs ABOVE the
+    // historical position.
+    final alignedTop = screenH * 0.28 + 205;
+    final topY = alignedTop < screenH * 0.45 ? screenH * 0.45 : alignedTop;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -103,10 +126,8 @@ class _TentInfoTabState extends State<TentInfoTab>
               child: Container(color: Colors.black.withAlpha(77)), // 0.30
             ),
           ),
-        // Tab + chevron circle. ~45% of screen height keeps the
-        // collapsed handle below the Rawi figure's head.
         Positioned(
-          top: screenH * 0.45,
+          top: topY,
           left: 0,
           child: AnimatedBuilder(
             animation: _ctrl,
@@ -114,19 +135,21 @@ class _TentInfoTabState extends State<TentInfoTab>
               clipBehavior: Clip.none,
               children: [
                 _buildTab(),
-                Positioned(
-                  // R27 S1.3-TENT1: shifted -12 → -44 so the 88 px hit
-                  // container's CENTER lines up with the panel's right
-                  // border. The 42 px visual circle inside is then
-                  // centered on the border too — 21 px inside panel,
-                  // 21 px outside on scene/tent BG. S1.2 used -12
-                  // which put the entire circle inside the panel and
-                  // made the handle look floating, not straddling.
-                  right: -44,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(child: _buildChevronCircle()),
-                ),
+                // R27 S3-INFO1: close chevron is expanded-only. Hidden
+                // at rest (collapsed → only the ⓘ is visible). Rendered
+                // straight after the tab starts opening so it tracks
+                // the panel's right border as it widens.
+                if (_ctrl.value > 0.02)
+                  Positioned(
+                    // Matches S1.5 chevron offset: the 88 px hit
+                    // container's center sits on the panel's right
+                    // border so the 42 px visual circle straddles
+                    // 21 in / 21 out.
+                    right: -44,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(child: _buildCloseChevron()),
+                  ),
               ],
             ),
           ),
@@ -136,96 +159,84 @@ class _TentInfoTabState extends State<TentInfoTab>
   }
 
   Widget _buildTab() {
-    final bgAlpha = _expanded ? 224 : 184; // 0.88 vs 0.72
-    final borderAlpha = _expanded ? 71 : 56; // 0.28 vs 0.22
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topRight: Radius.circular(12),
-        bottomRight: Radius.circular(12),
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          width: _widthAnim.value,
-          padding: EdgeInsets.symmetric(
-            vertical: _expanded ? 14 : 9,
-            horizontal: _expanded ? 14 : 9,
-          ),
-          decoration: BoxDecoration(
-            color: Color.fromARGB(bgAlpha, 10, 14, 24),
-            borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(12),
-              bottomRight: Radius.circular(12),
+    final isCollapsed = _ctrl.value < 0.02;
+    final bgAlpha = isCollapsed ? 184 : 224; // 0.72 vs 0.88
+    final borderAlpha = isCollapsed ? 56 : 71; // 0.22 vs 0.28
+    return GestureDetector(
+      // Collapsed: the whole panel is the tap target to expand. Once
+      // expanded, the outside-scrim handles dismiss and the close
+      // chevron handles explicit collapse — so no tap handler here.
+      behavior: HitTestBehavior.opaque,
+      onTap: isCollapsed ? _toggle : null,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(12),
+          bottomRight: Radius.circular(12),
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            width: _widthAnim.value,
+            padding: EdgeInsets.symmetric(
+              vertical: isCollapsed ? 4 : 14,
+              horizontal: isCollapsed ? 4 : 14,
             ),
-            border: Border(
-              top: BorderSide(
-                  color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
-              right: BorderSide(
-                  color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
-              bottom: BorderSide(
-                  color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(bgAlpha, 10, 14, 24),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+              border: Border(
+                top: BorderSide(
+                    color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
+                right: BorderSide(
+                    color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
+                bottom: BorderSide(
+                    color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
+              ),
             ),
+            child: isCollapsed
+                ? _buildInfoCircle()
+                : FadeTransition(
+                    opacity: _contentOpacity,
+                    child: _buildExpandedContent(),
+                  ),
           ),
-          child: _ctrl.value < 0.02
-              ? _buildCollapsedContent()
-              : FadeTransition(
-                  opacity: _contentOpacity,
-                  child: _buildExpandedContent(),
-                ),
         ),
       ),
     );
   }
 
-  /// R27 S1.5-INFO1: info circle bumped 44 → 52 (10 px larger than
-  /// the 42 px chevron per spec's "info dominates" rule). Glyph
-  /// scales 28 → 32 to stay proportional. Panel widened to 90 px
-  /// (see `_collapsedWidth`) so the two circles sit side-by-side
-  /// with an 8 px gap, no overlap. `Align(Alignment.centerLeft)` so
-  /// the info circle hugs the panel's left edge rather than centering
-  /// in the wider panel — keeps the chevron space clear on the right.
-  Widget _buildCollapsedContent() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.gold.withAlpha(20),
-          border: Border.all(
-              color: AppColors.gold.withAlpha(150), width: 1.2),
-        ),
-        alignment: Alignment.center,
-        child: Icon(Icons.info_outline_rounded,
-            size: 32, color: AppColors.gold),
+  Widget _buildInfoCircle() {
+    return Container(
+      width: _circleSize,
+      height: _circleSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.gold.withAlpha(20),
+        border: Border.all(
+            color: AppColors.gold.withAlpha(150), width: 1.2),
       ),
+      alignment: Alignment.center,
+      child: Icon(Icons.info_outline_rounded,
+          size: _glyphSize, color: AppColors.gold),
     );
   }
 
-  /// R27 S1.2-TENT1: the expanded panel now just renders whatever the
-  /// caller passed in via `widget.expandedContent`. The tent supplies
-  /// a StatRowGroup with Light / XP / Dhikr rows — the old YOUR LIGHT
-  /// + JOURNEY content is gone, replaced by the pills that used to
-  /// live in the deleted standalone top-left block.
   Widget _buildExpandedContent() {
     return Directionality(
       textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
       child: Padding(
+        // Inner right pad so the content never slides under the close
+        // chevron that straddles the right border.
         padding: const EdgeInsets.only(right: 14),
         child: widget.expandedContent,
       ),
     );
   }
 
-  /// R27 S1.3-TENT1: visual chevron enlarged 24 → 42 px so the handle
-  /// reads at a glance (S1.2 kept it tiny at 24). Hit target stays
-  /// 88 × 88 via the transparent outer Container. Circle is positioned
-  /// at `right: -12` on the panel's Stack and Positioned top:0 bottom:0
-  /// with Center — at 42 px diameter it straddles the border 21 px
-  /// in / 21 px out. Chevron glyph scales 16 → 26 to stay proportional.
-  /// `HitTestBehavior.opaque` preserved from S1.2 (EE8.2 gesture pattern).
-  Widget _buildChevronCircle() {
+  Widget _buildCloseChevron() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _toggle,
@@ -235,8 +246,8 @@ class _TentInfoTabState extends State<TentInfoTab>
         alignment: Alignment.center,
         color: Colors.transparent,
         child: Container(
-          width: 42,
-          height: 42,
+          width: _circleSize,
+          height: _circleSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: const Color(0xFF0A0E18).withValues(alpha: 0.94),
@@ -250,15 +261,21 @@ class _TentInfoTabState extends State<TentInfoTab>
             ],
           ),
           child: Icon(
-            _expanded
-                ? Icons.chevron_left_rounded
-                : Icons.chevron_right_rounded,
-            size: 26,
+            // R27 S3-INFO1: close chevron mirrors for RTL — `<` in EN,
+            // `>` in AR. Glyph is chosen explicitly rather than relying
+            // on ambient Directionality auto-mirror (which isn't
+            // consistent across Material icon variants). `textDirection:
+            // ltr` forces the picked glyph to render as-is regardless
+            // of the RTL wrapper around the app root.
+            _isAr
+                ? Icons.chevron_right_rounded
+                : Icons.chevron_left_rounded,
+            size: _glyphSize,
             color: AppColors.gold,
+            textDirection: TextDirection.ltr,
           ),
         ),
       ),
     );
   }
-
 }

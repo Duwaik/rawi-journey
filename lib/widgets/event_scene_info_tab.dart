@@ -8,11 +8,19 @@ import '../services/prefs_service.dart';
 
 /// R25-S3-6: Expandable info tab on the left edge of the event scene.
 ///
-/// Replaces the old _NoorHud (deleted in S3-1). Collapsed shows a neutral
-/// info glyph + chevron hint. Expanded slides out to ~180px wide and
-/// reveals two sections:
-///   Section 1 — YOUR LIGHT (lifetime, same source as tent)
-///   Section 2 — THIS EVENT (4-dot hotspot-completion progress)
+/// R27 S3-INFO1 redesign:
+/// - Collapsed: only the 42 px (ⓘ) circle. No chevron ornament.
+///   Tapping the panel (ⓘ) expands.
+/// - Expanded: full panel + a `<` close chevron on the right edge.
+///   Tapping the chevron — or outside the panel — collapses.
+/// - Sizes: circle 52 → 42 (–20 %), glyph 32 → 26 (proportional).
+/// - Vertical position: unchanged (0.45 × H) — the scene doesn't have
+///   a strict alignment target; the lowered position on tent is a
+///   tent-only move driven by its 5-icon right-side stack.
+/// - Outside-tap dismiss + pan swallow (R26 S1v3-EE8.2) preserved.
+///
+/// Section 1 — YOUR LIGHT (lifetime, same source as tent)
+/// Section 2 — THIS EVENT (4-dot hotspot-completion progress)
 ///
 /// Full spec: RAWI_R25_SPRINT_ROADMAP §9.3.
 class EventSceneInfoTab extends StatefulWidget {
@@ -39,12 +47,17 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
   late final Animation<double> _widthAnim;
   late final Animation<double> _contentOpacity;
 
-  // R27 S1.5-INFO1: panel widened 62 → 90 to fit the 52 px info
-  // circle + the 42 px chevron straddling the right border with
-  // 8 px breathing gap — no visual overlap, info dominates.
-  // Expanded width unchanged.
-  static const double _collapsedWidth = 90;
+  // R27 S3-INFO1: collapsed width shrunk from 90 to 50 — just enough
+  // to hold the 42 px info circle with a 4 px side pad. The S1.5
+  // always-visible chevron ornament is gone, so the wider panel it
+  // required goes with it. Expanded width unchanged.
+  static const double _collapsedWidth = 50;
   static const double _expandedWidth = 180;
+
+  // R27 S3-INFO1: info circle 52 → 42 (–20 %). Glyph 32 → 26
+  // (proportional). Close chevron (expanded state) reuses these.
+  static const double _circleSize = 42;
+  static const double _glyphSize = 26;
 
   @override
   void initState() {
@@ -80,19 +93,11 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
 
   @override
   Widget build(BuildContext context) {
-    // R26 S1v3-EE8.2: the widget now expects to be wrapped in
+    // R26 S1v3-EE8.2: the widget expects to be wrapped in
     // `Positioned.fill` (see immersive_event_screen.dart call site).
-    // Previously the parent passed only `top: 40%, left: 0` which gave
-    // this Stack tiny intrinsic bounds, so the `Positioned.fill` scrim
-    // only covered the tab's own footprint. Outside taps bled through
-    // to the movement GestureDetector below and moved the figure.
-    //
-    // Now:
-    //   - Stack fills the screen.
-    //   - When expanded: a full-screen scrim absorbs tap AND pan so
-    //     the movement layer never sees either. Tap collapses.
-    //   - The tab itself is repositioned internally to 40% vertical
-    //     on the left edge — preserving the previous visual layout.
+    // When expanded the full-screen scrim absorbs tap + pan so the
+    // movement layer never sees either. The tab itself is
+    // Positioned(top: 0.45 × H, left: 0) inside the Stack.
     final screenH = MediaQuery.of(context).size.height;
     return Stack(
       clipBehavior: Clip.none,
@@ -114,13 +119,9 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
             ),
           ),
         // R27 S1-TENT6: nudged down from 0.40 → 0.45 of screen height
-        // so the collapsed handle no longer overlaps Rawi's figure
-        // (the figure's head/hat sits roughly 0.40-0.45 when the user
-        // first enters a scene — was clipping the chevron circle).
-        //
-        // Stack wraps the panel + the chevron-circle ornament. The
-        // circle straddles the right border (half in, half out) via
-        // Positioned(right: -12) + clipBehavior: Clip.none.
+        // so the collapsed handle no longer overlaps Rawi's figure.
+        // R27 S3-INFO1: keep at 0.45 — scene has no alignment target
+        // (unlike tent, which drops further to match its 5-icon stack).
         Positioned(
           top: screenH * 0.45,
           left: 0,
@@ -130,15 +131,18 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
               clipBehavior: Clip.none,
               children: [
                 _buildTab(),
-                Positioned(
-                  // R27 S1.3-TENT1: -12 → -44 so the 88 px hit
-                  // container's center sits on the panel's right
-                  // border and the 42 px visual circle straddles.
-                  right: -44,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(child: _buildChevronCircle()),
-                ),
+                // R27 S3-INFO1: close chevron is expanded-only. No
+                // chevron in the collapsed state — just the ⓘ.
+                if (_ctrl.value > 0.02)
+                  Positioned(
+                    // Straddles the panel's right border 21 in / 21 out
+                    // (88 px hit container centered at right edge, 42 px
+                    // visual circle centered inside that).
+                    right: -44,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(child: _buildCloseChevron()),
+                  ),
               ],
             ),
           ),
@@ -147,14 +151,7 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     );
   }
 
-  /// R27 S1-TENT6 / S1.1-TENT2 / S1.2-TENT3 / S1.3-TENT1: visual
-  /// chevron 24 → 42 px so the handle reads at a glance. Hit target
-  /// stays 88 × 88 via transparent outer Container. With the 42 px
-  /// visual and `right: -44` on the Positioned, the circle straddles
-  /// the panel border 21 px in / 21 px out. Chevron glyph 16 → 26.
-  /// `HitTestBehavior.opaque` preserves R26 S1v3-EE8.2 gesture
-  /// exclusivity — fast taps never reach the walk handler beneath.
-  Widget _buildChevronCircle() {
+  Widget _buildCloseChevron() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _toggle,
@@ -164,8 +161,8 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
         alignment: Alignment.center,
         color: Colors.transparent,
         child: Container(
-          width: 42,
-          height: 42,
+          width: _circleSize,
+          height: _circleSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: const Color(0xFF0A0E18).withValues(alpha: 0.94),
@@ -179,11 +176,16 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
             ],
           ),
           child: Icon(
-            _expanded
-                ? Icons.chevron_left_rounded
-                : Icons.chevron_right_rounded,
-            size: 26,
+            // R27 S3-INFO1: close chevron mirrors for RTL — `<` in EN,
+            // `>` in AR. Glyph chosen explicitly; `textDirection: ltr`
+            // defeats any ambient auto-mirror so the picked glyph
+            // renders as-is in both locales.
+            _isAr
+                ? Icons.chevron_right_rounded
+                : Icons.chevron_left_rounded,
+            size: _glyphSize,
             color: AppColors.gold,
+            textDirection: TextDirection.ltr,
           ),
         ),
       ),
@@ -191,83 +193,75 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
   }
 
   Widget _buildTab() {
-    final bgAlpha = _expanded ? 224 : 184; // 0.88 vs 0.72
-    final borderAlpha = _expanded ? 71 : 56; // 0.28 vs 0.22
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topRight: Radius.circular(12),
-        bottomRight: Radius.circular(12),
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          width: _widthAnim.value,
-          padding: EdgeInsets.symmetric(
-            vertical: _expanded ? 14 : 9,
-            horizontal: _expanded ? 14 : 9,
-          ),
-          decoration: BoxDecoration(
-            color: Color.fromARGB(bgAlpha, 10, 14, 24),
-            borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(12),
-              bottomRight: Radius.circular(12),
-            ),
-            border: Border(
-              top: BorderSide(
-                  color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
-              right: BorderSide(
-                  color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
-              bottom: BorderSide(
-                  color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
-            ),
-          ),
-          child: _ctrl.value < 0.02
-              ? _buildCollapsedContent()
-              : FadeTransition(
-                  opacity: _contentOpacity,
-                  child: _buildExpandedContent(),
-                ),
-        ),
-      ),
-    );
-  }
-
-  /// R27 S1.5-INFO1: info circle 44 → 52, glyph 28 → 32. Sits
-  /// side-by-side with the 42 px chevron (which straddles the right
-  /// border), 8 px gap between them. Panel widened to 90 px (see
-  /// `_collapsedWidth`) to fit both. `Align(Alignment.centerLeft)`
-  /// hugs the info circle to the leading edge so the gap lands
-  /// on the chevron side consistently across scene BGs.
-  /// `HitTestBehavior.opaque` preserves the R26 S1v3-EE8.2 gesture
-  /// exclusivity — tap won't bleed to the figure walk handler.
-  Widget _buildCollapsedContent() {
+    final isCollapsed = _ctrl.value < 0.02;
+    final bgAlpha = isCollapsed ? 184 : 224; // 0.72 vs 0.88
+    final borderAlpha = isCollapsed ? 56 : 71; // 0.22 vs 0.28
     return GestureDetector(
+      // Collapsed: the whole panel is the tap target to expand. Once
+      // expanded the outside-scrim + close chevron handle dismiss, so
+      // no tap handler here (preserves R26 S1v3-EE8.2 exclusivity —
+      // taps never reach the walk handler beneath).
       behavior: HitTestBehavior.opaque,
-      onTap: _toggle,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.gold.withAlpha(20),
-            border: Border.all(
-                color: AppColors.gold.withAlpha(150), width: 1.2),
+      onTap: isCollapsed ? _toggle : null,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(12),
+          bottomRight: Radius.circular(12),
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            width: _widthAnim.value,
+            padding: EdgeInsets.symmetric(
+              vertical: isCollapsed ? 4 : 14,
+              horizontal: isCollapsed ? 4 : 14,
+            ),
+            decoration: BoxDecoration(
+              color: Color.fromARGB(bgAlpha, 10, 14, 24),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+              border: Border(
+                top: BorderSide(
+                    color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
+                right: BorderSide(
+                    color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
+                bottom: BorderSide(
+                    color: AppColors.gold.withAlpha(borderAlpha), width: 0.5),
+              ),
+            ),
+            child: isCollapsed
+                ? _buildInfoCircle()
+                : FadeTransition(
+                    opacity: _contentOpacity,
+                    child: _buildExpandedContent(),
+                  ),
           ),
-          alignment: Alignment.center,
-          child: Icon(Icons.info_outline_rounded,
-              size: 32, color: AppColors.gold),
         ),
       ),
     );
   }
 
-  /// R25-S3-HF-2: vertical-stack redesign per hotfix spec.
+  Widget _buildInfoCircle() {
+    return Container(
+      width: _circleSize,
+      height: _circleSize,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.gold.withAlpha(20),
+        border: Border.all(
+            color: AppColors.gold.withAlpha(150), width: 1.2),
+      ),
+      alignment: Alignment.center,
+      child: Icon(Icons.info_outline_rounded,
+          size: _glyphSize, color: AppColors.gold),
+    );
+  }
+
+  /// R25-S3-HF-2: vertical-stack layout.
   /// Section 1: "Your Light" title + "across all events" subtitle + 18px value.
   /// Section 2: "This Event" title + "X of 4 moments" subtitle + 4 dots.
-  /// No more uppercase section headers, no duplicated "Your Light" label.
-  /// Collapse chevron sits on the right border at mid-height (Stack).
   Widget _buildExpandedContent() {
     // R25-S3-HF-9: explicit Directionality guarantees AR layout semantics
     // (CrossAxisAlignment.start = right, Row child order mirrored)
@@ -275,92 +269,85 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
     // through the Positioned/AnimatedBuilder/Stack wrapping chain.
     return Directionality(
       textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
-      child: Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // Content column
-        Padding(
-          padding: const EdgeInsets.only(right: 14), // clear the chevron
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ── Section 1: Your Light (lifetime) ──────────────────
-              Text(
-                _isAr ? 'نورك' : 'Your Light',
-                textDirection:
-                    _isAr ? TextDirection.rtl : TextDirection.ltr,
-                style: GoogleFonts.nunito(
-                  color: AppColors.gold.withAlpha(217), // 0.85
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
-                ),
+      child: Padding(
+        // Inner right pad so content never slides under the close
+        // chevron straddling the right border.
+        padding: const EdgeInsets.only(right: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Section 1: Your Light (lifetime) ──────────────────
+            Text(
+              _isAr ? 'نورك' : 'Your Light',
+              textDirection:
+                  _isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold.withAlpha(217), // 0.85
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.5,
               ),
-              Text(
-                _isAr ? 'عبر كل الأحداث' : 'across all events',
-                textDirection:
-                    _isAr ? TextDirection.rtl : TextDirection.ltr,
-                style: GoogleFonts.nunito(
-                  color: AppColors.gold.withAlpha(128), // 0.50
-                  fontSize: 9,
-                ),
+            ),
+            Text(
+              _isAr ? 'عبر كل الأحداث' : 'across all events',
+              textDirection:
+                  _isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold.withAlpha(128), // 0.50
+                fontSize: 9,
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${PrefsService.noorLevel}%',
-                style: GoogleFonts.nunito(
-                  color: const Color(0xFFE8D8B8),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  height: 1.0,
-                ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${PrefsService.noorLevel}%',
+              style: GoogleFonts.nunito(
+                color: const Color(0xFFE8D8B8),
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                height: 1.0,
               ),
-              const SizedBox(height: 12),
-              // Divider
-              Container(
-                height: 0.5,
-                color: AppColors.gold.withAlpha(46),
+            ),
+            const SizedBox(height: 12),
+            // Divider
+            Container(
+              height: 0.5,
+              color: AppColors.gold.withAlpha(46),
+            ),
+            const SizedBox(height: 12),
+            // ── Section 2: This Event (4-dot progress) ────────────
+            Text(
+              _isAr ? 'هذا الحدث' : 'This Event',
+              textDirection:
+                  _isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold.withAlpha(217),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.5,
               ),
-              const SizedBox(height: 12),
-              // ── Section 2: This Event (4-dot progress) ────────────
-              Text(
-                _isAr ? 'هذا الحدث' : 'This Event',
-                textDirection:
-                    _isAr ? TextDirection.rtl : TextDirection.ltr,
-                style: GoogleFonts.nunito(
-                  color: AppColors.gold.withAlpha(217),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
-                ),
+            ),
+            Text(
+              _isAr
+                  ? '${_toArabicNumeral(widget.discoveredHotspots)} من '
+                      '${_toArabicNumeral(widget.totalHotspots)} لحظات'
+                  : '${widget.discoveredHotspots} of '
+                      '${widget.totalHotspots} moments',
+              textDirection:
+                  _isAr ? TextDirection.rtl : TextDirection.ltr,
+              style: GoogleFonts.nunito(
+                color: AppColors.gold.withAlpha(128),
+                fontSize: 9,
               ),
-              Text(
-                _isAr
-                    ? '${_toArabicNumeral(widget.discoveredHotspots)} من '
-                        '${_toArabicNumeral(widget.totalHotspots)} لحظات'
-                    : '${widget.discoveredHotspots} of '
-                        '${widget.totalHotspots} moments',
-                textDirection:
-                    _isAr ? TextDirection.rtl : TextDirection.ltr,
-                style: GoogleFonts.nunito(
-                  color: AppColors.gold.withAlpha(128),
-                  fontSize: 9,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                textDirection:
-                    _isAr ? TextDirection.rtl : TextDirection.ltr,
-                children: _buildEventDots(),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              textDirection:
+                  _isAr ? TextDirection.rtl : TextDirection.ltr,
+              children: _buildEventDots(),
+            ),
+          ],
         ),
-        // R27 S1-TENT6: the old in-body collapse chevron lived here.
-        // Moved to the [_buildChevronCircle] ornament that straddles
-        // the right border in both collapsed and expanded states.
-      ],
       ),
     );
   }
