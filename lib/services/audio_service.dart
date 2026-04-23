@@ -14,6 +14,17 @@ class AudioService {
   static StreamSubscription? _voSub;
   /// Asset path of the currently playing ambient (for continuous-ambient logic).
   static String? _currentAmbientPath;
+  /// Target volume of the currently playing ambient. Kept in sync by
+  /// [playAmbient] + [fadeAmbientTo] so [resumeLastAmbient] can restore
+  /// the same loudness on foreground return (not a blanket default).
+  static double _currentAmbientVolume = 0.0;
+  /// R27 S3-AUDIO2: ambient key stashed at the last pause/inactive event
+  /// so [resumeLastAmbient] can bring the same track back on return.
+  /// Intentionally separate from [_currentAmbientPath] — the latter is
+  /// cleared by [fadeOut] (which fires on pause), this one survives.
+  static String? _resumeAmbientPath;
+  /// Volume to restore on resume, captured alongside [_resumeAmbientPath].
+  static double _resumeAmbientVolume = 0.0;
 
   /// R25-S1 followup: asset paths that have already failed to load once.
   /// Subsequent calls for the same path return silently without re-logging.
@@ -60,12 +71,14 @@ class AudioService {
         await fadeAmbientTo(volume, duration: fadeInDuration);
       } else {
         await _ambient!.setVolume(volume);
+        _currentAmbientVolume = volume;
       }
       return true;
     }
     // LOCKED RULE: fade previous ambient briefly before new one starts
     await fadeOut(duration: const Duration(milliseconds: 200));
     _currentAmbientPath = assetPath;
+    _currentAmbientVolume = volume;
     _ambient = AudioPlayer();
     try {
       await _ambient!.setAsset(assetPath);
@@ -91,6 +104,7 @@ class AudioService {
       _ambient?.dispose();
       _ambient = null;
       _currentAmbientPath = null;
+      _currentAmbientVolume = 0.0;
       return false;
     }
   }
@@ -110,6 +124,36 @@ class AudioService {
       await player.setVolume(vol.clamp(0.0, 1.0));
       await Future.delayed(stepDuration);
     }
+    // Keep tracked volume in sync so R27 S3-AUDIO2 resume restores the
+    // ramped-to level, not the last play-call target.
+    _currentAmbientVolume = targetVol;
+  }
+
+  /// R27 S3-AUDIO2: stash the currently playing ambient (if any) so the
+  /// app-lifecycle observer can bring the same track back on foreground
+  /// return. Must be called BEFORE [fadeOut] on the pause path — the
+  /// fade clears [_currentAmbientPath], which is why we copy it here.
+  static void captureResumeKey() {
+    _resumeAmbientPath = _currentAmbientPath;
+    _resumeAmbientVolume = _currentAmbientVolume;
+  }
+
+  /// R27 S3-AUDIO2: re-start whatever ambient was playing when the app
+  /// last went to background, with a 300 ms fade-in (S1.5 envelope).
+  /// No-op if nothing was captured (e.g. resume from a silent screen).
+  static Future<void> resumeLastAmbient() async {
+    final path = _resumeAmbientPath;
+    final vol = _resumeAmbientVolume;
+    if (path == null || vol <= 0.0) return;
+    // Clear immediately so repeated resume signals (some OEMs fire
+    // multiple) don't stack. Subsequent captures reset as needed.
+    _resumeAmbientPath = null;
+    _resumeAmbientVolume = 0.0;
+    await playAmbient(
+      path,
+      volume: vol,
+      fadeInDuration: const Duration(milliseconds: 300),
+    );
   }
 
   /// Play a one-shot sound effect (layered on top of ambient).
@@ -234,6 +278,7 @@ class AudioService {
     await player.dispose();
     _ambient = null;
     _currentAmbientPath = null;
+    _currentAmbientVolume = 0.0;
     DebugLogService.log('audio', 'ambient faded out $path');
   }
 
@@ -244,6 +289,7 @@ class AudioService {
     await _ambient?.dispose();
     _ambient = null;
     _currentAmbientPath = null;
+    _currentAmbientVolume = 0.0;
     if (path != null) {
       DebugLogService.log('audio', 'ambient STOP $path');
     }

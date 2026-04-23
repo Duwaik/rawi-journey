@@ -67,13 +67,20 @@ class _RawiAppState extends State<RawiApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
+      // R27 S3-AUDIO2: capture what's playing BEFORE the fade clears
+      // `_currentAmbientPath`. On resume we play the same track back.
+      AudioService.captureResumeKey();
       // Global: fade all audio when app goes to background (LOCKED RULE: no hard cuts)
       AudioService.fadeOut(duration: const Duration(milliseconds: 300));
       AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
       AudioService.stopSfx();
+    } else if (state == AppLifecycleState.resumed) {
+      // R27 S3-AUDIO2: bring back whichever ambient was playing when
+      // the app went to background. Uniform for tent cluster AND event
+      // scenes — screen-local lifecycle hooks no longer need to fiddle
+      // with audio resume. 300 ms fade-in reuses the S1.5 envelope.
+      AudioService.resumeLastAmbient();
     }
-    // Resume is handled per-screen (event list restarts ambient_intro,
-    // immersive_event_screen restarts scene ambient via its own observer)
   }
 
   @override

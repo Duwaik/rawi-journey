@@ -755,12 +755,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // R27 S3-AUDIO2: audio (ambient, SFX, VO) is now paused + resumed
+    // globally by `_RawiAppState` via `captureResumeKey` + `fadeOut` +
+    // `resumeLastAmbient`. This handler only owns the scene's GAME
+    // STATE — walk, joystick, idle, frame loop — which is specific to
+    // the immersive screen and not something the app-root can manage.
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      // Stop all audio layers
-      AudioService.stopAmbient();
-      AudioService.stopSfx();
-      AudioService.stopVoiceover();
       // Cancel auto-walk BEFORE stopping game loop
       if (_autoWalking) _stopAutoWalk();
       // Stop game loop and joystick state
