@@ -8,6 +8,7 @@ import '../data/threshold_challenges.dart';
 import '../models/journey_event.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
+import '../services/route_observer.dart';
 import 'event_launcher.dart';
 import 'legacy_event_screen.dart';
 import 'threshold_screen.dart';
@@ -43,7 +44,7 @@ class EventListScreen extends StatefulWidget {
 }
 
 class _EventListScreenState extends State<EventListScreen>
-    with WidgetsBindingObserver {
+    with RouteAware {
   late List<JourneyEvent> _events;
   late int _currentOrder;
   final Set<JourneyEra> _expandedEras = {};
@@ -60,7 +61,6 @@ class _EventListScreenState extends State<EventListScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _events = List.of(m1Events)
       ..sort((a, b) => a.globalOrder.compareTo(b.globalOrder));
     _currentOrder = PrefsService.currentOrder;
@@ -68,39 +68,45 @@ class _EventListScreenState extends State<EventListScreen>
     final active = _activeEra();
     if (active != null) _expandedEras.add(active);
 
-    // R7-01: ambient_intro.mp3 is the "home" sound of the app.
-    // R25-S1-1: events-list is only reached by explicit user nav now —
-    // no auto-open path — so it always owns the home ambient.
-    _startHomeAmbient();
+    // R27 S3-AUDIO1: events list is now part of the tent cluster —
+    // the tent fire ambient carries over uninterrupted on entry. No
+    // separate ambient started here (was `ambient_intro.mp3` at 0.22).
+    // App-lifecycle resume is handled globally in `_RawiAppState`
+    // (R27 S3-AUDIO2), so no per-screen `WidgetsBindingObserver`
+    // either.
   }
 
-  Future<void> _startHomeAmbient() async {
-    if (!PrefsService.musicEnabled) return;
-    // Delay to avoid race with previous screen's dispose/fadeOut
-    await Future.delayed(const Duration(milliseconds: 800));
+  /// R27 S3-AUDIO1: subscribe to route lifecycle so we can re-ensure
+  /// tent ambient when returning from an event. The event's `_exitScene`
+  /// fully disposes the ambient player (`fadeOut` clears
+  /// `_currentAmbientPath`), so the cluster needs someone to bring it
+  /// back. Tent handles this via its own `didPopNext`; events list is
+  /// the only OTHER tent-adjacent screen that can launch an event, so
+  /// it mirrors the same hook.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPopNext() {
     if (!mounted) return;
-    await AudioService.playAmbient(
-      'assets/audio/ambient/ambient_intro.mp3',
-      volume: 0.0,
+    AudioService.playAmbient(
+      'assets/audio/ambient/ambient_tent_fire.mp3',
+      volume: 0.14,
+      fadeInDuration: const Duration(milliseconds: 300),
     );
-    if (!mounted) return;
-    await AudioService.fadeAmbientTo(0.22,
-        duration: const Duration(milliseconds: 1000));
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    appRouteObserver.unsubscribe(this);
     // R7-01: do NOT stop ambient on dispose — it carries into transition
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      // Restart home ambient after returning from background
-      _startHomeAmbient();
-    }
   }
 
   Future<void> _refresh() async {

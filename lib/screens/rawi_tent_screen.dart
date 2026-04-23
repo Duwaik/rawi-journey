@@ -276,16 +276,26 @@ class _RawiTentScreenState extends State<RawiTentScreen>
     _startTentAmbient();
   }
 
-  /// R27 S1.5-AUDIO1: fires when user navigates AWAY from tent to
-  /// any other route (Events List, Scroll, Dhikr, Collections, Stars,
-  /// Settings, or any event). Fades the tent fire ambient to 0 over
-  /// 300 ms before the next screen's ambient controller kicks in, so
-  /// the transition isn't a hard cut. The player stays alive at
-  /// volume 0 — the next `didPopNext` ramps it back up.
+  /// R27 S3-AUDIO1: tent fire is now the ambient of the whole tent
+  /// CLUSTER (tent + Events List + Scroll + Dhikr + Collections + Stars
+  /// + Settings), not just this screen. So `didPushNext` no longer
+  /// touches the ambient — the fire keeps crackling uninterrupted when
+  /// the user crosses over to a sibling screen.
+  ///
+  /// Who fades the ambient when it SHOULD go quiet?
+  ///   - Event entry: `event_intro_screen.dart` already calls
+  ///     `AudioService.fadeOut(duration: 800ms)` in its initState. Tent
+  ///     ambient fades out there, on the way INTO an event — not here.
+  ///   - Event exit: `_exitScene()` in `immersive_event_screen.dart`
+  ///     calls `fadeOut(250ms)`. Tent's `didPopNext` then ramps the
+  ///     fire back in via `_startTentAmbient()`.
+  ///
+  /// The S1.5 behaviour (fade to 0 on any push, keep player alive for
+  /// fast bounce-back) is superseded — `playAmbient` is idempotent on
+  /// the same path, so bouncing tent → events list → tent costs nothing.
   @override
   void didPushNext() {
-    AudioService.fadeAmbientTo(0.0,
-        duration: const Duration(milliseconds: 300));
+    // Intentionally empty. See doc comment above.
   }
 
   /// B13 + R27 S1.5-AUDIO1: Campfire ambient on the tent, looping.
