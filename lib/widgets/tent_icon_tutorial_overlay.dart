@@ -44,11 +44,21 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
   static const double _navRightInset = 10;
   static const double _navTopFraction = 0.28;
 
-  // R27 S1.3-TENT1: info tab chevron is 42 px visual circle,
-  // straddling the left edge at `screenH * 0.45`, centered on the
-  // border via `right: -44` on an 88 px hit container.
-  static const double _infoTabSize = 42;
-  static const double _infoTabVerticalFraction = 0.45;
+  // R27 S1.5-TUT2: info tab highlight targets the INFO CIRCLE (52 px
+  // after S1.5-INFO1), not the chevron-at-right-border. The info
+  // circle sits hugged to the left edge of the panel. Panel top is
+  // at `screenH * 0.45`, panel vertical padding is 9 px, so the
+  // info circle's top sits at `screenH * 0.45 + 9` and spans
+  // [9, 61] horizontally inside the panel.
+  //
+  // Pre-S1.5 the highlight used `screenH * 0.45` as the target's
+  // CENTER and 42 px for size — which put the spotlight ~31 px too
+  // high AND on the chevron's position, not the info icon's.
+  // Device verify caught "spotlight floats above the info icon."
+  static const double _infoTabSize = 52;
+  static const double _infoTabPanelTopFraction = 0.45;
+  static const double _infoTabPanelPadding = 9;
+  static const double _infoTabLeftInset = 9;
 
   // R27 S1-TENT (settings gear in rawi_tent_screen.dart:~498):
   //   Positioned(top: topPad + 10, right: 12), 34 × 34.
@@ -159,16 +169,21 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
           anchor: _Anchor.leftOfTarget,
         );
       case _Target.infoTab:
-        // Handle chevron center sits on the LEFT edge at ~45 % height.
-        final cy = screen.height * _infoTabVerticalFraction;
-        final top = cy - _infoTabSize / 2;
-        // Centered on the left border — extends half out into the
-        // scene, half into the panel body.
-        final left = -_infoTabSize / 2;
+        // R27 S1.5-TUT2: target the actual info icon, not the panel
+        // position or the chevron. Panel top = screenH * 0.45. Panel
+        // internal padding = 9 px on all sides. Info circle (52 px,
+        // S1.5-INFO1) hugs the panel's leading edge via
+        // Align(centerLeft) — so its screen coords are:
+        //   top = panel_top + panel_padding
+        //   left = panel_padding
+        final panelTop = screen.height * _infoTabPanelTopFraction;
+        final top = panelTop + _infoTabPanelPadding;
+        final left = _infoTabLeftInset;
         return (
           rect: Rect.fromLTWH(
               left, top, _infoTabSize, _infoTabSize),
-          // Left edge → tooltip goes to the RIGHT.
+          // Tooltip on the RIGHT — info circle sits at the leading
+          // edge of the screen, right side has all the free space.
           anchor: _Anchor.rightOfTarget,
         );
       case _Target.settingsGear:
@@ -200,11 +215,24 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
             child: Container(color: Colors.black.withAlpha(153)), // 0.60
           ),
           // Pulsing gold ring around the resolved target rect.
+          // R27 S1.5-TUT2: shape now matches each target's actual
+          // underlying render shape:
+          //   navIcon       → rounded-rect, radius 12 (matches the
+          //                   `_navIcon` Container's BorderRadius 12)
+          //   infoTab       → full circle (matches the 52 px info
+          //                   circle from S1.5-INFO1)
+          //   settingsGear  → full circle (matches the gear's 34 px
+          //                   BoxShape.circle container)
+          // Pre-S1.5 used `shortestSide / 2` for everything which
+          // rendered circles over rounded-rect nav cards.
           AnimatedBuilder(
             animation: _ringPulse,
             builder: (context, _) {
               final v = _ringPulse.value;
               final extra = 4 + v * 6;
+              final double highlightRadius = step.target == _Target.navIcon
+                  ? 12.0 + extra
+                  : (target.rect.shortestSide / 2) + extra;
               return Positioned(
                 top: target.rect.top - extra,
                 left: target.rect.left - extra,
@@ -213,8 +241,8 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
                 child: IgnorePointer(
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                          (target.rect.shortestSide / 2) + extra),
+                      borderRadius:
+                          BorderRadius.circular(highlightRadius),
                       border: Border.all(
                         color: AppColors.gold
                             .withAlpha((220 * (1 - v * 0.3)).round()),
