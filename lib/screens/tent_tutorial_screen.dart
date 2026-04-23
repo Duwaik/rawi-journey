@@ -203,13 +203,20 @@ class _TentTutorialScreenState extends State<TentTutorialScreen>
                 left: 0,
                 right: 0,
                 child: Center(
+                  // R27 S1.5-TUT1: hint was rendering at effective
+                  // α ≈ 0.28 (opacity 0.7 × color α 100/255 ≈ 0.39 ×
+                  // 0.7 = ~0.28) — barely visible on the warm tent BG.
+                  // Outer Opacity stays tied to `_opacity` (fade-in
+                  // with the rest of the screen) but the 0.7 damper
+                  // is gone; color alpha bumped 100 → 230 so legible
+                  // contrast lands without increasing font size.
                   child: Opacity(
-                    opacity: _opacity * 0.7,
+                    opacity: _opacity,
                     child: Text(
                       _isAr ? 'اضغط للمتابعة' : 'Tap to continue',
                       style: GoogleFonts.nunito(
                         fontSize: 10,
-                        color: AppColors.gold.withAlpha(100),
+                        color: AppColors.gold.withAlpha(230),
                         letterSpacing: 1.5,
                       ),
                     ),
