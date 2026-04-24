@@ -31,6 +31,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _sfx = PrefsService.sfxEnabled;
   String _lang = PrefsService.language;
   String _gender = PrefsService.userGender;
+  // R28 S1-FEAT4: which view mode the Events List opens in by default.
+  // 'list' (factory) or 'constellation'. Written through
+  // `PrefsService.setJourneyViewDefault`.
+  String _journeyView = PrefsService.journeyViewDefault;
 
   bool get _isAr => _lang == 'ar';
 
@@ -82,6 +86,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!v) {
       AudioService.fadeOut(duration: const Duration(milliseconds: 300));
     }
+  }
+
+  void _setJourneyView(String v) {
+    setState(() => _journeyView = v);
+    PrefsService.setJourneyViewDefault(v);
   }
 
   void _toggleVo(bool v) {
@@ -1047,6 +1056,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           Divider(color: AppColors.gold.withAlpha(20), height: 24),
+          // R28 S1-FEAT4: journey view default — List or Constellation.
+          // Stacked layout (label row + full-width segmented below)
+          // because "Journey view default" + "LIST"/"CONSTELLATION"
+          // labels don't fit comfortably in the inline segmented-pref
+          // row pattern used for shorter S/M/L + joystick pickers.
+          _segmentedPrefRowStacked(
+            icon: Icons.auto_awesome_rounded,
+            label: _isAr ? 'طريقة عرض الرحلة' : 'Journey view default',
+            picker: SegmentedPicker<String>(
+              values: const ['list', 'constellation'],
+              labels: _isAr
+                  ? const ['قائمة', 'نجوم']
+                  : const ['LIST', 'CONSTELLATION'],
+              selected: _journeyView,
+              onChanged: _setJourneyView,
+              segmentWidth: null, // flex each segment to fill the row
+            ),
+          ),
+          Divider(color: AppColors.gold.withAlpha(20), height: 24),
           // Music
           _togglePrefRow(
             Icons.music_note_rounded,
@@ -1136,6 +1164,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
             textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
           ),
         ),
+        picker,
+      ],
+    );
+  }
+
+  // R28 S1-FEAT4: stacked variant of [_segmentedPrefRow] — icon + label
+  // on top, full-width picker below. Used when a 2-segment picker's
+  // labels are too long to share a row with the setting label (e.g.
+  // "Journey view default" + "LIST" / "CONSTELLATION").
+  Widget _segmentedPrefRowStacked({
+    required IconData icon,
+    required String label,
+    required Widget picker,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          children: [
+            Icon(icon, size: 20, color: AppColors.gold.withAlpha(180)),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.nunito(
+                    fontSize: 15, color: AppColors.textPrimary),
+                textDirection:
+                    _isAr ? TextDirection.rtl : TextDirection.ltr,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
         picker,
       ],
     );
