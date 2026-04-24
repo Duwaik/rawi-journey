@@ -101,14 +101,24 @@ class _ConstellationViewState extends State<ConstellationView>
   }
 
   /// Same-year events share a Y row and spread across X symmetrically
-  /// around the centerline. (R28 S1-FEAT3 will layer a vertical
-  /// stagger on top — see that commit.)
+  /// around the centerline. R28 S1-FEAT3 layers a symmetric vertical
+  /// stagger (22 px per step) on top so each event's painted label
+  /// doesn't overlap the next — was unreadable in the legacy Stars
+  /// screen whenever multiple events shared a year (570 CE cluster,
+  /// Badr week, late Mecca cluster, etc.). Symmetric distribution
+  /// keeps the cluster visually grouped as one year, not scattered.
   List<Offset> _generatePositions(double screenW, double bottomPad) {
     final positions = List<Offset>.filled(widget.events.length, Offset.zero);
     final centerX = screenW / 2;
     final amplitude = screenW * 0.28;
     final bottomAllowance = 140.0 + bottomPad;
     final clusterSpread = screenW * 0.18;
+    // R28 S1-FEAT3: 22 px per cluster step. The painter draws each
+    // star's label (~10 px) and date (~7 px) stacked with a small
+    // gap, so ~20 px of vertical separation is the minimum readable
+    // stagger at A56 resolution. 22 is that minimum with a touch of
+    // slack.
+    const clusterStaggerY = 22.0;
 
     int row = 0;
     int i = 0;
@@ -129,7 +139,8 @@ class _ConstellationViewState extends State<ConstellationView>
       } else {
         for (int k = 0; k < clusterSize; k++) {
           final offsetX = (k - (clusterSize - 1) / 2.0) * clusterSpread;
-          positions[i + k] = Offset(centerX + offsetX, y);
+          final offsetY = (k - (clusterSize - 1) / 2.0) * clusterStaggerY;
+          positions[i + k] = Offset(centerX + offsetX, y + offsetY);
         }
       }
       row++;
