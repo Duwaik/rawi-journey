@@ -15,9 +15,6 @@ import 'dhikr_collection_screen.dart';
 import 'event_launcher.dart';
 import 'event_list_screen.dart';
 import 'scroll_viewer_screen.dart';
-// R28 S1-NAV1: SeerahSkyScreen import removed — tent Stars nav icon
-// retired (absorbed into Events List → CONSTELLATION view). The file
-// itself stays until CODE1 retires it in the next commit.
 import 'settings_screen.dart';
 import 'tent_tutorial_screen.dart';
 import '../widgets/rawi_dialog.dart';

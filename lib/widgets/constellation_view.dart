@@ -7,12 +7,13 @@ import '../app_colors.dart';
 import '../models/journey_event.dart';
 import '../services/prefs_service.dart';
 
-/// R28 S1-FEAT2 / CODE1: standalone constellation view, extracted from
-/// the legacy `SeerahSkyScreen` so it can live inside Events List as
-/// the CONSTELLATION tab. The host (Events List) owns the screen
-/// chrome — back arrow, title, segmented toggle, bottom CTA. This
-/// widget renders ONLY the scrollable sky body + its internal locked
-/// info card.
+/// R28 S1-FEAT2 / CODE1: standalone constellation view. Lives inside
+/// Events List as the CONSTELLATION tab (alternative to the LIST
+/// tab). Replaces the retired `SeerahSkyScreen` that used to be
+/// reachable from the tent's Stars nav icon (also removed — see
+/// NAV1). The host (Events List) owns the screen chrome: back arrow,
+/// title, segmented toggle, bottom CTA. This widget renders ONLY the
+/// scrollable sky body + its internal locked info card.
 ///
 /// **Tap behaviour (R28 S1-FEAT2):**
 /// - Completed star → `onLaunch(event)` (host launches in replay mode,
