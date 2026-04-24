@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
@@ -32,7 +33,7 @@ class ScrollViewerScreen extends StatefulWidget {
 }
 
 class _ScrollViewerScreenState extends State<ScrollViewerScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const _bg = Color(0xFF04060D);
 
   // ── Unroll state + animation ──
@@ -40,6 +41,11 @@ class _ScrollViewerScreenState extends State<ScrollViewerScreen>
   late final AnimationController _ctrl;
   late final Animation<double> _progress;
   bool _switching = false; // guards against concurrent tap handlers
+
+  // ── R28-S2-FX1 · Seal-break animations (per-arc, parallel) ──
+  // One controller per arc currently animating. Map entry is added when
+  // the animation starts and removed (controller disposed) when it ends.
+  final Map<int, AnimationController> _sealCtrls = {};
 
   // ── globalOrder → ScrollEntry lookup (built once) ──
   late final Map<int, ScrollEntry> _entriesByOrder = {
@@ -56,12 +62,83 @@ class _ScrollViewerScreenState extends State<ScrollViewerScreen>
       duration: const Duration(milliseconds: 500),
     );
     _progress = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+
+    // Schedule seal-break work after first frame so we have a Scaffold
+    // to mount into before any setStates fire.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _runSealBreakLifecycle();
+    });
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
+    for (final c in _sealCtrls.values) {
+      c.dispose();
+    }
+    _sealCtrls.clear();
     super.dispose();
+  }
+
+  /// One-shot post-frame routine:
+  ///   • First time on this build: silently mark every currently-unlocked
+  ///     arc as "seal broken" — no animation cascade for users coming
+  ///     from a prior build with arcs already unlocked.
+  ///   • Subsequent opens: any arc that is unlocked but not yet flagged
+  ///     gets its seal-break animation queued. Multiple animations fire
+  ///     sequentially top-to-bottom with 200 ms stagger between starts
+  ///     (so they overlap visually).
+  Future<void> _runSealBreakLifecycle() async {
+    if (!mounted) return;
+    final currentOrder = PrefsService.currentOrder;
+
+    if (!PrefsService.scrollSealBackfillDone) {
+      for (final a in arcRegistry) {
+        if (currentOrder >= a.firstEvent &&
+            !PrefsService.isArcSealBroken(a.arcId)) {
+          await PrefsService.setArcSealBroken(a.arcId);
+        }
+      }
+      await PrefsService.setScrollSealBackfillDone();
+      return; // backfill is silent — no animation queueing
+    }
+
+    final pending = <int>[
+      for (final a in arcRegistry)
+        if (currentOrder >= a.firstEvent &&
+            !PrefsService.isArcSealBroken(a.arcId))
+          a.arcId,
+    ]..sort();
+
+    for (int i = 0; i < pending.length; i++) {
+      if (!mounted) return;
+      if (i > 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+      if (!mounted) return;
+      _startSealBreak(pending[i]);
+    }
+  }
+
+  void _startSealBreak(int arcId) {
+    if (_sealCtrls.containsKey(arcId)) return;
+    final ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 750),
+    );
+    _sealCtrls[arcId] = ctrl;
+    setState(() {});
+    ctrl.forward().whenComplete(() async {
+      await PrefsService.setArcSealBroken(arcId);
+      if (!mounted) {
+        ctrl.dispose();
+        return;
+      }
+      ctrl.dispose();
+      setState(() {
+        _sealCtrls.remove(arcId);
+      });
+    });
   }
 
   Future<void> _onCardTap(int arcId) async {
@@ -138,6 +215,7 @@ class _ScrollViewerScreenState extends State<ScrollViewerScreen>
                           progress: _progress,
                           entriesByOrder: _entriesByOrder,
                           onCardTap: _onCardTap,
+                          sealCtrls: _sealCtrls,
                         ),
                       const SizedBox(height: 12),
                     ],
@@ -211,6 +289,7 @@ class _ModuleSection extends StatelessWidget {
   final Animation<double> progress;
   final Map<int, ScrollEntry> entriesByOrder;
   final Future<void> Function(int) onCardTap;
+  final Map<int, AnimationController> sealCtrls;
 
   const _ModuleSection({
     required this.module,
@@ -220,6 +299,7 @@ class _ModuleSection extends StatelessWidget {
     required this.progress,
     required this.entriesByOrder,
     required this.onCardTap,
+    required this.sealCtrls,
   });
 
   @override
@@ -254,6 +334,7 @@ class _ModuleSection extends StatelessWidget {
                 progress: progress,
                 entriesByOrder: entriesByOrder,
                 onCardTap: onCardTap,
+                sealCtrls: sealCtrls,
               ),
               if (r < rows.length - 1) const SizedBox(height: 16),
             ],
@@ -352,6 +433,7 @@ class _CardRow extends StatelessWidget {
   final Animation<double> progress;
   final Map<int, ScrollEntry> entriesByOrder;
   final Future<void> Function(int) onCardTap;
+  final Map<int, AnimationController> sealCtrls;
 
   const _CardRow({
     required this.arcs,
@@ -363,6 +445,7 @@ class _CardRow extends StatelessWidget {
     required this.progress,
     required this.entriesByOrder,
     required this.onCardTap,
+    required this.sealCtrls,
   });
 
   @override
@@ -383,6 +466,7 @@ class _CardRow extends StatelessWidget {
               progress: progress,
               entriesByOrder: entriesByOrder,
               onTap: () => onCardTap(arcs[i].arcId),
+              sealAnim: sealCtrls[arcs[i].arcId],
             ),
           ),
         ],
@@ -402,6 +486,10 @@ class _ArcCard extends StatelessWidget {
   final Animation<double> progress;
   final Map<int, ScrollEntry> entriesByOrder;
   final VoidCallback onTap;
+  /// Non-null while this arc is mid seal-break animation. Painter reads
+  /// .value to advance the crack → fragments → particles → color-shift →
+  /// cord-fade-in sequence.
+  final Animation<double>? sealAnim;
 
   const _ArcCard({
     required this.arc,
@@ -412,6 +500,7 @@ class _ArcCard extends StatelessWidget {
     required this.progress,
     required this.entriesByOrder,
     required this.onTap,
+    required this.sealAnim,
   });
 
   bool get _isUnlocked => currentOrder >= arc.firstEvent;
@@ -457,10 +546,18 @@ class _ArcCard extends StatelessWidget {
                 unlocked ? AppColors.gold.withAlpha(40) : Colors.transparent,
             highlightColor: Colors.transparent,
             child: AnimatedBuilder(
-              animation: progress,
+              animation: sealAnim == null
+                  ? progress
+                  : Listenable.merge([progress, sealAnim!]),
               builder: (context, _) {
                 final t = _isThisExpanded ? progress.value : 0.0;
                 final h = lerpDouble(closedH, openH, t)!;
+                // sealBreakProgress: 0 = pre-break (visually locked even
+                // though arc is unlocked), 1 = post-break (visually
+                // unlocked). null AnimationController means "no transition
+                // in flight" — render fully unlocked (1.0) since we got
+                // here past the unlock check.
+                final sealBreakT = sealAnim?.value ?? 1.0;
                 return SizedBox(
                   width: cellW,
                   height: h,
@@ -471,6 +568,7 @@ class _ArcCard extends StatelessWidget {
                           painter: _ScrollGraphicPainter(
                             unlocked: unlocked,
                             cordOpacity: unlocked ? (1 - t) : 0,
+                            sealBreakProgress: sealBreakT,
                           ),
                         ),
                       ),
@@ -818,11 +916,25 @@ class _DashedRulePainter extends CustomPainter {
 // ── Scroll graphic painter ──────────────────────────────────────────────────
 
 class _ScrollGraphicPainter extends CustomPainter {
+  /// Whether the arc is unlocked at the data layer. When false, the painter
+  /// always renders the locked (wax-sealed gray) state and ignores
+  /// [sealBreakProgress] / [cordOpacity].
   final bool unlocked;
-  final double cordOpacity; // 0..1, 1 = fully visible cord
+
+  /// Cord-only fade — used by UI2's unroll (cord fades out as parchment
+  /// extends). 1 = full cord, 0 = no cord. Multiplies the cord alpha that
+  /// the seal-break phase produces, so the two animations compose.
+  final double cordOpacity;
+
+  /// FX1 seal-break sequence. 0 = pre-break (visually locked even though
+  /// `unlocked` is true), 1 = post-break (visually unlocked). When no
+  /// animation is in flight, callers pass 1.0.
+  final double sealBreakProgress;
+
   const _ScrollGraphicPainter({
     required this.unlocked,
     required this.cordOpacity,
+    required this.sealBreakProgress,
   });
 
   static const _parchmentUnlocked = Color(0xFFD4A95C);
@@ -838,26 +950,47 @@ class _ScrollGraphicPainter extends CustomPainter {
   static const _waxSealHighlight = Color(0xFFA73028);
   static const _waxSealShadow   = Color(0xFF4A100C);
 
+  // ── Phase windows (over normalized 0..1 sealBreakProgress) ──────────
+  // Crack appears: 0.00–0.20
+  // Fragments split + fall: 0.18–0.55
+  // Particle puff:           0.18–0.40
+  // Color shift gray→amber:  0.20–0.65
+  // Cord fade-in:            0.60–0.85
+  static double _phase(double p, double start, double end) =>
+      ((p - start) / (end - start)).clamp(0.0, 1.0);
+
+  static double _easeOut(double t) => 1 - (1 - t) * (1 - t);
+
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
 
-    // Cap height is locked to the original closed-card width-based ratio so
-    // caps stay visually anchored at top/bottom as the card grows. Closed
-    // card height = w * 4/3, cap = 9 % of that = w * 0.12.
+    // Cap height is fixed to width-based ratio so caps stay visually
+    // anchored at top/bottom as the card grows. Closed card height = w*4/3,
+    // cap = 9 % of that = w * 0.12.
     final capH = w * 0.12;
     final bodyTop = capH;
     final bodyBottom = h - capH;
     final bodyRect = Rect.fromLTRB(0, bodyTop, w, bodyBottom);
 
-    // Body
-    canvas.drawRect(
-      bodyRect,
-      Paint()..color = unlocked ? _parchmentUnlocked : _parchmentLocked,
-    );
+    // ── Resolve current colors based on lock state + seal-break phase ─
+    final colorT = unlocked
+        ? _easeOut(_phase(sealBreakProgress, 0.20, 0.65))
+        : 0.0;
+    final parchment = unlocked
+        ? Color.lerp(_parchmentLocked, _parchmentUnlocked, colorT)!
+        : _parchmentLocked;
+    final cap = unlocked
+        ? Color.lerp(_capLocked, _capUnlocked, colorT)!
+        : _capLocked;
+    final rule = unlocked
+        ? Color.lerp(_ruleLocked, _ruleUnlocked, colorT)!
+        : _ruleLocked;
 
-    // Subtle top/bottom shading
+    // ── Body ────────────────────────────────────────────────────────
+    canvas.drawRect(bodyRect, Paint()..color = parchment);
+
     canvas.drawRect(
       bodyRect,
       Paint()
@@ -865,18 +998,16 @@ class _ScrollGraphicPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            (unlocked ? _capUnlocked : _capLocked).withAlpha(40),
+            cap.withAlpha(40),
             Colors.transparent,
-            (unlocked ? _capUnlocked : _capLocked).withAlpha(40),
+            cap.withAlpha(40),
           ],
           stops: const [0.0, 0.5, 1.0],
         ).createShader(bodyRect),
     );
 
-    // Horizontal rules
-    final rulePaint = Paint()
-      ..color = unlocked ? _ruleUnlocked : _ruleLocked
-      ..strokeWidth = 0.8;
+    // ── Horizontal rules ────────────────────────────────────────────
+    final rulePaint = Paint()..color = rule..strokeWidth = 0.8;
     final bodyH = bodyBottom - bodyTop;
     const ruleCount = 4;
     final inset = w * 0.10;
@@ -889,22 +1020,45 @@ class _ScrollGraphicPainter extends CustomPainter {
       );
     }
 
-    // End caps
-    _paintCap(canvas, Rect.fromLTWH(0, 0, w, capH));
-    _paintCap(canvas, Rect.fromLTWH(0, h - capH, w, capH));
+    // ── End caps ────────────────────────────────────────────────────
+    _paintCap(canvas, Rect.fromLTWH(0, 0, w, capH), cap);
+    _paintCap(canvas, Rect.fromLTWH(0, h - capH, w, capH), cap);
 
-    // Cord (unlocked, fading) or wax seal (locked)
-    if (unlocked) {
-      if (cordOpacity > 0) {
-        _paintCord(canvas, size, bodyTop, bodyBottom, cordOpacity);
-      }
-    } else {
+    // ── Wax seal (locked OR mid seal-break) ─────────────────────────
+    if (!unlocked) {
       _paintWaxSeal(canvas, size);
+    } else if (sealBreakProgress < 0.55) {
+      // Fragmenting state — fades out as fragments fall.
+      final fragT = _phase(sealBreakProgress, 0.18, 0.55);
+      _paintWaxSealFragmenting(canvas, size, fragT);
+      // Crack line — visible 0..0.30 (fades out as fragments take over).
+      final crackT = _phase(sealBreakProgress, 0.0, 0.20);
+      final crackFade =
+          1.0 - _phase(sealBreakProgress, 0.20, 0.30); // hold then fade
+      if (crackT > 0 && crackFade > 0) {
+        _paintCrack(canvas, size, crackT, crackFade);
+      }
+      // Particles — visible 0.18..0.40
+      final partT = _phase(sealBreakProgress, 0.18, 0.40);
+      if (partT > 0 && partT < 1) {
+        _paintParticles(canvas, size, partT);
+      }
+    }
+
+    // ── Cord ────────────────────────────────────────────────────────
+    // Composes with cordOpacity (UI2 unroll fade-out).
+    if (unlocked) {
+      final cordPhaseAlpha = _easeOut(_phase(sealBreakProgress, 0.60, 0.85));
+      final cordA = cordPhaseAlpha * cordOpacity;
+      if (cordA > 0) {
+        _paintCord(canvas, size, bodyTop, bodyBottom, cordA);
+      }
     }
   }
 
-  void _paintCap(Canvas canvas, Rect rect) {
-    final base = unlocked ? _capUnlocked : _capLocked;
+  // ── Cap ──────────────────────────────────────────────────────────────
+
+  void _paintCap(Canvas canvas, Rect rect, Color base) {
     final rrect =
         RRect.fromRectAndRadius(rect, Radius.circular(rect.height / 2));
     canvas.drawRRect(rrect, Paint()..color = base);
@@ -927,6 +1081,8 @@ class _ScrollGraphicPainter extends CustomPainter {
         ..strokeWidth = 0.8,
     );
   }
+
+  // ── Cord ─────────────────────────────────────────────────────────────
 
   void _paintCord(
       Canvas canvas, Size size, double bodyTop, double bodyBottom, double op) {
@@ -975,21 +1131,86 @@ class _ScrollGraphicPainter extends CustomPainter {
     );
   }
 
+  // ── Wax seal — full + fragmenting + crack + particles ────────────────
+
   void _paintWaxSeal(Canvas canvas, Size size) {
+    _paintWaxSealAt(canvas, size, opacity: 1, dx: 0, dy: 0, scale: 1);
+  }
+
+  void _paintWaxSealFragmenting(Canvas canvas, Size size, double fragT) {
+    // 3 fragments, each translated outward + falling with gravity, fading
+    // out over the phase. fragT 0..1.
     final w = size.width;
     final h = size.height;
-    final center = Offset(w / 2, h / 2);
     final r = w * 0.22;
+    final center = Offset(w / 2, h / 2);
+    final fall = fragT * fragT * (h * 0.18); // quadratic gravity
+
+    final fragments = <_Fragment>[
+      _Fragment(angle: -1.4, distMul: 1.6, scale: 0.55), // up-left
+      _Fragment(angle:  1.7, distMul: 1.3, scale: 0.50), // down-right
+      _Fragment(angle:  3.1, distMul: 1.1, scale: 0.45), // left
+    ];
+
+    final opacity = (1.0 - fragT).clamp(0.0, 1.0);
+
+    // First, draw a faint full-seal underlay at low opacity so the seal
+    // doesn't pop out — it appears to "shatter" rather than vanish.
+    final underlay = (1.0 - _phase(fragT, 0.0, 0.4)).clamp(0.0, 1.0);
+    if (underlay > 0) {
+      _paintWaxSealAt(canvas, size,
+          opacity: underlay * 0.7, dx: 0, dy: fall * 0.3, scale: 1);
+    }
+
+    for (final f in fragments) {
+      final dx = math.cos(f.angle) * r * 0.4 * fragT * f.distMul;
+      final dy = math.sin(f.angle) * r * 0.2 * fragT * f.distMul + fall;
+      final c = center.translate(dx, dy);
+      _paintFragmentBlob(canvas, c, r * f.scale, opacity);
+    }
+  }
+
+  void _paintFragmentBlob(
+      Canvas canvas, Offset c, double r, double opacity) {
+    if (opacity <= 0) return;
+    final a = (opacity * 255).round();
+    canvas.drawCircle(c, r, Paint()..color = _waxSeal.withAlpha(a));
+    canvas.drawCircle(
+      c.translate(-r * 0.3, -r * 0.2),
+      r * 0.6,
+      Paint()..color = _waxSealHighlight.withAlpha((140 * opacity).round()),
+    );
+    canvas.drawCircle(
+      c.translate(r * 0.25, r * 0.25),
+      r * 0.45,
+      Paint()..color = _waxSealShadow.withAlpha((170 * opacity).round()),
+    );
+  }
+
+  void _paintWaxSealAt(
+    Canvas canvas,
+    Size size, {
+    required double opacity,
+    required double dx,
+    required double dy,
+    required double scale,
+  }) {
+    if (opacity <= 0) return;
+    final w = size.width;
+    final h = size.height;
+    final center = Offset(w / 2, h / 2).translate(dx, dy);
+    final r = w * 0.22 * scale;
+    final a = (opacity * 255).round();
 
     canvas.drawCircle(
       center.translate(1.5, 2.5),
       r,
       Paint()
-        ..color = Colors.black.withAlpha(90)
+        ..color = Colors.black.withAlpha((90 * opacity).round())
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
     );
 
-    final wax = Paint()..color = _waxSeal;
+    final wax = Paint()..color = _waxSeal.withAlpha(a);
     canvas.drawCircle(center, r, wax);
     canvas.drawCircle(center.translate(-r * 0.3, -r * 0.2), r * 0.55, wax);
     canvas.drawCircle(center.translate(r * 0.35, r * 0.15), r * 0.55, wax);
@@ -999,19 +1220,90 @@ class _ScrollGraphicPainter extends CustomPainter {
     canvas.drawCircle(
       center.translate(-r * 0.25, -r * 0.25),
       r * 0.35,
-      Paint()..color = _waxSealHighlight.withAlpha(140),
+      Paint()..color = _waxSealHighlight.withAlpha((140 * opacity).round()),
     );
 
     canvas.drawCircle(
       center.translate(r * 0.25, r * 0.25),
       r * 0.45,
-      Paint()..color = _waxSealShadow.withAlpha(170),
+      Paint()..color = _waxSealShadow.withAlpha((170 * opacity).round()),
     );
 
-    canvas.drawCircle(center, r * 0.18, Paint()..color = _waxSealShadow);
+    canvas.drawCircle(
+      center,
+      r * 0.18,
+      Paint()..color = _waxSealShadow.withAlpha(a),
+    );
+  }
+
+  void _paintCrack(Canvas canvas, Size size, double extendT, double fade) {
+    final w = size.width;
+    final h = size.height;
+    final center = Offset(w / 2, h / 2);
+    final r = w * 0.22;
+    final a = (fade * 220).round();
+    final paint = Paint()
+      ..color = _waxSealShadow.withAlpha(a)
+      ..strokeWidth = 1.2
+      ..strokeCap = StrokeCap.round;
+
+    // Diagonal crack growing from centre outward, both directions.
+    final ext = r * 0.95 * extendT;
+    final dir = const Offset(0.94, -0.34); // ~20° upward-right
+    canvas.drawLine(
+      center - dir * ext,
+      center + dir * ext,
+      paint,
+    );
+  }
+
+  void _paintParticles(Canvas canvas, Size size, double t) {
+    final w = size.width;
+    final h = size.height;
+    final center = Offset(w / 2, h / 2);
+    const n = 10;
+    final maxDist = w * 0.18;
+    for (int i = 0; i < n; i++) {
+      // Deterministic spread via golden-angle-ish stride.
+      final angle = i * (2 * math.pi / n) + (i.isOdd ? 0.3 : -0.3);
+      final speed = 0.7 + (i % 3) * 0.15;
+      final dist = maxDist * t * speed;
+      final dx = math.cos(angle) * dist;
+      final dy = math.sin(angle) * dist + (t * t) * h * 0.04; // gravity bias
+      final pos = center + Offset(dx, dy);
+      // Fade in 0..0.25, hold to 0.55, fade out 0.55..1.0
+      double a;
+      if (t < 0.25) {
+        a = t / 0.25;
+      } else if (t < 0.55) {
+        a = 1.0;
+      } else {
+        a = 1.0 - (t - 0.55) / 0.45;
+      }
+      a = a.clamp(0.0, 1.0);
+      final radius = 1.5 + (i % 2) * 0.6;
+      canvas.drawCircle(
+        pos,
+        radius,
+        Paint()..color = _waxSeal.withAlpha((a * 230).round()),
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant _ScrollGraphicPainter old) =>
-      old.unlocked != unlocked || old.cordOpacity != cordOpacity;
+      old.unlocked != unlocked ||
+      old.cordOpacity != cordOpacity ||
+      old.sealBreakProgress != sealBreakProgress;
+}
+
+class _Fragment {
+  final double angle;     // radians
+  final double distMul;   // distance multiplier
+  final double scale;     // size relative to seal radius
+  const _Fragment({
+    required this.angle,
+    required this.distMul,
+    required this.scale,
+  });
 }

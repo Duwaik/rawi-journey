@@ -50,6 +50,12 @@ class PrefsService {
   // R28 S1-FEAT1 / FEAT4: which view the Events List opens in by
   // default — 'list' (factory default) or 'constellation'.
   static const String _keyJourneyViewDefault   = 'journey_view_default';
+  // R28 S2-FX1: per-arc seal-break flag (one-shot — animation plays
+  // once when an arc transitions from locked → unlocked). Backfill
+  // flag silences the cascade for users updating from prior builds
+  // who already have several arcs unlocked.
+  static const String _keyArcSealBrokenPrefix  = 'arc_seal_broken_';
+  static const String _keyScrollSealBackfillDone = 'scroll_seal_backfill_done';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
   static String get language => _prefs?.getString(_keyLanguage) ?? 'en';
@@ -96,6 +102,23 @@ class PrefsService {
     await updateStreak();
   }
 
+  // ── R28 S2-FX1: ARC SEAL-BREAK FLAGS ──────────────────────────────────────
+  /// True iff the seal-break animation has already been played for this arc.
+  /// One-shot: once true, stays true until [resetJourney] or backfill clear.
+  static bool isArcSealBroken(int arcId) =>
+      _prefs?.getBool('$_keyArcSealBrokenPrefix$arcId') ?? false;
+
+  static Future<void> setArcSealBroken(int arcId) async =>
+      await _prefs?.setBool('$_keyArcSealBrokenPrefix$arcId', true);
+
+  /// True iff the first-launch backfill (silent-mark already-unlocked arcs as
+  /// broken) has run for this build install.
+  static bool get scrollSealBackfillDone =>
+      _prefs?.getBool(_keyScrollSealBackfillDone) ?? false;
+
+  static Future<void> setScrollSealBackfillDone() async =>
+      await _prefs?.setBool(_keyScrollSealBackfillDone, true);
+
   /// Reset ALL progress — clears every progress-related key.
   /// Preserves: user profile (name, gender, language, text scale, audio toggles).
   static Future<void> resetJourney() async {
@@ -110,8 +133,10 @@ class PrefsService {
           key.startsWith(_keyThresholdCompleted) ||
           key.startsWith(_keyPassageSeen) ||
           key.startsWith(_keyDhikrCompleted) ||
+          key.startsWith(_keyArcSealBrokenPrefix) ||
           key == _keyDiscoveredCollection ||
-          key == _keyDiscoveredSecrets) {
+          key == _keyDiscoveredSecrets ||
+          key == _keyScrollSealBackfillDone) {
         await prefs.remove(key);
       }
     }
