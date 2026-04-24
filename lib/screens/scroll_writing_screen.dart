@@ -106,7 +106,11 @@ class _ScrollWritingScreenState extends State<ScrollWritingScreen>
 
   void _goToEventList() {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const RawiTentScreen()),
+      MaterialPageRoute(
+        // R28 S1-BUG1: tag for popUntil target.
+        settings: const RouteSettings(name: RawiTentScreen.routeName),
+        builder: (_) => const RawiTentScreen(),
+      ),
       (route) => false,
     );
   }

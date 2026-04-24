@@ -29,6 +29,14 @@ import '../widgets/tent_info_tab.dart';
 /// navigation icons, center "Continue Journey" CTA, and bottom sheets
 /// for Next Event / Daily Dhikr / Quick Settings.
 class RawiTentScreen extends StatefulWidget {
+  /// R28 S1-BUG1 / Navigation Contract: every push of the tent MUST be
+  /// tagged with `RouteSettings(name: routeName)` so that
+  /// `Navigator.popUntil(ModalRoute.withName(RawiTentScreen.routeName))`
+  /// from inside any event reliably lands on the tent, regardless of
+  /// which screen launched the event. Call sites in splash, unified
+  /// completion, rawi call, scroll writing all use this constant.
+  static const String routeName = '/tent';
+
   const RawiTentScreen({super.key});
 
   @override

@@ -1207,7 +1207,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     AudioService.stopSfx();
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
-    if (mounted) Navigator.of(context).pop();
+    // R28 S1-BUG1 / Navigation Contract: event exit ALWAYS returns to
+    // tent, regardless of which screen launched the event (tent
+    // Continue, Events List, Constellation view, future Living Map,
+    // etc.). Previously a single `pop()` returned the user to the
+    // caller — landing on Events List when launched from there.
+    // `popUntil(withName('/tent'))` unwinds the whole stack back to the
+    // tagged tent route so the user always ends up home.
+    if (mounted) {
+      Navigator.of(context)
+          .popUntil(ModalRoute.withName(RawiTentScreen.routeName));
+    }
   }
 
   Future<void> _saveAndExit() async {
@@ -1226,7 +1236,12 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     setState(() => _showSettings = false);
-    if (mounted) Navigator.of(context).pop();
+    // R28 S1-BUG1 / Navigation Contract: settings "Save and exit" also
+    // lands on tent, same as the back-button _exitScene path.
+    if (mounted) {
+      Navigator.of(context)
+          .popUntil(ModalRoute.withName(RawiTentScreen.routeName));
+    }
   }
 
   void _checkHotspotProximity() {
@@ -1917,7 +1932,11 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const RawiTentScreen()),
+      MaterialPageRoute(
+        // R28 S1-BUG1: tag for popUntil target.
+        settings: const RouteSettings(name: RawiTentScreen.routeName),
+        builder: (_) => const RawiTentScreen(),
+      ),
       (route) => false,
     );
   }

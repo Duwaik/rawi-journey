@@ -92,6 +92,8 @@ class _RawiCallScreenState extends State<RawiCallScreen> {
     PrefsService.setRawiCallShown();
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
+        // R28 S1-BUG1: tag for popUntil target.
+        settings: const RouteSettings(name: RawiTentScreen.routeName),
         pageBuilder: (context, animation, secondaryAnimation) =>
             const RawiTentScreen(),
         transitionsBuilder: (context, anim, secondaryAnimation, child) =>

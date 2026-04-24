@@ -55,12 +55,19 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     // R22 Part 3: Tent is the home screen after onboarding.
-    final destination = PrefsService.isOnboardingComplete
-        ? const RawiTentScreen()
-        : const IntroCinematicScreen();
+    final goesToTent = PrefsService.isOnboardingComplete;
+    final destination =
+        goesToTent ? const RawiTentScreen() : const IntroCinematicScreen();
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
+        // R28 S1-BUG1: tag the tent route so `popUntil(withName('/tent'))`
+        // from inside any event finds it. Non-tent destinations (the
+        // intro cinematic path) stay unnamed — they don't need to be
+        // the pop target.
+        settings: goesToTent
+            ? const RouteSettings(name: RawiTentScreen.routeName)
+            : null,
         pageBuilder: (context, animation, secondaryAnimation) => destination,
         transitionsBuilder: (context, anim, secondaryAnimation, child) =>
             FadeTransition(opacity: anim, child: child),
