@@ -129,26 +129,72 @@ class AudioService {
     _currentAmbientVolume = targetVol;
   }
 
-  /// R27 S3-AUDIO2: stash the currently playing ambient (if any) so the
-  /// app-lifecycle observer can bring the same track back on foreground
-  /// return. Must be called BEFORE [fadeOut] on the pause path — the
-  /// fade clears [_currentAmbientPath], which is why we copy it here.
+  /// R27 S3-AUDIO2 + R28 S1-BUG2: stash the currently playing ambient
+  /// so the app-lifecycle observer can bring the same track back on
+  /// foreground return. Must be called BEFORE [fadeOut] on the pause
+  /// path — the fade clears [_currentAmbientPath], which is why we
+  /// copy it here.
+  ///
+  /// BUG2 defensive: also writes to `PrefsService` so the resume key
+  /// survives an Activity recreate (Samsung One UI home-button +
+  /// long-wait scenario, where Dart isolate resets and these statics
+  /// go null). Fire-and-forget; best-effort — if the app is dying
+  /// fast, a lost write just means no resume, not a crash.
   static void captureResumeKey() {
     _resumeAmbientPath = _currentAmbientPath;
     _resumeAmbientVolume = _currentAmbientVolume;
+    if (_currentAmbientPath != null && _currentAmbientVolume > 0.0) {
+      PrefsService.setAudioResume(
+          _currentAmbientPath!, _currentAmbientVolume);
+      DebugLogService.log('lifecycle',
+          'captureResumeKey path=$_currentAmbientPath vol=$_currentAmbientVolume');
+    } else {
+      DebugLogService.log('lifecycle',
+          'captureResumeKey SKIP (no ambient playing)');
+    }
   }
 
-  /// R27 S3-AUDIO2: re-start whatever ambient was playing when the app
-  /// last went to background, with a 300 ms fade-in (S1.5 envelope).
-  /// No-op if nothing was captured (e.g. resume from a silent screen).
+  /// R27 S3-AUDIO2 + R28 S1-BUG2: re-start whatever ambient was playing
+  /// when the app last went to background, with a 300 ms fade-in (S1.5
+  /// envelope). No-op if nothing was captured (e.g. resume from a
+  /// silent screen).
+  ///
+  /// Two-tier lookup: in-memory first (fast path, survives normal
+  /// pause/resume); PrefsService second (recovery path, survives
+  /// Activity recreate). Stale prefs entries (>10 min old) are
+  /// discarded — covers "user forgot the app was paused, comes back
+  /// hours later" so we don't surprise them with audio.
   static Future<void> resumeLastAmbient() async {
-    final path = _resumeAmbientPath;
-    final vol = _resumeAmbientVolume;
-    if (path == null || vol <= 0.0) return;
-    // Clear immediately so repeated resume signals (some OEMs fire
-    // multiple) don't stack. Subsequent captures reset as needed.
+    String? path = _resumeAmbientPath;
+    double vol = _resumeAmbientVolume;
+
+    if (path == null || vol <= 0.0) {
+      // In-memory miss — check the prefs fallback.
+      final prefsPath = PrefsService.audioResumePath;
+      final prefsVol = PrefsService.audioResumeVolume;
+      final stampMs = PrefsService.audioResumeStampMs;
+      final ageMs = DateTime.now().millisecondsSinceEpoch - stampMs;
+      const maxAgeMs = 10 * 60 * 1000;
+      if (prefsPath != null && prefsVol > 0.0 && ageMs < maxAgeMs) {
+        path = prefsPath;
+        vol = prefsVol;
+        DebugLogService.log('lifecycle',
+            'resumeLastAmbient HIT-PREFS path=$path vol=$vol age=${ageMs}ms');
+      } else {
+        DebugLogService.log('lifecycle',
+            'resumeLastAmbient MISS (mem=null prefs=${prefsPath ?? "null"} age=${ageMs}ms)');
+        return;
+      }
+    } else {
+      DebugLogService.log('lifecycle',
+          'resumeLastAmbient HIT-MEM path=$path vol=$vol');
+    }
+
+    // Clear both slots so repeated resume signals don't stack.
     _resumeAmbientPath = null;
     _resumeAmbientVolume = 0.0;
+    PrefsService.clearAudioResume();
+
     await playAmbient(
       path,
       volume: vol,

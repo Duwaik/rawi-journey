@@ -39,6 +39,14 @@ class PrefsService {
   static const String _keyEvent1TutorialShown = 'tutorial_event1_shown';
   static const String _keyLastEventId         = 'last_event_id';
   static const String _keyEventInProgress     = 'event_in_progress';
+  // R28 S1-BUG2: persisted ambient resume state for recovery from
+  // Activity recreate (Samsung One UI aggressive kill on home). The
+  // in-memory `AudioService._resumeAmbientPath` is lost when the Dart
+  // isolate is reset — these prefs let `resumeLastAmbient` pick up
+  // even on cold recreate, as long as the stamp is recent.
+  static const String _keyAudioResumePath      = 'audio_resume_path';
+  static const String _keyAudioResumeVolume    = 'audio_resume_volume';
+  static const String _keyAudioResumeStampMs   = 'audio_resume_stamp_ms';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
   static String get language => _prefs?.getString(_keyLanguage) ?? 'en';
@@ -377,6 +385,34 @@ class PrefsService {
   }
   static Future<void> clearInProgressEvent() async {
     await _prefs?.setBool(_keyEventInProgress, false);
+  }
+
+  // ── AUDIO RESUME (BUG2 defensive) ──────────────────────────────────────────
+  /// R28 S1-BUG2: persisted slot for the ambient track that was playing
+  /// when the app last paused. Backs up the in-memory resume key in
+  /// `AudioService` so `resumeLastAmbient` can recover even after an
+  /// Activity-recreate-driven Dart isolate reset (observed on Samsung
+  /// One UI home-button + >5s return).
+  ///
+  /// Staleness: the stamp lets the read side discard old entries (>10
+  /// min) so a true cold launch hours later doesn't auto-play an
+  /// ambient the user didn't expect.
+  static String? get audioResumePath =>
+      _prefs?.getString(_keyAudioResumePath);
+  static double get audioResumeVolume =>
+      _prefs?.getDouble(_keyAudioResumeVolume) ?? 0.0;
+  static int get audioResumeStampMs =>
+      _prefs?.getInt(_keyAudioResumeStampMs) ?? 0;
+  static Future<void> setAudioResume(String path, double volume) async {
+    await _prefs?.setString(_keyAudioResumePath, path);
+    await _prefs?.setDouble(_keyAudioResumeVolume, volume);
+    await _prefs?.setInt(
+        _keyAudioResumeStampMs, DateTime.now().millisecondsSinceEpoch);
+  }
+  static Future<void> clearAudioResume() async {
+    await _prefs?.remove(_keyAudioResumePath);
+    await _prefs?.remove(_keyAudioResumeVolume);
+    await _prefs?.remove(_keyAudioResumeStampMs);
   }
 
   /// R25-S3-7: QA/dev helper — clear every tutorial-seen flag so the
