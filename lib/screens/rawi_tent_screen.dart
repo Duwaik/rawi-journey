@@ -15,7 +15,9 @@ import 'dhikr_collection_screen.dart';
 import 'event_launcher.dart';
 import 'event_list_screen.dart';
 import 'scroll_viewer_screen.dart';
-import 'seerah_sky_screen.dart';
+// R28 S1-NAV1: SeerahSkyScreen import removed — tent Stars nav icon
+// retired (absorbed into Events List → CONSTELLATION view). The file
+// itself stays until CODE1 retires it in the next commit.
 import 'settings_screen.dart';
 import 'tent_tutorial_screen.dart';
 import '../widgets/rawi_dialog.dart';
@@ -506,10 +508,23 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             // one tappable widget replaces two always-visible blocks,
             // letting the Rawi figure + fire be the hero.
 
-            // ── Right-side navigation (5 square icons) ───────────────
-            // B5: nav stack = 5 icons (Events, Stars, Scroll, Dhikr,
-            // Collections). Settings moved OUT of nav stack to its own
-            // gear in the top-right corner (consistent with event screens).
+            // ── Right-side navigation (5 slots) ──────────────────────
+            // R28 S1-NAV1: Stars icon removed (absorbed by the Events
+            // List → CONSTELLATION view in FEAT1/2). Collections moved
+            // up (was position 5). Living Map placeholder takes the
+            // freed slot 5 as a reserved "coming soon" — dimmed, no
+            // screen wired yet, tap shows a snackbar.
+            //
+            // New order (top → bottom):
+            //   1. Events List
+            //   2. Rawi's Scroll
+            //   3. Collections
+            //   4. Dhikr (stays — Collections 3-tab not ready yet;
+            //      removing Dhikr now would strand the collection.
+            //      Per locked rule from the R28-S1 spec.)
+            //   5. Living Map placeholder ("coming soon")
+            //
+            // Settings gear stays in the top-right corner (unchanged).
             // R27 S1.2-TENT4: nav column fades during cinematic so
             // the right edge of the screen is dim + empty while the
             // tutorial plays; no icon taps can land mid-tutorial
@@ -523,11 +538,8 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                   opacity: _cinematicActive ? 0.0 : 1.0,
                   child: Column(
                   children: [
+                    // 1. Events List
                     // R27 S1-TENT3: Material icon instead of 📋 emoji.
-                    // `Icons.view_list_rounded` reads unambiguously as
-                    // a list — distinct from 📜 (scroll) + 🏛️
-                    // (collections) below, so the three adjacent icons
-                    // no longer cluster visually.
                     _navIconMaterial(
                         Icons.view_list_rounded,
                         _isAr ? 'الأحداث' : 'Events', () {
@@ -535,16 +547,19 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                           builder: (_) => const EventListScreen()));
                     }),
                     const SizedBox(height: 8),
-                    _navIcon('✦', _isAr ? 'النجوم' : 'Stars', () {
-                      Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const SeerahSkyScreen()));
-                    }),
-                    const SizedBox(height: 8),
+                    // 2. Rawi's Scroll
                     _navIcon('📜', _isAr ? 'السجلّ' : 'Scroll', () {
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const ScrollViewerScreen()));
                     }),
                     const SizedBox(height: 8),
+                    // 3. Collections
+                    _navIcon('🏛️', _isAr ? 'المجموعات' : 'Collections', () {
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const CollectionGalleryScreen()));
+                    }),
+                    const SizedBox(height: 8),
+                    // 4. Dhikr
                     _navIcon('🤲', _isAr ? 'الذكر' : 'Dhikr', () {
                       // B10: full dhikr collection screen (Dhikr of the Day
                       // + all unlocked + locked silhouettes).
@@ -552,10 +567,14 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                           builder: (_) => const DhikrCollectionScreen()));
                     }),
                     const SizedBox(height: 8),
-                    _navIcon('🏛️', _isAr ? 'المجموعات' : 'Collections', () {
-                      Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const CollectionGalleryScreen()));
-                    }),
+                    // 5. Living Map placeholder (R28 S1-NAV1 — coming soon)
+                    _navIconPlaceholder(
+                      Icons.explore_outlined,
+                      _isAr ? 'قريباً' : 'Coming soon',
+                      _isAr
+                          ? 'الخريطة الحيّة قريباً'
+                          : 'Living Map is coming soon',
+                    ),
                   ],
                   ),
                 ),
@@ -864,6 +883,58 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             border: Border.all(color: AppColors.gold.withAlpha(40)),
           ),
           child: Icon(icon, size: 22, color: AppColors.gold),
+        ),
+      ),
+    );
+  }
+
+  /// R28 S1-NAV1: "coming soon" placeholder slot. Same frame as
+  /// [_navIconMaterial] but dimmed visuals (weaker fill, 45 % icon
+  /// alpha) to read as non-active at a glance. Tap shows a short
+  /// snackbar explaining the slot — doesn't navigate, doesn't crash.
+  /// Used for the Living Map slot which is reserved for a future
+  /// sprint but has no screen wired yet.
+  Widget _navIconPlaceholder(
+      IconData icon, String tooltipLabel, String snackbarMessage) {
+    return Tooltip(
+      message: tooltipLabel,
+      child: GestureDetector(
+        onTap: () {
+          ScaffoldMessenger.of(context)
+            ..clearSnackBars()
+            ..showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                duration: const Duration(seconds: 2),
+                backgroundColor: const Color(0xF00E1624),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: AppColors.gold.withAlpha(60)),
+                ),
+                content: Text(
+                  snackbarMessage,
+                  textAlign: TextAlign.center,
+                  textDirection:
+                      _isAr ? TextDirection.rtl : TextDirection.ltr,
+                  style: GoogleFonts.nunito(
+                    color: AppColors.gold.withAlpha(220),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            );
+        },
+        child: Container(
+          width: 44, height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withAlpha(120),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.gold.withAlpha(20)),
+          ),
+          child: Icon(icon, size: 22, color: AppColors.gold.withAlpha(115)),
         ),
       ),
     );
