@@ -47,6 +47,9 @@ class PrefsService {
   static const String _keyAudioResumePath      = 'audio_resume_path';
   static const String _keyAudioResumeVolume    = 'audio_resume_volume';
   static const String _keyAudioResumeStampMs   = 'audio_resume_stamp_ms';
+  // R28 S1-FEAT1 / FEAT4: which view the Events List opens in by
+  // default — 'list' (factory default) or 'constellation'.
+  static const String _keyJourneyViewDefault   = 'journey_view_default';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
   static String get language => _prefs?.getString(_keyLanguage) ?? 'en';
@@ -137,6 +140,10 @@ class PrefsService {
     // Reset tent-dhikr 24 h lock too — a new user shouldn't inherit
     // the previous owner's cooldown timestamp.
     await prefs.remove(_keyLastTentDhikrTs);
+    // R28 S1-FEAT4: reset Journey view default back to factory ('list')
+    // on full journey reset so a new user opening Events List sees the
+    // list view, not whatever the previous owner had set.
+    await prefs.remove(_keyJourneyViewDefault);
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────
@@ -414,6 +421,17 @@ class PrefsService {
     await _prefs?.remove(_keyAudioResumeVolume);
     await _prefs?.remove(_keyAudioResumeStampMs);
   }
+
+  // ── JOURNEY VIEW DEFAULT (R28 S1-FEAT1 / FEAT4) ───────────────────────────
+  /// 'list' or 'constellation'. Factory default: 'list' (preserves
+  /// current behaviour on fresh install). Settings → Preferences →
+  /// Journey view default writes; Events List reads on initState.
+  static String get journeyViewDefault =>
+      _prefs?.getString(_keyJourneyViewDefault) ?? 'list';
+  static bool get isJourneyViewConstellation =>
+      journeyViewDefault == 'constellation';
+  static Future<void> setJourneyViewDefault(String v) async =>
+      await _prefs?.setString(_keyJourneyViewDefault, v);
 
   /// R25-S3-7: QA/dev helper — clear every tutorial-seen flag so the
   /// next run shows all overlays again. Gated behind kDebugMode at the

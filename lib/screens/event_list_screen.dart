@@ -9,6 +9,8 @@ import '../models/journey_event.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
 import '../services/route_observer.dart';
+import '../widgets/constellation_view.dart';
+import '../widgets/segmented_picker.dart';
 import 'event_launcher.dart';
 import 'legacy_event_screen.dart';
 import 'threshold_screen.dart';
@@ -43,12 +45,20 @@ class EventListScreen extends StatefulWidget {
   State<EventListScreen> createState() => _EventListScreenState();
 }
 
+/// R28 S1-FEAT1: which view mode the Events List is showing. Initial
+/// value on open comes from `PrefsService.journeyViewDefault`
+/// (configurable in Settings → Preferences → Journey view default via
+/// FEAT4). Within a session the user's toggle tap is ephemeral — the
+/// Settings value is the persistent default.
+enum _JourneyViewMode { list, constellation }
+
 class _EventListScreenState extends State<EventListScreen>
     with RouteAware {
   late List<JourneyEvent> _events;
   late int _currentOrder;
   final Set<JourneyEra> _expandedEras = {};
   final Set<JourneyEra> _showAllCompletedInEra = {};
+  late _JourneyViewMode _viewMode;
 
   JourneyEra? _activeEra() {
     final activeEvent = _events.firstWhere(
@@ -67,6 +77,13 @@ class _EventListScreenState extends State<EventListScreen>
     // Expand active era by default
     final active = _activeEra();
     if (active != null) _expandedEras.add(active);
+
+    // R28 S1-FEAT1: initial view mode from Settings preference.
+    // Ephemeral within the session — user tapping the toggle doesn't
+    // write back; the Settings screen is the persistent source.
+    _viewMode = PrefsService.isJourneyViewConstellation
+        ? _JourneyViewMode.constellation
+        : _JourneyViewMode.list;
 
     // R27 S3-AUDIO1: events list is now part of the tent cluster —
     // the tent fire ambient carries over uninterrupted on entry. No
@@ -751,18 +768,59 @@ class _EventListScreenState extends State<EventListScreen>
               ),
             ),
 
-            // ── Timeline list ─────────────────────────────────────────
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _refresh,
-                color: AppColors.gold,
-                backgroundColor: AppColors.bg,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsetsDirectional.fromSTEB(12, 4, 16, bottomPad + 16),
-                  children: _buildListItems(),
+            // ── R28 S1-FEAT1: LIST | CONSTELLATION segmented toggle ──
+            // Sits between header and body. Centered, ~60 % screen
+            // width per spec. Matches the existing SegmentedPicker
+            // design language (gold border, amber-fill active).
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 14, 0, 10),
+              child: Center(
+                child: FractionallySizedBox(
+                  widthFactor: 0.6,
+                  child: SegmentedPicker<_JourneyViewMode>(
+                    values: const [
+                      _JourneyViewMode.list,
+                      _JourneyViewMode.constellation,
+                    ],
+                    labels: [
+                      isAr ? 'قائمة' : 'LIST',
+                      isAr ? 'نجوم' : 'CONSTELLATION',
+                    ],
+                    selected: _viewMode,
+                    onChanged: (v) => setState(() => _viewMode = v),
+                    // Null = flex each segment to fill the available width.
+                    segmentWidth: null,
+                  ),
                 ),
               ),
+            ),
+
+            // ── Body — list OR constellation based on _viewMode ─────
+            Expanded(
+              child: _viewMode == _JourneyViewMode.list
+                  ? RefreshIndicator(
+                      onRefresh: _refresh,
+                      color: AppColors.gold,
+                      backgroundColor: AppColors.bg,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                            12, 4, 16, bottomPad + 16),
+                        children: _buildListItems(),
+                      ),
+                    )
+                  // R28 S1-FEAT2: constellation host. Re-uses
+                  // `_openEvent` so the Navigation Contract (BUG1)
+                  // applies uniformly — event exit returns to tent
+                  // regardless of which view launched it.
+                  : ConstellationView(
+                      events: _events,
+                      completedCount: _events
+                          .where((e) =>
+                              PrefsService.isEventCompleted(e.globalOrder))
+                          .length,
+                      onLaunch: (event) => _openEvent(event),
+                    ),
             ),
           ],
         ),
