@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../app_colors.dart';
 import '../../models/scene_config.dart';
 import 'manuscript_writing_text.dart';
 
@@ -121,6 +122,34 @@ class _ReaderBottomCardState extends State<ReaderBottomCard>
                     bottomReserve: bottomPad + 44,
                   );
                 },
+              ),
+            ),
+            // ── Page dots (P1-08) — always visible ────────────────
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: bottomPad + 48, // sits just above the chevron
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(widget.hotspots.length, (i) {
+                    final isCurrent = i == _currentPage;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isCurrent
+                              ? AppColors.gold
+                              : ReaderBottomCard.inkMuted.withAlpha(80),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
               ),
             ),
             // ── Bottom chevron (P1-05) — hidden on last page ──────
