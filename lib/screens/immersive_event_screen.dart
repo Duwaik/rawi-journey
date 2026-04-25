@@ -20,6 +20,7 @@ import '../models/branch_point.dart';
 import '../widgets/cinematic/crossroads_card.dart';
 import '../widgets/cinematic/rawi_figure.dart';
 import '../widgets/reader/reader_book_sprite.dart';
+import '../widgets/reader/reader_bottom_card.dart';
 import '../models/badge_definition.dart';
 import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
@@ -2215,6 +2216,17 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   isAr: _isAr,
                 ),
               ),
+
+          // ── R28 S3-P1-02 · Reader bottom card (35 % of screen height) ──
+          // Reader-mode only, gated on !_explorerMode. Hidden during the
+          // verdict / complete phases so the end-of-event cinematic reveal
+          // doesn't compete with a parchment card on screen. Phase 2 will
+          // wire the end-of-event flow onto this same surface.
+          if (!_explorerMode && _phase == _Phase.explore)
+            ReaderBottomCard(
+              hotspots: _scene.hotspots,
+              isAr: _isAr,
+            ),
 
           // ── Dim overlay (non-interactive) ──────────────────────────
           // R26 S1v4-EE6.2: during the cinematic reveal beat the dim
