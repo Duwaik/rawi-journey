@@ -187,11 +187,19 @@ class _PageContent extends StatefulWidget {
 
 class _PageContentState extends State<_PageContent> {
   late final ManuscriptWritingController _writingCtrl;
+  late final ScrollController _scrollCtrl;
 
   @override
   void initState() {
     super.initState();
     _writingCtrl = ManuscriptWritingController();
+    _scrollCtrl = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
   }
 
   void _onTextTap() {
@@ -207,41 +215,78 @@ class _PageContentState extends State<_PageContent> {
     final text = widget.isAr
         ? widget.hotspot.fragmentAr
         : widget.hotspot.fragment;
-    return GestureDetector(
-      onTap: _onTextTap,
-      // HitTestBehavior.opaque so taps on the parchment around the text
-      // also count as "tap-to-complete." Horizontal swipes still win
-      // the gesture arena because TapGestureRecognizer requires no
-      // movement — once a finger moves, PageView's HorizontalDrag
-      // takes over.
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(20, 18, 20, widget.bottomReserve),
-        child: ManuscriptWritingText(
-          // Key on the hotspot id so PageView keeps each page's reveal
-          // state independent — switching to a new page doesn't restart
-          // the previous page's animation.
-          key: ValueKey('reader-page-${widget.hotspot.id}'),
-          text: text,
-          isAr: widget.isAr,
-          controller: _writingCtrl,
-          textAlign: TextAlign.start,
-          textDirection:
-              widget.isAr ? TextDirection.rtl : TextDirection.ltr,
-          textStyle: widget.isAr
-              ? GoogleFonts.arefRuqaa(
-                  color: ReaderBottomCard.ink,
-                  fontSize: 16,
-                  height: 1.85,
-                  fontWeight: FontWeight.w400,
-                )
-              : GoogleFonts.cormorantGaramond(
-                  color: ReaderBottomCard.ink,
-                  fontSize: 16,
-                  height: 1.55,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
+    return Directionality(
+      // Locale-driven directionality — Scrollbar picks up the trailing
+      // edge from this (LTR → right edge, RTL → left edge), satisfying
+      // the spec's "right edge (LTR) / left edge (RTL)" requirement
+      // without manual positioning.
+      textDirection: widget.isAr ? TextDirection.rtl : TextDirection.ltr,
+      child: GestureDetector(
+        onTap: _onTextTap,
+        // HitTestBehavior.opaque so taps on the parchment around the text
+        // also count as "tap-to-complete." Horizontal swipes still win
+        // the gesture arena because TapGestureRecognizer requires no
+        // movement — once a finger moves, PageView's HorizontalDrag
+        // takes over. Vertical drag on overflowing content is captured
+        // by SingleChildScrollView below before reaching this detector.
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 18, 20, widget.bottomReserve),
+          child: Theme(
+            // Local theme override — narrow parchment-ink scrollbar.
+            data: Theme.of(context).copyWith(
+              scrollbarTheme: ScrollbarThemeData(
+                thumbColor: WidgetStateProperty.all(
+                  ReaderBottomCard.inkMuted.withAlpha(150),
                 ),
+                thickness: WidgetStateProperty.all(2),
+                radius: const Radius.circular(1),
+                crossAxisMargin: 1,
+                mainAxisMargin: 4,
+                // null thumbVisibility = default behaviour: appears on
+                // scroll, fades out shortly after — matches spec's
+                // "fade-in on scroll-active" + "only visible when
+                // content overflows."
+              ),
+            ),
+            child: Scrollbar(
+              controller: _scrollCtrl,
+              child: SingleChildScrollView(
+                controller: _scrollCtrl,
+                // ClampingScrollPhysics: no overscroll bounce on a
+                // small overflowing page (BouncingScrollPhysics would
+                // feel mushy at the 35 % card scale).
+                physics: const ClampingScrollPhysics(),
+                child: ManuscriptWritingText(
+                  // Key on the hotspot id so PageView keeps each page's
+                  // reveal state independent — switching to a new page
+                  // doesn't restart the previous page's animation.
+                  key: ValueKey('reader-page-${widget.hotspot.id}'),
+                  text: text,
+                  isAr: widget.isAr,
+                  controller: _writingCtrl,
+                  textAlign: TextAlign.start,
+                  textDirection: widget.isAr
+                      ? TextDirection.rtl
+                      : TextDirection.ltr,
+                  textStyle: widget.isAr
+                      ? GoogleFonts.arefRuqaa(
+                          color: ReaderBottomCard.ink,
+                          fontSize: 16,
+                          height: 1.85,
+                          fontWeight: FontWeight.w400,
+                        )
+                      : GoogleFonts.cormorantGaramond(
+                          color: ReaderBottomCard.ink,
+                          fontSize: 16,
+                          height: 1.55,
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w500,
+                        ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
