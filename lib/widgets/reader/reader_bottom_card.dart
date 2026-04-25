@@ -167,8 +167,10 @@ class _ReaderBottomCardState extends State<ReaderBottomCard>
   }
 }
 
-/// Single page — wraps [ManuscriptWritingText] with the card's padding.
-class _PageContent extends StatelessWidget {
+/// Single page — wraps [ManuscriptWritingText] with the card's padding
+/// and a tap handler that invokes the per-page writing controller's
+/// `completeNow()` (R28 S3-P1-06).
+class _PageContent extends StatefulWidget {
   final SceneHotspot hotspot;
   final bool isAr;
   final double bottomReserve;
@@ -180,33 +182,67 @@ class _PageContent extends StatelessWidget {
   });
 
   @override
+  State<_PageContent> createState() => _PageContentState();
+}
+
+class _PageContentState extends State<_PageContent> {
+  late final ManuscriptWritingController _writingCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _writingCtrl = ManuscriptWritingController();
+  }
+
+  void _onTextTap() {
+    // Post-completion tap is a no-op — controller's completeNow is
+    // idempotent (early-returns when _completed). The clean
+    // "swipe/chevron, not text-tap, advances the page" gesture
+    // separation stays.
+    _writingCtrl.completeNow();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final text = isAr ? hotspot.fragmentAr : hotspot.fragment;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 18, 20, bottomReserve),
-      child: ManuscriptWritingText(
-        // Key on the hotspot id so PageView keeps each page's reveal
-        // state independent — switching to a new page doesn't restart
-        // the previous page's animation.
-        key: ValueKey('reader-page-${hotspot.id}'),
-        text: text,
-        isAr: isAr,
-        textAlign: TextAlign.start,
-        textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-        textStyle: isAr
-            ? GoogleFonts.arefRuqaa(
-                color: ReaderBottomCard.ink,
-                fontSize: 16,
-                height: 1.85,
-                fontWeight: FontWeight.w400,
-              )
-            : GoogleFonts.cormorantGaramond(
-                color: ReaderBottomCard.ink,
-                fontSize: 16,
-                height: 1.55,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w500,
-              ),
+    final text = widget.isAr
+        ? widget.hotspot.fragmentAr
+        : widget.hotspot.fragment;
+    return GestureDetector(
+      onTap: _onTextTap,
+      // HitTestBehavior.opaque so taps on the parchment around the text
+      // also count as "tap-to-complete." Horizontal swipes still win
+      // the gesture arena because TapGestureRecognizer requires no
+      // movement — once a finger moves, PageView's HorizontalDrag
+      // takes over.
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(20, 18, 20, widget.bottomReserve),
+        child: ManuscriptWritingText(
+          // Key on the hotspot id so PageView keeps each page's reveal
+          // state independent — switching to a new page doesn't restart
+          // the previous page's animation.
+          key: ValueKey('reader-page-${widget.hotspot.id}'),
+          text: text,
+          isAr: widget.isAr,
+          controller: _writingCtrl,
+          textAlign: TextAlign.start,
+          textDirection:
+              widget.isAr ? TextDirection.rtl : TextDirection.ltr,
+          textStyle: widget.isAr
+              ? GoogleFonts.arefRuqaa(
+                  color: ReaderBottomCard.ink,
+                  fontSize: 16,
+                  height: 1.85,
+                  fontWeight: FontWeight.w400,
+                )
+              : GoogleFonts.cormorantGaramond(
+                  color: ReaderBottomCard.ink,
+                  fontSize: 16,
+                  height: 1.55,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w500,
+                ),
+        ),
       ),
     );
   }
