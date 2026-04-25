@@ -2292,7 +2292,13 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           // intercepts outside taps + pans before they reach the
           // movement layer below. The tab itself still renders at 40%
           // vertical / left edge — it positions itself internally.
-          if (_phase == _Phase.explore && _activeHotspot == null)
+          // R28 S3-P1-10: Reader gate. The info tab carries Explorer-
+          // specific affordances (lifetime light row, hotspot-progress
+          // dots) that don't fit the Reader's bottom-card metaphor.
+          // Hidden in Reader; unchanged in Explorer.
+          if (_phase == _Phase.explore &&
+              _activeHotspot == null &&
+              _explorerMode)
             Positioned.fill(
               child: EventSceneInfoTab(
                 totalHotspots: _scene.hotspots.length,
