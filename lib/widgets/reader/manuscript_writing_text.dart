@@ -106,8 +106,8 @@ class _ManuscriptWritingTextState extends State<ManuscriptWritingText>
   int _revealedCount = 0;
   Duration _now = Duration.zero;
   Duration _nextRevealAt = const Duration(milliseconds: _initialDelayMs);
+  Duration? _naturalCompletionAt;
   bool _completed = false;
-  bool _completionScheduled = false;
 
   AudioPlayer? _quill;
 
@@ -150,8 +150,8 @@ class _ManuscriptWritingTextState extends State<ManuscriptWritingText>
     _revealedCount = 0;
     _now = Duration.zero;
     _nextRevealAt = const Duration(milliseconds: _initialDelayMs);
+    _naturalCompletionAt = null;
     _completed = false;
-    _completionScheduled = false;
     if (_units.isEmpty) {
       _completed = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -177,23 +177,28 @@ class _ManuscriptWritingTextState extends State<ManuscriptWritingText>
     _now = elapsed;
     if (_completed) return;
 
+    // Cumulative scheduling: advance _nextRevealAt by each unit's
+    // nextDelayMs from its OWN scheduled deadline (not from _now). If
+    // a frame is late (or a test pumps a large interval at once),
+    // multiple units catch up in a single frame instead of stalling
+    // one-per-frame.
     while (_revealedCount < _units.length && _now >= _nextRevealAt) {
       _units[_revealedCount].revealedAt = _now;
       final justRevealed = _units[_revealedCount];
       _revealedCount++;
-      if (_revealedCount < _units.length) {
-        _nextRevealAt = _now + Duration(milliseconds: justRevealed.nextDelayMs);
-      }
+      _nextRevealAt = _nextRevealAt +
+          Duration(milliseconds: justRevealed.nextDelayMs);
     }
 
-    if (_revealedCount >= _units.length && !_completionScheduled) {
-      _completionScheduled = true;
-      // Hold for one ink-bloom window so the last unit has time to fade in
-      // before we call onComplete.
-      Future.delayed(const Duration(milliseconds: _inkBloomMs + 50), () {
-        if (!mounted || _completed) return;
+    if (_revealedCount >= _units.length) {
+      // Hold for one ink-bloom window after the last unit is revealed
+      // so its fade-in plays through before we fire onComplete.
+      _naturalCompletionAt ??=
+          _now + const Duration(milliseconds: _inkBloomMs + 50);
+      if (_now >= _naturalCompletionAt!) {
         _completeInternal(natural: true);
-      });
+        return;
+      }
     }
 
     setState(() {});
