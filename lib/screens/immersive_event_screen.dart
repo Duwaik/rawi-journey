@@ -19,6 +19,7 @@ import '../data/rawi_dialogue.dart';
 import '../models/branch_point.dart';
 import '../widgets/cinematic/crossroads_card.dart';
 import '../widgets/cinematic/rawi_figure.dart';
+import '../widgets/reader/reader_book_sprite.dart';
 import '../models/badge_definition.dart';
 import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
@@ -2144,21 +2145,47 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
           // ── Rawi figure + speech bubble ─────────────────────────────
           if (_phase == _Phase.explore)
-            // Reader: IgnorePointer (stationary, non-interactive, sits
-            // in the card grid gap). Explorer: interactive column with
-            // bubble above the walking figure.
-            // ── Reader: stationary figure at center (IgnorePointer) ────
+            // Reader (R28 S3-P1-09): figure scene-center horizontal, ~45 %
+            // from top, scaled 0.55× with a CustomPaint book overlay at the
+            // hand area. Stationary — no walk, no idle bounce. The bounce
+            // controller (_figureScale) is intentionally bypassed for
+            // Reader so the figure feels like a quiet reader, not a
+            // hotspot-celebrating Explorer.
+            // Explorer: interactive walking figure at companion position
+            // with speech bubble above.
             if (!_explorerMode)
               Positioned(
-                left: screenW / 2 - 34,
-                top: screenH / 2 - 32,
+                left: screenW / 2 - 34, // figure box is 68 wide
+                top: screenH * 0.45 - 43, // figure box is 86 tall, 45 % from top
                 child: IgnorePointer(
                   child: Transform.scale(
-                    scale: _figureScale,
-                    child: RawiFigure(
-                      isWalking: false,
-                      facingDirection: 0.0,
-                      isAr: _isAr,
+                    scale: 0.55,
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: 68,
+                      height: 86,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          RawiFigure(
+                            isWalking: false,
+                            facingDirection: 0.0,
+                            isAr: _isAr,
+                          ),
+                          // Book sprite at hand area (~55 % down from
+                          // figure top, centered on figure midline).
+                          // Size ~12 % of scaled figure height (86 * 0.12
+                          // ≈ 10 px in the unscaled box → ~5.6 px visually
+                          // after the 0.55× outer scale).
+                          Positioned(
+                            left: 68 / 2 - 13 / 2,
+                            top: 86 * 0.55 - 10 / 2,
+                            child: const ReaderBookSprite(
+                              size: Size(13, 10),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
