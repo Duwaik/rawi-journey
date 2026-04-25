@@ -45,6 +45,10 @@ class _ReaderBottomCardState extends State<ReaderBottomCard>
   late final PageController _pageCtrl;
   late final AnimationController _pulseCtrl;
   int _currentPage = 0;
+  // R28 S3-P1-11 · 1-second establishing beat. Page 1's content stays
+  // un-mounted for the first 1000 ms after the card opens so the scene
+  // can breathe before the writing animation begins.
+  bool _firstPageReady = false;
 
   @override
   void initState() {
@@ -62,6 +66,10 @@ class _ReaderBottomCardState extends State<ReaderBottomCard>
       if (rounded != _currentPage) {
         setState(() => _currentPage = rounded);
       }
+    });
+    // P1-11 — schedule page 1 reveal after the establishing beat.
+    Future<void>.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) setState(() => _firstPageReady = true);
     });
   }
 
@@ -116,6 +124,13 @@ class _ReaderBottomCardState extends State<ReaderBottomCard>
                 reverse: widget.isAr,
                 itemCount: widget.hotspots.length,
                 itemBuilder: (context, index) {
+                  // P1-11 — withhold page 1's content for 1 s after open
+                  // so the scene breathes. Pages 2..4 mount whenever
+                  // PageView builds them (typically on swipe-in), so
+                  // they start their reveal as the user lands on them.
+                  if (index == 0 && !_firstPageReady) {
+                    return const _EmptyPage();
+                  }
                   return _PageContent(
                     hotspot: widget.hotspots[index],
                     isAr: widget.isAr,
@@ -193,6 +208,17 @@ class _ReaderBottomCardState extends State<ReaderBottomCard>
         ),
       ),
     );
+  }
+}
+
+/// Quiet placeholder rendered for page 1 during the P1-11 establishing
+/// beat — same padding shape as a real page, no text, no controllers.
+class _EmptyPage extends StatelessWidget {
+  const _EmptyPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.expand();
   }
 }
 
