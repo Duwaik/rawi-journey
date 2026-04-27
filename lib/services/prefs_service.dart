@@ -119,56 +119,31 @@ class PrefsService {
   static Future<void> setScrollSealBackfillDone() async =>
       await _prefs?.setBool(_keyScrollSealBackfillDone, true);
 
-  /// Reset ALL progress — clears every progress-related key.
-  /// Preserves: user profile (name, gender, language, text scale, audio toggles).
+  /// Wipe every persisted value — full reset to fresh-install state.
+  ///
+  /// R28-HF1-RESET (27 Apr 2026): replaces the prior selective
+  /// key-by-key clear, which left profile fields, language, mode,
+  /// text scale, audio settings, in-progress event tracking, and any
+  /// dynamic keys we forgot to enumerate untouched. The partial clear
+  /// produced "tent shows Continue → Event 6 (completed in prior
+  /// journey)" while "events list shows every event locked including
+  /// Event 1" — same UI claiming two opposite things — plus
+  /// inconsistent tutorial replay.
+  ///
+  /// Storage backends in this project: **SharedPreferences only.**
+  /// pubspec.yaml carries no Hive, sqflite, secure_storage, drift,
+  /// isar, or sembast dependency. `lib/screens/event_list_screen.dart`
+  /// touches SharedPreferences only via [PrefsService.reload]. So a
+  /// single `prefs.clear()` covers every persistent store the app
+  /// writes to.
+  ///
+  /// Caller must navigate the user to the fresh-install entry
+  /// (Splash → Intro → Registration) after this returns. See
+  /// `lib/screens/settings_screen.dart:_resetJourney`.
   static Future<void> resetJourney() async {
     final prefs = _prefs;
     if (prefs == null) return;
-
-    // Clear all progress-related keys (including dynamic ones)
-    final keys = prefs.getKeys().toList();
-    for (final key in keys) {
-      if (key.startsWith(_keyJourneyCompleted) ||
-          key.startsWith(_keyHotspotProgress) ||
-          key.startsWith(_keyThresholdCompleted) ||
-          key.startsWith(_keyPassageSeen) ||
-          key.startsWith(_keyDhikrCompleted) ||
-          key.startsWith(_keyArcSealBrokenPrefix) ||
-          key == _keyDiscoveredCollection ||
-          key == _keyDiscoveredSecrets ||
-          key == _keyScrollSealBackfillDone) {
-        await prefs.remove(key);
-      }
-    }
-
-    // Clear all scalar progress keys
-    await prefs.setInt(_keyJourneyCurrent, 1);
-    await prefs.setInt(_keyXp, 0);
-    await prefs.setInt(_keyStreak, 1);
-    await prefs.remove(_keyStreakDate);
-    await prefs.setStringList(_keyEarnedBadges, []);
-    await prefs.setBool(_keyTutorialSeen, false);
-    await prefs.setBool(_keyChoiceTutSeen, false);
-    // R9-02: Reset onboarding so user sees intro cinematic + registration again
-    await prefs.setBool(_keyOnboardingDone, false);
-    await prefs.setBool(_keyRawiCallShown, false);
-    await prefs.setInt(_keyDhikrCount, 0);
-    await setNoorLevel(100);
-    await prefs.setBool(_keyDhikrTutorialSeen, false);
-    // R27 S1.1-TENT6: also reset all three cinematic/coach-mark
-    // tutorial flags so a different user inheriting the device
-    // gets the full fresh-install tutorial loop (tent cinematic →
-    // icon coach-mark → Event 1 tutorial on first event launch).
-    await prefs.remove(_keyTentTutorialShown);
-    await prefs.remove(_keyTentIconTutorialShown);
-    await prefs.remove(_keyEvent1TutorialShown);
-    // Reset tent-dhikr 24 h lock too — a new user shouldn't inherit
-    // the previous owner's cooldown timestamp.
-    await prefs.remove(_keyLastTentDhikrTs);
-    // R28 S1-FEAT4: reset Journey view default back to factory ('list')
-    // on full journey reset so a new user opening Events List sees the
-    // list view, not whatever the previous owner had set.
-    await prefs.remove(_keyJourneyViewDefault);
+    await prefs.clear();
   }
 
   // ── WELCOME SCREEN (legacy — kept for migration) ──────────────────────────

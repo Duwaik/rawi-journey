@@ -157,6 +157,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed == true) {
       await PrefsService.resetJourney();
       if (!mounted) return;
+      // R28-HF1-RESET: with prefs.clear() the language, text scale,
+      // and Reader/Explorer mode all snap back to defaults. Force the
+      // MaterialApp to rebuild so its Directionality + textScaler
+      // pick up the cleared values before SplashScreen mounts —
+      // otherwise the splash inherits AR-RTL / Large-scale from the
+      // settings screen we just popped out of for one frame.
+      RawiApp.rebuild(context);
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (c, a, s) => const SplashScreen(),
