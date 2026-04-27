@@ -171,9 +171,18 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // English (primary)
+                        // R28-HF1-INTRO: explicit LTR so terminal `.` /
+                        // `...` stays at the visual end when the
+                        // ambient app Directionality is RTL (AR
+                        // locale). Without this, Unicode bidi pushes
+                        // the punctuation to the "logical end" which
+                        // for LTR script under an RTL ambient renders
+                        // on the LEFT visually (verified A56, Cards
+                        // 1–3 of intro on AR locale).
                         Text(
                           line.en,
                           textAlign: TextAlign.center,
+                          textDirection: TextDirection.ltr,
                           style: GoogleFonts.cinzelDecorative(
                             fontSize: isFirstLine ? 36 : 22,
                             fontWeight: isFirstLine
@@ -217,6 +226,10 @@ class _IntroCinematicScreenState extends State<IntroCinematicScreen>
                     Text(
                       'Witness history. Carry the story.',
                       textAlign: TextAlign.center,
+                      // R28-HF1-INTRO: explicit LTR to keep both
+                      // periods at their visual end positions under
+                      // an AR-ambient Directionality (Card 3).
+                      textDirection: TextDirection.ltr,
                       style: GoogleFonts.cinzelDecorative(
                         fontSize: 22,
                         color: AppColors.gold,
