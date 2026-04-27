@@ -44,6 +44,30 @@ class AudioService {
     }
   }
 
+  /// R28-HF2-AMBIENT diagnostic: capture the first non-AudioService stack
+  /// frame so the debug overlay shows WHICH screen / lifecycle hook
+  /// triggered an ambient state change. HF2 traced the "tent ambient cuts
+  /// off after event completion" bug to the event screen's dispose calling
+  /// fadeOut on the *new* tent's just-started ambient player. With this
+  /// instrumentation, future races between a screen tear-down and a fresh
+  /// playAmbient are diagnosable from the always-on B27 overlay without
+  /// needing logcat.
+  static String _firstExternalCaller() {
+    try {
+      final lines = StackTrace.current.toString().split('\n');
+      for (final l in lines) {
+        if (l.trim().isEmpty) continue;
+        if (l.contains('audio_service.dart')) continue;
+        // Trim flutter SDK frames + asynchronous-suspension noise.
+        if (l.contains('<asynchronous suspension>')) continue;
+        return l.trim();
+      }
+      return lines.length > 1 ? lines[1].trim() : '?';
+    } catch (_) {
+      return '?';
+    }
+  }
+
   /// Start playing an ambient audio asset at the given volume.
   /// Used for: onboarding music (looping) and hotspot atmospheric beds.
   ///
@@ -87,16 +111,20 @@ class AudioService {
       // and ramp to target via fadeAmbientTo. Otherwise set volume
       // directly (matches pre-S1.5 behaviour for all existing callers
       // that pass the default Duration.zero).
+      // R28-HF2: capture caller so the overlay shows which screen
+      // started this ambient — pairs with the matching log in fadeOut.
+      final caller = _firstExternalCaller();
       if (fadeInDuration > Duration.zero) {
         await _ambient!.setVolume(0.0);
         _ambient!.play();
         DebugLogService.log('audio',
-            'ambient play $assetPath vol=0→$volume fade=${fadeInDuration.inMilliseconds}ms');
+            'ambient play $assetPath vol=0→$volume fade=${fadeInDuration.inMilliseconds}ms (caller: $caller)');
         await fadeAmbientTo(volume, duration: fadeInDuration);
       } else {
         await _ambient!.setVolume(volume);
         _ambient!.play();
-        DebugLogService.log('audio', 'ambient play $assetPath vol=$volume');
+        DebugLogService.log('audio',
+            'ambient play $assetPath vol=$volume (caller: $caller)');
       }
       return true;
     } catch (e) {
@@ -310,6 +338,9 @@ class AudioService {
     final player = _ambient;
     if (player == null) return;
     final path = _currentAmbientPath;
+    // R28-HF2: capture caller for the debug overlay so cross-screen
+    // ambient races (HF2's bug) are diagnosable without logcat.
+    final caller = _firstExternalCaller();
 
     final startVol = player.volume;
     const steps = 15;
@@ -325,7 +356,7 @@ class AudioService {
     _ambient = null;
     _currentAmbientPath = null;
     _currentAmbientVolume = 0.0;
-    DebugLogService.log('audio', 'ambient faded out $path');
+    DebugLogService.log('audio', 'ambient faded out $path (caller: $caller)');
   }
 
   /// Immediately stop ambient audio (emergency only — use fadeOut for UI).

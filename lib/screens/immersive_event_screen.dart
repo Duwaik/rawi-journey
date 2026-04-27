@@ -663,10 +663,28 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     _snapCtrl.dispose();
     _revealCtrl.dispose();
     _phaseCtrl.dispose();
-    // Fade all audio for smooth exit (LOCKED RULE: no hard cuts)
+    // R28-HF2-AMBIENT (27 Apr 2026): the previous `AudioService.fadeOut`
+    // call here was the cause of "tent ambient cuts off after returning
+    // from a completed event." The completion path's
+    // `_continueJourney` does `pushAndRemoveUntil(new RawiTentScreen)`,
+    // and the new tent's `initState` synchronously kicks off
+    // `_startTentAmbient` (creating the new ambient player). The stack
+    // unwind then disposes this screen — and the fadeOut here would
+    // capture `_ambient` (now the tent's brand-new player) and ramp
+    // it to 0 over 250 ms, killing the just-started ambient.
+    //
+    // Every real exit path (`_exitScene`, `_saveAndExit`,
+    // `_completeAndPop`, `_openSettings`) already fades ambient
+    // explicitly BEFORE navigation. The dispose here was redundant
+    // safety; removing it eliminates the race.
+    //
+    // SFX + VO stop calls stay — they're different audio layers, do
+    // not compete with the tent's ambient player, and represent a
+    // genuine cleanup boundary on screen tear-down. (VO is currently
+    // globally disabled, so `fadeOutVoiceover` is effectively a no-op
+    // until VO files ship.)
     AudioService.stopSfx();
     AudioService.fadeOutVoiceover(duration: const Duration(milliseconds: 200));
-    AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     super.dispose();
   }
 
