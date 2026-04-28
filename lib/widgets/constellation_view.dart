@@ -114,12 +114,22 @@ class _ConstellationViewState extends State<ConstellationView>
     final amplitude = screenW * 0.28;
     final bottomAllowance = 140.0 + bottomPad;
     final clusterSpread = screenW * 0.18;
-    // R28 S1-FEAT3: 22 px per cluster step. The painter draws each
-    // star's label (~10 px) and date (~7 px) stacked with a small
-    // gap, so ~20 px of vertical separation is the minimum readable
-    // stagger at A56 resolution. 22 is that minimum with a touch of
-    // slack.
-    const clusterStaggerY = 22.0;
+    // R28 S1-FEAT3 set this to 22 px — the *minimum* needed to fit
+    // a stacked label (~10 px) + date (~7 px) with no overlap on the
+    // A56's default font metrics. R28-HF3-CONST1 (27 Apr A56 verify)
+    // shows that minimum is too tight in practice — at the 570 CE
+    // 3-event cluster (Year of the Elephant + Birth + Halimah), the
+    // adjacent labels still bled into each other once the renderer
+    // factored in line-height + diacritics. Bumping to 32 px gives
+    // ~10 px of clear daylight between adjacent labels, which holds
+    // up across text-scale Default + Large.
+    //
+    // Carry-forward note (per HF3-CONST1 §"Carry-forward note"): when
+    // Stars's standalone screen retires entirely and CONSTELLATION
+    // toggle in Events List is the only host, this stagger algorithm
+    // ports unchanged — the constant + the symmetric formula travel
+    // with the widget.
+    const clusterStaggerY = 32.0;
 
     int row = 0;
     int i = 0;
