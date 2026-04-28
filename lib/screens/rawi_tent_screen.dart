@@ -761,8 +761,29 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                                           color: AppColors.gold,
                                           width: 1.5),
                                     ),
+                                    // R28 HF3-PROG1: display the current
+                                    // event INDEX (1-indexed) — what
+                                    // event the Start / Continue button
+                                    // is about to launch — not the
+                                    // count of events the user has
+                                    // already completed. Pre-HF3 used
+                                    // `$completed` which read N-1
+                                    // against the displayed event title:
+                                    //   • Title "Year of the Elephant"
+                                    //     (Event 2) + pill "1/155"
+                                    //   • Title "Halimah's Nursing"
+                                    //     (Event 4) + pill "3/155"
+                                    // R28-HF1-RESET surfaced the
+                                    // mismatch by making fresh-install
+                                    // state easily reachable; the
+                                    // formula itself dates to
+                                    // R27-S1.4-PROG1. Stat row at
+                                    // _buildInfoTabStatRows still uses
+                                    // `$completed` (count semantics —
+                                    // "you've completed X events")
+                                    // unchanged.
                                     child: Text(
-                                      '$completed / ${m1Events.length}',
+                                      '${(completed + 1).clamp(1, m1Events.length)} / ${m1Events.length}',
                                       style: GoogleFonts.nunito(
                                         color: const Color(0xFFF0D070),
                                         fontSize: 14,
