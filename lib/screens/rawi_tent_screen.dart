@@ -888,12 +888,26 @@ class _RawiTentScreenState extends State<RawiTentScreen>
     );
   }
 
-  /// R28 S1-NAV1: "coming soon" placeholder slot. Same frame as
-  /// [_navIconMaterial] but dimmed visuals (weaker fill, 45 % icon
-  /// alpha) to read as non-active at a glance. Tap shows a short
-  /// snackbar explaining the slot — doesn't navigate, doesn't crash.
-  /// Used for the Living Map slot which is reserved for a future
-  /// sprint but has no screen wired yet.
+  /// R28 S1-NAV1 / R28 HF3-LMAP1: "coming soon" placeholder slot.
+  ///
+  /// Frame shape matches [_navIconMaterial] (44 px, 12 px radius) but
+  /// the fill + border + icon read as **outlined / muted** instead of
+  /// active. R28-S1's first pass used `Colors.black.withAlpha(120)` +
+  /// faint gold border (alpha 20) which on the A56's dark scene BG
+  /// rendered as a "black bar" — the dark fill blended into the
+  /// background and the icon (alpha 115) was too dim to anchor the
+  /// shape as a recognisable slot.
+  ///
+  /// HF3-LMAP1 swaps the fill from translucent-black to a barely-there
+  /// gold wash (alpha 10), bumps the border to a clearly-visible gold
+  /// outline (alpha 70, 1.2 px), and brightens the icon to alpha 150 —
+  /// readable but still subordinate to the active nav icons (alpha 255
+  /// on the gold). Net result: outlined ghost-button silhouette, dim
+  /// compass icon visible, clearly placeholder-not-active.
+  ///
+  /// Tap shows a short snackbar explaining the slot — doesn't navigate,
+  /// doesn't crash. Used for the Living Map slot which is reserved for
+  /// a future sprint but has no screen wired yet.
   Widget _navIconPlaceholder(
       IconData icon, String tooltipLabel, String snackbarMessage) {
     return Tooltip(
@@ -930,11 +944,14 @@ class _RawiTentScreenState extends State<RawiTentScreen>
           width: 44, height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Colors.black.withAlpha(120),
+            color: AppColors.gold.withAlpha(10),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.gold.withAlpha(20)),
+            border: Border.all(
+              color: AppColors.gold.withAlpha(70),
+              width: 1.2,
+            ),
           ),
-          child: Icon(icon, size: 22, color: AppColors.gold.withAlpha(115)),
+          child: Icon(icon, size: 22, color: AppColors.gold.withAlpha(150)),
         ),
       ),
     );
