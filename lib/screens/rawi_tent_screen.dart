@@ -21,6 +21,7 @@ import '../widgets/rawi_dialog.dart';
 import '../widgets/stat_row_group.dart';
 import '../widgets/tent_icon_tutorial_overlay.dart';
 import '../widgets/tent_info_tab.dart';
+import '../widgets/tutorial_keys.dart';
 
 /// R22 Part 3 / R24 A-01 — Rawi's Tent V2 (cinematic campfire home).
 ///
@@ -540,24 +541,25 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                   children: [
                     // 1. Events List
                     // R27 S1-TENT3: Material icon instead of 📋 emoji.
+                    // R28 HF3-TUT1: GlobalKey for live tutorial spotlight.
                     _navIconMaterial(
                         Icons.view_list_rounded,
                         _isAr ? 'الأحداث' : 'Events', () {
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const EventListScreen()));
-                    }),
+                    }, key: TutorialKeys.tentEvents),
                     const SizedBox(height: 8),
                     // 2. Rawi's Scroll
                     _navIcon('📜', _isAr ? 'السجلّ' : 'Scroll', () {
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const ScrollViewerScreen()));
-                    }),
+                    }, key: TutorialKeys.tentScroll),
                     const SizedBox(height: 8),
                     // 3. Collections
                     _navIcon('🏛️', _isAr ? 'المجموعات' : 'Collections', () {
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const CollectionGalleryScreen()));
-                    }),
+                    }, key: TutorialKeys.tentCollections),
                     const SizedBox(height: 8),
                     // 4. Dhikr
                     _navIcon('🤲', _isAr ? 'الذكر' : 'Dhikr', () {
@@ -565,7 +567,7 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                       // + all unlocked + locked silhouettes).
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => const DhikrCollectionScreen()));
-                    }),
+                    }, key: TutorialKeys.tentDhikr),
                     const SizedBox(height: 8),
                     // 5. Living Map placeholder (R28 S1-NAV1 — coming soon)
                     _navIconPlaceholder(
@@ -574,6 +576,7 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                       _isAr
                           ? 'الخريطة الحيّة قريباً'
                           : 'Living Map is coming soon',
+                      key: TutorialKeys.tentLivingMap,
                     ),
                   ],
                   ),
@@ -593,6 +596,8 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                   onTap: () => Navigator.push(context, MaterialPageRoute(
                       builder: (_) => const SettingsScreen())),
                   child: Container(
+                    // R28 HF3-TUT1: GlobalKey for live tutorial spotlight.
+                    key: TutorialKeys.tentSettings,
                     width: 34, height: 34,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -845,12 +850,13 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   // scales and the label parameter is kept for API stability /
   // tooltips only. Button shrank 52→44 to match 44dp tap-target min.
 
-  Widget _navIcon(String icon, String label, VoidCallback onTap) {
+  Widget _navIcon(String icon, String label, VoidCallback onTap, {Key? key}) {
     return Tooltip(
       message: label,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
+          key: key,
           width: 44, height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
@@ -869,12 +875,13 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   /// List slot can use `Icons.view_list_rounded` — the old 📋 emoji
   /// didn't read as "list" and clustered visually with 📜 / 🏛️.
   Widget _navIconMaterial(
-      IconData icon, String label, VoidCallback onTap) {
+      IconData icon, String label, VoidCallback onTap, {Key? key}) {
     return Tooltip(
       message: label,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
+          key: key,
           width: 44, height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
@@ -909,7 +916,8 @@ class _RawiTentScreenState extends State<RawiTentScreen>
   /// doesn't crash. Used for the Living Map slot which is reserved for
   /// a future sprint but has no screen wired yet.
   Widget _navIconPlaceholder(
-      IconData icon, String tooltipLabel, String snackbarMessage) {
+      IconData icon, String tooltipLabel, String snackbarMessage,
+      {Key? key}) {
     return Tooltip(
       message: tooltipLabel,
       child: GestureDetector(
@@ -941,6 +949,7 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             );
         },
         child: Container(
+          key: key,
           width: 44, height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(

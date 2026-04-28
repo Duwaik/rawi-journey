@@ -3,24 +3,39 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
+import 'tutorial_keys.dart';
 
-/// R27 S1.1-TENT5 + S1.3-TENT3: sequential coach-mark tutorial over
-/// the tent. Walks the user through all 7 interactive elements in a
-/// fixed order:
+/// Sequential coach-mark tutorial over the tent.
 ///
-///   1. Events        (right-side nav, top)
-///   2. Stars          (right-side nav)
-///   3. Rawi's Scroll  (right-side nav)
-///   4. Dhikr          (right-side nav)
-///   5. Collections    (right-side nav, bottom)
-///   6. Info tab       (left edge, S1.3-TENT1's enlarged chevron)
-///   7. Settings gear  (top-right corner)
+/// R28 HF3-TUT1 (27 Apr): step list updated to match the current
+/// 5-active + 1-reserved nav (R28-S1-NAV1 retired Stars; the slot is
+/// now Living Map placeholder). Six spotlights total:
 ///
-/// Icon positions are computed from the same math the tent build
-/// method uses — one move of the layout means two edits, but keeps
-/// runtime simple (no RenderBox probing). Tooltip card position is
-/// per-step: nav icons anchor tooltip to the LEFT (free-space side),
-/// info tab to the RIGHT, settings gear BELOW with horizontal clamp.
+///   1. Events           (right-side nav)
+///   2. Rawi's Scroll    (right-side nav)
+///   3. Collections      (right-side nav)
+///   4. Living Map       (right-side nav, "coming soon" placeholder
+///                        — still highlighted so the user knows the
+///                        slot exists)
+///   5. Info tab         (left-edge enlarged ⓘ circle)
+///   6. Settings gear    (top-right corner)
+///
+/// Stars step removed (Stars screen retired in R28-S1-CODE1). Dhikr
+/// step also removed — Dhikr has its own one-shot tutorial flag fired
+/// by the Dhikr screen on first open, doesn't need a tent mention.
+///
+/// Spotlight positions come from each target's live RenderBox via
+/// `localToGlobal`, not static screen-fraction math (the S1.5-TUT2
+/// pattern). Targets are addressed by `GlobalKey` from
+/// [TutorialKeys] — the actual widgets attach the same key when
+/// they build, so position math survives any future layout move
+/// without a second edit.
+///
+/// Per-target shape:
+///   • nav icons    → rounded-rect, radius 12 (matches `_navIcon`'s
+///                    Container BorderRadius)
+///   • info tab     → circle (42 px tent info circle)
+///   • settings gear → circle (34 px BoxShape.circle container)
 class TentIconTutorialOverlay extends StatefulWidget {
   final VoidCallback onFinished;
 
@@ -36,36 +51,6 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
   int _step = 0;
   late final AnimationController _ringPulse;
 
-  // Mirrors rawi_tent_screen.dart right-side nav Column
-  //   Positioned(top: screenH * 0.28, right: 10), _navIcon 44 × 44,
-  //   SizedBox(height: 8) between icons.
-  static const double _navIconSize = 44;
-  static const double _navIconGap = 8;
-  static const double _navRightInset = 10;
-  static const double _navTopFraction = 0.28;
-
-  // R27 S1.5-TUT2: info tab highlight targets the INFO CIRCLE (52 px
-  // after S1.5-INFO1), not the chevron-at-right-border. The info
-  // circle sits hugged to the left edge of the panel. Panel top is
-  // at `screenH * 0.45`, panel vertical padding is 9 px, so the
-  // info circle's top sits at `screenH * 0.45 + 9` and spans
-  // [9, 61] horizontally inside the panel.
-  //
-  // Pre-S1.5 the highlight used `screenH * 0.45` as the target's
-  // CENTER and 42 px for size — which put the spotlight ~31 px too
-  // high AND on the chevron's position, not the info icon's.
-  // Device verify caught "spotlight floats above the info icon."
-  static const double _infoTabSize = 52;
-  static const double _infoTabPanelTopFraction = 0.45;
-  static const double _infoTabPanelPadding = 9;
-  static const double _infoTabLeftInset = 9;
-
-  // R27 S1-TENT (settings gear in rawi_tent_screen.dart:~498):
-  //   Positioned(top: topPad + 10, right: 12), 34 × 34.
-  static const double _gearSize = 34;
-  static const double _gearRightInset = 12;
-  static const double _gearTopInset = 10;
-
   bool get _isAr => PrefsService.isAr;
 
   @override
@@ -75,6 +60,12 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 1100),
     )..repeat(reverse: true);
+    // R28 HF3-TUT1: trigger one rebuild after first frame so the
+    // RenderBox lookups in `_resolveTarget` see laid-out targets.
+    // First frame may otherwise paint at the static fallback rect.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -104,107 +95,129 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
   }
 
   List<_CoachStep> get _steps => _isAr
-      ? const [
-          _CoachStep('الأحداث',
-              'كل لحظة من السيرة، بالترتيب. اختر من أين تبدأ.',
-              _Target.navIcon, 0),
-          _CoachStep('النجوم',
-              'أحداثك المكتملة تصبح نجوماً في السماء. كل نجمة رحلة تتذكرها.',
-              _Target.navIcon, 1),
-          _CoachStep('مخطوطة الراوي',
-              'القصة المكتوبة حتى الآن. رحلتك تصبح مخطوطة تقرأها.',
-              _Target.navIcon, 2),
-          _CoachStep('الذِكر',
-              'ذِكر يومي. قله مرة في اليوم لينير طريقك.',
-              _Target.navIcon, 3),
-          _CoachStep('المجموعات',
-              'مخطوطاتك ومقتنياتك وشاراتك. كل ما جمعته، في مكان واحد.',
-              _Target.navIcon, 4),
-          _CoachStep('تقدمك',
-              'اضغط في أي وقت لرؤية نورك وما تبقى من هذه الرحلة.',
-              _Target.infoTab, 0),
-          _CoachStep('الإعدادات',
-              'غيّر اللغة وحجم النص، أو ابدأ رحلتك من جديد.',
-              _Target.settingsGear, 0),
+      ? [
+          _CoachStep(
+            'الأحداث',
+            'كل لحظة من السيرة، بالترتيب. اختر من أين تبدأ.',
+            TutorialKeys.tentEvents,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'مخطوطة الراوي',
+            'القصة المكتوبة حتى الآن. رحلتك تصبح مخطوطة تقرأها.',
+            TutorialKeys.tentScroll,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'المجموعات',
+            'مخطوطاتك ومقتنياتك وشاراتك. كل ما جمعته، في مكان واحد.',
+            TutorialKeys.tentCollections,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'الخريطة الحيّة',
+            'قريباً ستظهر خريطة لرحلتك عبر الجزيرة العربية. سنفتحها لاحقاً.',
+            TutorialKeys.tentLivingMap,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'تقدمك',
+            'اضغط في أي وقت لرؤية نورك وما تبقى من هذه الرحلة.',
+            TutorialKeys.tentInfoTab,
+            _Shape.circle,
+          ),
+          _CoachStep(
+            'الإعدادات',
+            'غيّر اللغة وحجم النص، أو ابدأ رحلتك من جديد.',
+            TutorialKeys.tentSettings,
+            _Shape.circle,
+          ),
         ]
-      : const [
-          _CoachStep('Events',
-              'Every moment of the Seerah, in order. Pick where to begin.',
-              _Target.navIcon, 0),
-          _CoachStep('Stars',
-              'Your completed events become stars in the sky. '
-                  'Each one is a journey you remember.',
-              _Target.navIcon, 1),
-          _CoachStep("Rawi's Scroll",
-              'The story written so far. Your journey becomes a '
-                  'scroll you can read back.',
-              _Target.navIcon, 2),
-          _CoachStep('Dhikr',
-              'A daily remembrance. Say it once per day to light your way.',
-              _Target.navIcon, 3),
-          _CoachStep('Collections',
-              'Your gathered manuscripts, scrolls, and badges. '
-                  "Everything you've earned, in one place.",
-              _Target.navIcon, 4),
-          _CoachStep('Your progress',
-              'Tap any time to see your Light and what\'s left in this journey.',
-              _Target.infoTab, 0),
-          _CoachStep('Settings',
-              'Change language, text size, or start your journey over.',
-              _Target.settingsGear, 0),
+      : [
+          _CoachStep(
+            'Events',
+            'Every moment of the Seerah, in order. Pick where to begin.',
+            TutorialKeys.tentEvents,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            "Rawi's Scroll",
+            'The story written so far. Your journey becomes a '
+                'scroll you can read back.',
+            TutorialKeys.tentScroll,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'Collections',
+            'Your gathered manuscripts, scrolls, and badges. '
+                "Everything you've earned, in one place.",
+            TutorialKeys.tentCollections,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'Living Map',
+            'Coming soon — a map of your journey across Arabia. '
+                "We'll open this slot in a future release.",
+            TutorialKeys.tentLivingMap,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'Your progress',
+            'Tap any time to see your Light and what\'s left in this journey.',
+            TutorialKeys.tentInfoTab,
+            _Shape.circle,
+          ),
+          _CoachStep(
+            'Settings',
+            'Change language, text size, or start your journey over.',
+            TutorialKeys.tentSettings,
+            _Shape.circle,
+          ),
         ];
 
-  /// Per-step target rect + tooltip anchor side. Returns the rect of
-  /// the highlighted UI element in screen coordinates.
-  ({Rect rect, _Anchor anchor}) _resolveTarget(
-      _CoachStep step, Size screen, double topPad) {
-    switch (step.target) {
-      case _Target.navIcon:
-        final top = screen.height * _navTopFraction +
-            step.targetIndex * (_navIconSize + _navIconGap);
-        final left = screen.width - _navRightInset - _navIconSize;
-        return (
-          rect: Rect.fromLTWH(left, top, _navIconSize, _navIconSize),
-          // Nav is on the right; tooltip goes to the LEFT.
-          anchor: _Anchor.leftOfTarget,
-        );
-      case _Target.infoTab:
-        // R27 S1.5-TUT2: target the actual info icon, not the panel
-        // position or the chevron. Panel top = screenH * 0.45. Panel
-        // internal padding = 9 px on all sides. Info circle (52 px,
-        // S1.5-INFO1) hugs the panel's leading edge via
-        // Align(centerLeft) — so its screen coords are:
-        //   top = panel_top + panel_padding
-        //   left = panel_padding
-        final panelTop = screen.height * _infoTabPanelTopFraction;
-        final top = panelTop + _infoTabPanelPadding;
-        final left = _infoTabLeftInset;
-        return (
-          rect: Rect.fromLTWH(
-              left, top, _infoTabSize, _infoTabSize),
-          // Tooltip on the RIGHT — info circle sits at the leading
-          // edge of the screen, right side has all the free space.
-          anchor: _Anchor.rightOfTarget,
-        );
-      case _Target.settingsGear:
-        final top = topPad + _gearTopInset;
-        final left = screen.width - _gearRightInset - _gearSize;
-        return (
-          rect: Rect.fromLTWH(left, top, _gearSize, _gearSize),
-          // Gear sits top-right corner; tooltip goes BELOW since
-          // there's no headroom above and no lateral space to the right.
-          anchor: _Anchor.belowTarget,
-        );
+  /// Resolve the on-screen rect for a step's target via live RenderBox.
+  /// Returns a fallback rect on the right edge of the screen if the
+  /// target hasn't laid out yet (covers the first paint before the
+  /// post-frame setState fires).
+  Rect _resolveTargetRect(_CoachStep step, Size screen) {
+    final ctx = step.targetKey.currentContext;
+    final ro = ctx?.findRenderObject();
+    if (ro is RenderBox && ro.hasSize) {
+      final pos = ro.localToGlobal(Offset.zero);
+      return Rect.fromLTWH(pos.dx, pos.dy, ro.size.width, ro.size.height);
     }
+    // Fallback — small placeholder rect off-screen-ish so the spotlight
+    // doesn't slam into the middle of the tent on the first frame.
+    return Rect.fromLTWH(screen.width - 60, screen.height * 0.5, 44, 44);
+  }
+
+  /// Choose tooltip anchor side based on the target's screen position.
+  /// Right-side nav → tooltip on the LEFT (free space). Left-edge info
+  /// tab → tooltip on the RIGHT. Top-bar gear → tooltip BELOW. Mirrors
+  /// for AR locale because the tent's nav stays on the right edge in
+  /// both LTR and RTL (it's locale-agnostic per design).
+  _Anchor _resolveAnchor(_CoachStep step, Rect rect, Size screen) {
+    final centerY = rect.center.dy;
+    final centerX = rect.center.dx;
+    final topThird = screen.height * 0.20;
+    if (centerY < topThird) {
+      // Top-bar element (e.g. settings gear).
+      return _Anchor.belowTarget;
+    }
+    if (centerX > screen.width / 2) {
+      // Right side of screen — tooltip on the left.
+      return _Anchor.leftOfTarget;
+    }
+    return _Anchor.rightOfTarget;
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final topPad = MediaQuery.of(context).padding.top;
     final bottomPad = MediaQuery.of(context).padding.bottom;
     final step = _steps[_step];
-    final target = _resolveTarget(step, size, topPad);
+    final targetRect = _resolveTargetRect(step, size);
+    final anchor = _resolveAnchor(step, targetRect, size);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -215,29 +228,19 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
             child: Container(color: Colors.black.withAlpha(153)), // 0.60
           ),
           // Pulsing gold ring around the resolved target rect.
-          // R27 S1.5-TUT2: shape now matches each target's actual
-          // underlying render shape:
-          //   navIcon       → rounded-rect, radius 12 (matches the
-          //                   `_navIcon` Container's BorderRadius 12)
-          //   infoTab       → full circle (matches the 52 px info
-          //                   circle from S1.5-INFO1)
-          //   settingsGear  → full circle (matches the gear's 34 px
-          //                   BoxShape.circle container)
-          // Pre-S1.5 used `shortestSide / 2` for everything which
-          // rendered circles over rounded-rect nav cards.
           AnimatedBuilder(
             animation: _ringPulse,
             builder: (context, _) {
               final v = _ringPulse.value;
               final extra = 4 + v * 6;
-              final double highlightRadius = step.target == _Target.navIcon
+              final double highlightRadius = step.shape == _Shape.roundedRect
                   ? 12.0 + extra
-                  : (target.rect.shortestSide / 2) + extra;
+                  : (targetRect.shortestSide / 2) + extra;
               return Positioned(
-                top: target.rect.top - extra,
-                left: target.rect.left - extra,
-                width: target.rect.width + extra * 2,
-                height: target.rect.height + extra * 2,
+                top: targetRect.top - extra,
+                left: targetRect.left - extra,
+                width: targetRect.width + extra * 2,
+                height: targetRect.height + extra * 2,
                 child: IgnorePointer(
                   child: Container(
                     decoration: BoxDecoration(
@@ -262,9 +265,9 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
               );
             },
           ),
-          // Tooltip card — positioned per step's anchor side.
+          // Tooltip card — positioned per resolved anchor.
           _buildTooltipPositioned(
-              step, target.rect, target.anchor, size, bottomPad),
+              step, targetRect, anchor, size, bottomPad),
           // Step dots.
           Positioned(
             bottom: bottomPad + 16,
@@ -299,9 +302,7 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
 
   Widget _buildTooltipPositioned(_CoachStep step, Rect targetRect,
       _Anchor anchor, Size screen, double bottomPad) {
-    // Minimum breathing gap between tooltip and the target rect.
     const gap = 16.0;
-    // Card width used to compute right/left bounds when anchoring.
     switch (anchor) {
       case _Anchor.leftOfTarget:
         return Positioned(
@@ -425,14 +426,14 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
   }
 }
 
-enum _Target { navIcon, infoTab, settingsGear }
+enum _Shape { roundedRect, circle }
 
 enum _Anchor { leftOfTarget, rightOfTarget, belowTarget }
 
 class _CoachStep {
   final String title;
   final String body;
-  final _Target target;
-  final int targetIndex;
-  const _CoachStep(this.title, this.body, this.target, this.targetIndex);
+  final GlobalKey targetKey;
+  final _Shape shape;
+  const _CoachStep(this.title, this.body, this.targetKey, this.shape);
 }

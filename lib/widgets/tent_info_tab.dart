@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
+import 'tutorial_keys.dart';
 
 /// R27 S3-INFO1: tent-side info tab redesigned.
 /// - Collapsed: only the 42 px (ⓘ) circle. No chevron ornament.
@@ -210,6 +211,11 @@ class _TentInfoTabState extends State<TentInfoTab>
 
   Widget _buildInfoCircle() {
     return Container(
+      // R28 HF3-TUT1: GlobalKey for the tent's first-launch tutorial
+      // step that points at the info-tab circle. Tutorial uses live
+      // RenderBox + localToGlobal; the key sits on the 42 px circle
+      // directly so the spotlight lands centered on the (i) glyph.
+      key: TutorialKeys.tentInfoTab,
       width: _circleSize,
       height: _circleSize,
       decoration: BoxDecoration(
