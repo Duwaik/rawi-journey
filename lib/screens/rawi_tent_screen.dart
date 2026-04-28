@@ -350,10 +350,13 @@ class _RawiTentScreenState extends State<RawiTentScreen>
         // Sub-screens (Scroll, Events List, Dhikr, etc.) don't trigger
         // this — PopScope is scoped to the tent route, so their back
         // presses pop to tent via normal navigation.
+        // R28 HF3-DIALOG1: dropped the parenthetical "(your progress
+        // is saved)" body line. Dialog now renders just title +
+        // Cancel/Exit. Save-on-back behaviour is unchanged — the line
+        // was reassurance, not the actual save mechanism.
         final confirmed = await showRawiDialog(
           context: context,
           title: _isAr ? 'هل تريد الخروج من التطبيق؟' : 'Exit app?',
-          body: _isAr ? 'تقدّمك محفوظ.' : 'Your progress is saved.',
           cancelLabel: _isAr ? 'إلغاء' : 'Cancel',
           confirmLabel: _isAr ? 'خروج' : 'Exit',
           isAr: _isAr,

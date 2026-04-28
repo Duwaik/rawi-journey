@@ -5,10 +5,14 @@ import '../app_colors.dart';
 /// Reusable dialog matching Rawi's cinematic design system.
 /// Navy card background, gold border, Cinzel title, Nunito body.
 /// Use [showRawiDialog] helper for easy invocation.
+///
+/// R28 HF3-DIALOG1: [body] is optional. When null (or whitespace-only),
+/// the body Text + its spacer are skipped — the dialog renders just
+/// title + buttons. Used by the tent exit dialog post-HF3.
 Future<bool?> showRawiDialog({
   required BuildContext context,
   required String title,
-  required String body,
+  String? body,
   required String confirmLabel,
   required String cancelLabel,
   bool isAr = false,
@@ -48,19 +52,20 @@ Future<bool?> showRawiDialog({
                 fontSize: 18,
               ),
             ),
-            const SizedBox(height: 14),
-
-            // Body
-            Text(
-              body,
-              textAlign: TextAlign.center,
-              textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-              style: GoogleFonts.nunito(
-                color: AppColors.textBody,
-                fontSize: 14,
-                height: 1.5,
+            // Body — omitted when null/blank (R28 HF3-DIALOG1).
+            if (body != null && body.trim().isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Text(
+                body,
+                textAlign: TextAlign.center,
+                textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+                style: GoogleFonts.nunito(
+                  color: AppColors.textBody,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 24),
 
             // Buttons
