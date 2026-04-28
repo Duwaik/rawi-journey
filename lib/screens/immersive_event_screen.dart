@@ -410,6 +410,50 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     }
     // B1 safety net: periodic health check every 12s.
     _startHotspotHealthCheck();
+
+    // R28 HF3-HOT1: prime hotspot proximity state on first paint.
+    //
+    // Pre-fix, _checkHotspotProximity + _updateHotspotProximity were
+    // ONLY called from movement handlers (game-loop frame, touch-to-
+    // move pan-update, joystick path advance). On fresh event entry
+    // the figure spawned at its initial waypoint, the proximity map
+    // stayed empty, and:
+    //   • The next hotspot's marker stayed at opacity 0
+    //     (rendered as `AnimatedOpacity(opacity: _hotspotProximityOpacity[h.id]
+    //     ?? 0.0, ...)` for non-discovered/non-pending markers)
+    //     so the user couldn't see what to tap.
+    //   • If the figure spawned within `_hotspotRadius` (0.09 of
+    //     screen width = ~32 px on A56) of a hotspot, auto-snap
+    //     SHOULD have fired but didn't because nothing called
+    //     _checkHotspotProximity yet.
+    //   • If the figure spawned in the dead zone between auto-snap
+    //     (< ~32 px) and tap activation (`_hsTapMinPx` = 40 px),
+    //     the FIRST tap on the next-hotspot marker was silently
+    //     rejected by the distance check at _onHotspotTap line 1412.
+    //     User had to move the figure to refresh proximity, then
+    //     tap → marker glow + activate. Hence "intermittent first
+    //     tap miss."
+    //
+    // Diagnostic finding: hypothesis C from spec §HF3-HOT1 ("proximity
+    // auto-snap state not initialized → tap rejected"), with the
+    // additional observation that proximity OPACITY also wasn't
+    // primed so the marker glow was missing on the very first frame.
+    //
+    // Fix: postFrameCallback fires both proximity helpers exactly
+    // once after the first paint. By then `MediaQuery.of(context)`
+    // is valid (build has run) and the companion + hotspot positions
+    // are fully laid out. No frame-blocking work — runs after first
+    // paint completes. Auto-snap fires if applicable; otherwise the
+    // marker just gains its expected glow opacity, which is what
+    // the user would have seen if they'd moved a single pixel.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      DebugLogService.log('hotspot',
+          'init proximity: companion=(${_companionX.toStringAsFixed(2)}, '
+          '${_companionY.toStringAsFixed(2)}) next=${_nextHotspotId ?? "?"}');
+      _checkHotspotProximity();
+      _updateHotspotProximity(nextHotspotId: _nextHotspotId);
+    });
   }
 
   /// B1 safety net: periodic silent health check that heals stuck
