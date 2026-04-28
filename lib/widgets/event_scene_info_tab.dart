@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
+import 'tutorial_keys.dart';
 
 /// R25-S3-6: Expandable info tab on the left edge of the event scene.
 ///
@@ -245,6 +246,13 @@ class _EventSceneInfoTabState extends State<EventSceneInfoTab>
 
   Widget _buildInfoCircle() {
     return Container(
+      // R28 HF3-INFO1: GlobalKey lets the Event1TutorialOverlay's
+      // leftMid pointer compute its target via live RenderBox +
+      // localToGlobal instead of the stale `size.height * 0.40 + 4`
+      // hardcoded fraction. The key is attached to the 42 px circle
+      // specifically (not the surrounding panel) so the arrow lands
+      // visually centered on the (i) glyph.
+      key: TutorialKeys.eventInfoTab,
       width: _circleSize,
       height: _circleSize,
       decoration: BoxDecoration(

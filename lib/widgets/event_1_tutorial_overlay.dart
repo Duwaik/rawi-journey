@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../services/prefs_service.dart';
+import 'tutorial_keys.dart';
 
 /// R25-S3-HF-8: Sequential 3-step tutorial shown after Event 1's intro.
 ///
@@ -50,6 +51,13 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
+    // R28 HF3-INFO1: trigger one rebuild after first frame so the
+    // leftMid pointer's RenderBox lookup (TutorialKeys.eventInfoTab)
+    // sees a laid-out target. First frame may paint with the static
+    // fallback if the info tab hasn't yet completed layout.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -264,11 +272,39 @@ class _Event1TutorialOverlayState extends State<Event1TutorialOverlay>
     // removed to keep the switch exhaustive-by-default.
     switch (target) {
       case _PointerTarget.leftMid:
-        // Arrow pointing left toward the info tab at ~40% height.
+        // R28 HF3-INFO1: arrow now points at the *current* info-tab
+        // circle position via TutorialKeys.eventInfoTab + localToGlobal.
+        // Pre-HF3 this used `size.height * 0.40 + 4` which was the
+        // pre-R27-S1.4 layout — info tab is now at 0.45 * H with a
+        // 42 px circle (was 52). Fallback to corrected static math
+        // covers first-frame race before the info tab lays out.
+        final rb = TutorialKeys.eventInfoTab.currentContext
+            ?.findRenderObject() as RenderBox?;
+        const arrowApprox = 32.0; // _buildArrow padded glyph footprint
+        double arrowTop = size.height * 0.45 + 18;
+        double arrowLeft = 60;
+        IconData arrowIcon = Icons.arrow_back_rounded;
+        if (rb != null && rb.hasSize) {
+          final tabPos = rb.localToGlobal(Offset.zero);
+          final tabSize = rb.size;
+          arrowTop = tabPos.dy + tabSize.height / 2 - arrowApprox / 2;
+          // Place the arrow on the screen-side AWAY from the tab's
+          // edge so it visibly points INTO the circle. AR locale may
+          // mount the tab on the right edge — check by midpoint.
+          final tabIsLeftSide =
+              tabPos.dx + tabSize.width / 2 < size.width / 2;
+          if (tabIsLeftSide) {
+            arrowLeft = tabPos.dx + tabSize.width + 8;
+            arrowIcon = Icons.arrow_back_rounded;
+          } else {
+            arrowLeft = tabPos.dx - arrowApprox - 8;
+            arrowIcon = Icons.arrow_forward_rounded;
+          }
+        }
         return Positioned(
-          top: size.height * 0.40 + 4,
-          left: 44,
-          child: _buildArrow(Icons.arrow_back_rounded),
+          top: arrowTop,
+          left: arrowLeft,
+          child: _buildArrow(arrowIcon),
         );
       case _PointerTarget.demoHotspot:
         // Pulsing demo spot, center-left where hotspots typically sit.
