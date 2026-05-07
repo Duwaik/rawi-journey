@@ -96,7 +96,80 @@ reference instead of restating.
 
 ---
 
+## Build verification protocol *(added 7 May 2026)*
+
+**Why this exists.** Stale Flutter builds (where `flutter clean` was skipped, or Gradle cached aggressively) can produce APKs that look "built" but contain no new code. The fix that shipped on the agent's machine never makes it onto Khaled's A56. This costs verify cycles, wastes build attempts, and erodes trust in the handoff signal. The protocol below catches it before the APK is installed.
+
+### The protocol
+
+Before every release-build handoff, the agent runs this sequence:
+
+1. `flutter clean` — clears all build artifacts
+2. `cd D:\Rawi_Journey\android && gradlew.bat assembleRelease` — fresh build
+3. `python D:\Rawi_Journey\tools\verify_build.py --sprint "<sprint name>"` — generates the verification block
+
+The script produces a **4-line block** that the agent pastes into the handoff message (the line beginning `BUILD COMPLETE` is a header, the four bullets that follow are the verification block):
+
+```
+BUILD COMPLETE - <sprint name>
+- flutter clean: confirmed
+- APK size: X.XX MB
+- libapp.so SHA256: <hash>
+- Changed from previous build: YES / NO
+```
+
+### The hard rule
+
+- **If `Changed from previous build: NO`** and code was actually modified: the build is **invalid**. Re-run `flutter clean` + `assembleRelease`, then verify again. **DO NOT install this APK on A56.**
+- **If the agent's handoff message does not contain this 4-line block:** Khaled does not test the APK. The agent gets asked to re-run the protocol and re-paste.
+
+### Why this works
+
+The script hashes `lib/arm64-v8a/libapp.so` from inside the APK and compares against the most recent entry in `tools/build_log.json`. If the hash is identical to the previous build, no Dart code actually changed in the APK regardless of what `flutter build` claims — it's a stale build. This is the only reliable signal: file timestamps, build-output paths, and Gradle messages can all lie. The compiled native code can't.
+
+The script auto-locates the APK at `build/app/outputs/apk/release/app-release.apk` (default Flutter output path). For unusual paths, pass `--apk <path>`. The build log is kept at `tools/build_log.json` (last 50 entries, auto-trimmed).
+
+### Scope
+
+A56 only — arm64-v8a APKs only. Cross-architecture and other devices are out of scope. The script will warn if `lib/arm64-v8a/libapp.so` isn't found and fall back to any `libapp.so` it can locate, but the protocol's safety guarantee is for arm64-v8a builds on A56.
+
+---
+
+## Diagnostic-first default rule *(added 7 May 2026)*
+
+**Any bug without hard repro steps gets a diagnostic build before any fix attempt.** This was already the rule for HF3's two intermittent items (first hotspot tap miss, progress card N-1 regression). Formalizing it as a default makes it explicit and removes ambiguity:
+
+| Bug shape | Action |
+|---|---|
+| "Sometimes happens" / "intermittent" / "occasionally" | **Diagnostic build first.** No guess-fixes. |
+| "Always happens when X" / clear repro | Fix attempt is fine — proceed normally. |
+| When in doubt | **Diagnostic.** Cost of one extra diagnostic build is small. Cost of a wrong fix that ships is high. |
+
+### What a diagnostic build looks like
+
+The agent adds **instrumentation** targeted at the suspected mechanism — examples:
+
+- **Lifecycle bugs** → logcat tags on key lifecycle callbacks (resume, pause, dispose), route observers
+- **Gesture / hit-test bugs** → render-tree dumps at first paint, gesture event traces, hit-test geometry logs
+- **Audio bugs** → AudioService caller-stack instrumentation (HF2 used this pattern)
+- **State / persistence bugs** → SharedPreferences read/write tracing, state-transition logs
+- **Rendering / layout bugs** → BuildContext walks, RenderBox geometry dumps at the moment the bug manifests
+
+The diagnostic build is shipped to Khaled like any other build (with the verification protocol above). Khaled runs it on A56, captures the relevant log/output, sends back to agent. Agent fixes based on **evidence**, not hypothesis.
+
+### Why this matters
+
+Guess-fixes for intermittent bugs land you in a long debug-build cycle: try-fix-A, install, test, doesn't work, try-fix-B, install, test, doesn't work, etc. Each attempt costs a build and a verify session. One diagnostic build replaces N guess attempts with a single targeted fix from a position of knowledge.
+
+### Pairing with build verification
+
+Every diagnostic build also goes through `verify_build.py`. A diagnostic build that doesn't reach the device (because it's stale) is worse than no diagnostic at all — you'd be reading the previous build's logs and drawing wrong conclusions.
+
+---
+
 _Document created Apr 24 2026 as part of R28-S1 HUGE sprint. When a
 new permanent rule is established, append here with the sprint
 marker (`R28-S1`, `R28-S2`, etc.) so future agents can trace the
 provenance._
+
+_Build-verification protocol + Diagnostic-first default appended 7 May 2026 from `RAWI_RULES_PATCH-07May2026-1930.md` (source: `RAWI_WORKFLOW_ENHANCEMENTS-5May2026-2200.md` enhancements #2 + #3). Append-only — all rules above this line preserved verbatim._
