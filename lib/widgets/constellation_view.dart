@@ -101,35 +101,26 @@ class _ConstellationViewState extends State<ConstellationView>
     return rows;
   }
 
-  /// Same-year events share a Y row and spread across X symmetrically
-  /// around the centerline. R28 S1-FEAT3 layers a symmetric vertical
-  /// stagger (22 px per step) on top so each event's painted label
-  /// doesn't overlap the next — was unreadable in the legacy Stars
-  /// screen whenever multiple events shared a year (570 CE cluster,
-  /// Badr week, late Mecca cluster, etc.). Symmetric distribution
-  /// keeps the cluster visually grouped as one year, not scattered.
+  /// Per-event anchor position. For singleton-year events the anchor
+  /// IS the visual position (star + label). For same-year clusters
+  /// (2+ events at the same `event.year`), all events in the cluster
+  /// share the SAME anchor — the cluster's center point on the
+  /// timeline. The painter then renders a tight dot-stack at that
+  /// anchor, dashed leader lines fanning out to a labels column,
+  /// and a year label centered vertically against the dot stack
+  /// (R28 HF4-01 Mockup B).
+  ///
+  /// This replaces the R28-S1-FEAT3 + R28-HF3-CONST1 vertical-stagger
+  /// approach. Stagger pushed adjacent-year rows apart on every
+  /// cluster — with 155 events and multiple dense-year clusters
+  /// (570 CE, Badr week, late Mecca) the timeline kept stretching.
+  /// Mockup B is geometrically stable: N events in one year doesn't
+  /// move surrounding years.
   List<Offset> _generatePositions(double screenW, double bottomPad) {
     final positions = List<Offset>.filled(widget.events.length, Offset.zero);
     final centerX = screenW / 2;
     final amplitude = screenW * 0.28;
     final bottomAllowance = 140.0 + bottomPad;
-    final clusterSpread = screenW * 0.18;
-    // R28 S1-FEAT3 set this to 22 px — the *minimum* needed to fit
-    // a stacked label (~10 px) + date (~7 px) with no overlap on the
-    // A56's default font metrics. R28-HF3-CONST1 (27 Apr A56 verify)
-    // shows that minimum is too tight in practice — at the 570 CE
-    // 3-event cluster (Year of the Elephant + Birth + Halimah), the
-    // adjacent labels still bled into each other once the renderer
-    // factored in line-height + diacritics. Bumping to 32 px gives
-    // ~10 px of clear daylight between adjacent labels, which holds
-    // up across text-scale Default + Large.
-    //
-    // Carry-forward note (per HF3-CONST1 §"Carry-forward note"): when
-    // Stars's standalone screen retires entirely and CONSTELLATION
-    // toggle in Events List is the only host, this stagger algorithm
-    // ports unchanged — the constant + the symmetric formula travel
-    // with the widget.
-    const clusterStaggerY = 32.0;
 
     int row = 0;
     int i = 0;
@@ -148,16 +139,62 @@ class _ConstellationViewState extends State<ConstellationView>
         final jitter = sin(row * 2.1) * 15;
         positions[i] = Offset(baseX + jitter, y);
       } else {
+        // R28 HF4-01: shared anchor for the whole cluster. The
+        // painter stacks dots tightly around this point and fans
+        // labels out to one side.
+        final anchor = Offset(baseX, y);
         for (int k = 0; k < clusterSize; k++) {
-          final offsetX = (k - (clusterSize - 1) / 2.0) * clusterSpread;
-          final offsetY = (k - (clusterSize - 1) / 2.0) * clusterStaggerY;
-          positions[i + k] = Offset(centerX + offsetX, y + offsetY);
+          positions[i + k] = anchor;
         }
       }
       row++;
       i = j;
     }
     return positions;
+  }
+
+  // ── R28 HF4-01 cluster geometry ────────────────────────────────────
+  // Constants used by both the painter and the tap-target builder so
+  // hit regions sit exactly where the labels render.
+  static const double _clusterDotGapY = 7.0;     // vertical gap between dots in stack
+  static const double _clusterLabelGapY = 24.0;  // vertical gap between labels (readable)
+  static const double _clusterLabelOffsetX = 90.0; // distance from anchor to labels column
+  static const double _clusterYearOffsetX = 50.0;  // distance from anchor to year label
+
+  /// Per-event LABEL position. For singletons this equals the dot
+  /// position (positions[i]); the painter's existing label logic
+  /// lays the text adjacent. For cluster events the label sits in
+  /// the labels column to the right (LTR) / left (RTL) of the
+  /// anchor, vertically spread by [_clusterLabelGapY].
+  ///
+  /// Used by the tap-target builder so a tap on the LABEL (not just
+  /// the small dot) activates the event — labels are larger touch
+  /// targets and where the user's eye actually goes.
+  List<Offset> _computeLabelPositions(List<Offset> dotPositions) {
+    final labels = List<Offset>.filled(dotPositions.length, Offset.zero);
+    int i = 0;
+    while (i < widget.events.length) {
+      int j = i;
+      while (j < widget.events.length &&
+          widget.events[j].year == widget.events[i].year) {
+        j++;
+      }
+      final clusterSize = j - i;
+      if (clusterSize == 1) {
+        labels[i] = dotPositions[i];
+      } else {
+        final anchor = dotPositions[i];
+        for (int k = 0; k < clusterSize; k++) {
+          final dy = (k - (clusterSize - 1) / 2.0) * _clusterLabelGapY;
+          final dx = _isAr
+              ? -_clusterLabelOffsetX
+              : _clusterLabelOffsetX;
+          labels[i + k] = Offset(anchor.dx + dx, anchor.dy + dy);
+        }
+      }
+      i = j;
+    }
+    return labels;
   }
 
   void _scrollToCurrentStar() {
@@ -248,7 +285,7 @@ class _ConstellationViewState extends State<ConstellationView>
                       ),
                     ),
 
-                  // Constellation lines + stars
+                  // Constellation lines + stars + cluster geometry
                   AnimatedBuilder(
                     animation: _pulseCtrl,
                     builder: (_, _) => CustomPaint(
@@ -256,25 +293,51 @@ class _ConstellationViewState extends State<ConstellationView>
                       painter: _SkyPainter(
                         events: widget.events,
                         positions: _positions,
+                        labelPositions:
+                            _computeLabelPositions(_positions),
                         completedCount: widget.completedCount,
                         majorEvents: _majorEvents,
                         pulseValue: _pulseCtrl.value,
                         isAr: _isAr,
+                        clusterDotGapY: _clusterDotGapY,
+                        clusterYearOffsetX: _clusterYearOffsetX,
                       ),
                     ),
                   ),
 
-                  // Tap targets — dispatch to _handleStarTap
-                  for (int i = 0; i < widget.events.length; i++)
-                    Positioned(
-                      left: _positions[i].dx - 22,
-                      top: _positions[i].dy - 22,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _handleStarTap(i),
-                        child: const SizedBox(width: 44, height: 44),
+                  // Tap targets — dispatch to _handleStarTap.
+                  // R28 HF4-01: for cluster events, tap region sits at
+                  // the LABEL (where the user's eye reads + finger
+                  // lands), not at the tightly-stacked tiny dot. Label
+                  // position widened to accommodate the title text.
+                  for (int i = 0; i < widget.events.length; i++) ...(() {
+                    final labels = _computeLabelPositions(_positions);
+                    final isCluster = labels[i] != _positions[i];
+                    if (isCluster) {
+                      return [
+                        Positioned(
+                          left: labels[i].dx - 60,
+                          top: labels[i].dy - 12,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _handleStarTap(i),
+                            child: const SizedBox(width: 130, height: 26),
+                          ),
+                        ),
+                      ];
+                    }
+                    return [
+                      Positioned(
+                        left: _positions[i].dx - 22,
+                        top: _positions[i].dy - 22,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _handleStarTap(i),
+                          child: const SizedBox(width: 44, height: 44),
+                        ),
                       ),
-                    ),
+                    ];
+                  }()),
                 ],
               ),
             ),
@@ -435,27 +498,46 @@ class _LockedInfoCard extends StatelessWidget {
 
 class _SkyPainter extends CustomPainter {
   final List<JourneyEvent> events;
+  /// Per-event anchor position. For singletons this is also the
+  /// star + label position. For same-year clusters all events in
+  /// the cluster share one anchor (the cluster's center point).
   final List<Offset> positions;
+  /// Per-event label position. For singletons equals [positions];
+  /// for cluster events points into the offset labels column.
+  final List<Offset> labelPositions;
   final int completedCount;
   final Set<int> majorEvents;
   final double pulseValue;
   final bool isAr;
+  // R28 HF4-01 cluster geometry (from the parent state).
+  final double clusterDotGapY;
+  final double clusterYearOffsetX;
 
   _SkyPainter({
     required this.events,
     required this.positions,
+    required this.labelPositions,
     required this.completedCount,
     required this.majorEvents,
     required this.pulseValue,
     required this.isAr,
+    required this.clusterDotGapY,
+    required this.clusterYearOffsetX,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final total = events.length;
 
-    // ── Constellation lines ─────────────────────────────────────────
+    // ── Constellation lines (R28 HF4-01) ────────────────────────────
+    // Skip lines BETWEEN events in the same cluster (they share a
+    // single anchor point — drawing line(p, p) is degenerate). Lines
+    // ENTERING a cluster connect prev event → cluster anchor, and
+    // EXITING connect cluster anchor → next event.
     for (int i = 1; i < total; i++) {
+      if (events[i - 1].year == events[i].year) {
+        continue; // intra-cluster, skip
+      }
       final p0 = positions[i - 1];
       final p1 = positions[i];
       final done0 = (i - 1) < completedCount;
@@ -475,126 +557,325 @@ class _SkyPainter extends CustomPainter {
       canvas.drawLine(p0, p1, paint);
     }
 
-    // ── Stars + labels ─────────────────────────────────────────────
+    // ── Stars / cluster dots + labels ───────────────────────────────
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
-    for (int i = 0; i < total; i++) {
-      final pos = positions[i];
-      final globalOrder = i + 1;
+
+    int i = 0;
+    while (i < total) {
+      // Find the cluster bounds for the current year.
+      int j = i;
+      while (j < total && events[j].year == events[i].year) {
+        j++;
+      }
+      final clusterSize = j - i;
+      if (clusterSize == 1) {
+        _paintSingleStar(canvas, textPainter, i);
+      } else {
+        _paintCluster(canvas, textPainter, i, j);
+      }
+      i = j;
+    }
+  }
+
+  // ── Singleton star + adjacent label (legacy rendering) ─────────────
+  void _paintSingleStar(Canvas canvas, TextPainter textPainter, int i) {
+    final pos = positions[i];
+    final globalOrder = i + 1;
+    final isDone = i < completedCount;
+    final isCurrent = i == completedCount;
+    final isNext = i == completedCount + 1;
+    final isMajor = majorEvents.contains(globalOrder);
+
+    double radius;
+    Color color;
+    if (isDone) {
+      radius = isMajor ? 7 : 4;
+      color = const Color(0xFFD4A843);
+    } else if (isCurrent) {
+      radius = isMajor ? 8 : 5;
+      color = const Color(0xFFE8C854);
+    } else if (isNext) {
+      radius = 3;
+      color = const Color(0xFFD4A843).withAlpha(40);
+    } else {
+      radius = 2;
+      color = const Color(0xFFD4A843).withAlpha(10);
+    }
+
+    if (isDone || isCurrent) {
+      final glowPaint = Paint()
+        ..color = const Color(0xFFD4A843).withAlpha(isCurrent ? 15 : 8)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      canvas.drawCircle(pos, isMajor ? 20 : 14, glowPaint);
+    }
+
+    if (isCurrent) {
+      final pulseRadius = (isMajor ? 16.0 : 12.0) + pulseValue * 6;
+      final pulsePaint = Paint()
+        ..color = const Color(0xFFD4A843)
+            .withAlpha((100 * (1 - pulseValue)).round())
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1;
+      canvas.drawCircle(pos, pulseRadius, pulsePaint);
+    }
+
+    if (isMajor) {
+      _drawStar(canvas, pos, radius * 1.6, Paint()..color = color);
+      if (isDone) {
+        _drawStar(
+          canvas,
+          pos,
+          radius * 1.6,
+          Paint()
+            ..color = const Color(0xFFD4A843).withAlpha(150)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 0.7,
+        );
+      }
+    } else {
+      canvas.drawCircle(pos, radius, Paint()..color = color);
+      if (isDone) {
+        canvas.drawCircle(
+          pos,
+          radius,
+          Paint()
+            ..color = const Color(0xFFD4A843).withAlpha(150)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 0.5,
+        );
+      }
+    }
+
+    if (isMajor && isDone) {
+      final sparkle = Paint()
+        ..color = const Color(0xFFD4A843).withAlpha(80)
+        ..strokeWidth = 0.5;
+      canvas.drawLine(
+          Offset(pos.dx, pos.dy - 14), Offset(pos.dx, pos.dy + 14), sparkle);
+      canvas.drawLine(
+          Offset(pos.dx - 14, pos.dy), Offset(pos.dx + 14, pos.dy), sparkle);
+    }
+
+    if (isDone || isCurrent) {
+      final event = events[i];
+      final label = isAr ? event.titleAr : event.title;
+      final isRight = pos.dx > 180;
+      final labelX = isRight ? pos.dx - 16 : pos.dx + 16;
+
+      textPainter
+        ..text = TextSpan(
+          text: label,
+          style: TextStyle(
+            color: Color(isCurrent ? 0xFFE8D8B8 : 0x73E8D8B8),
+            fontSize: isCurrent ? 9 : 8,
+            fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
+            fontFamily: 'Georgia',
+          ),
+        )
+        ..textDirection = isAr ? TextDirection.rtl : TextDirection.ltr
+        ..layout(maxWidth: 120);
+      final textOffset = Offset(
+        isRight ? labelX - textPainter.width : labelX,
+        pos.dy - textPainter.height / 2 - 6,
+      );
+      textPainter.paint(canvas, textOffset);
+
+      textPainter
+        ..text = TextSpan(
+          text: '${event.year} CE',
+          style: const TextStyle(
+            color: Color(0x33D4A843),
+            fontSize: 7,
+            fontFamily: 'sans-serif',
+          ),
+        )
+        ..layout(maxWidth: 80);
+      final dateOffset = Offset(
+        isRight ? labelX - textPainter.width : labelX,
+        textOffset.dy + 12,
+      );
+      textPainter.paint(canvas, dateOffset);
+    }
+  }
+
+  // ── Cluster of N≥2 events at the same year (R28 HF4-01 Mockup B) ──
+  // Renders:
+  //   • Tight vertical dot stack at the cluster anchor (one dot
+  //     per event, stacked clusterDotGapY apart).
+  //   • Dashed leader lines from each dot horizontally to its
+  //     label in the offset labels column.
+  //   • Event title + "year CE" lines at each label position.
+  //   • Single year label centered vertically against the dot
+  //     stack's middle, on the OPPOSITE side from the labels column.
+  void _paintCluster(
+      Canvas canvas, TextPainter textPainter, int start, int end) {
+    final n = end - start;
+    final anchor = positions[start];
+    // Vertical centerline of the dot stack = anchor.dy. Stack spans
+    // (n - 1) * dotGapY total; first dot at anchor.dy - half the span.
+    final dotsHalfSpan = (n - 1) / 2.0 * clusterDotGapY;
+
+    // Leader-line color (matches existing constellation line low-alpha
+    // gold). Dashed via short segments.
+    final leaderPaint = Paint()
+      ..color = const Color(0xFFD4A843).withAlpha(80)
+      ..strokeWidth = 0.5
+      ..style = PaintingStyle.stroke;
+
+    for (int k = 0; k < n; k++) {
+      final i = start + k;
+      final dotY = anchor.dy + (k * clusterDotGapY) - dotsHalfSpan;
+      final dotPos = Offset(anchor.dx, dotY);
+      final labelPos = labelPositions[i];
+
       final isDone = i < completedCount;
       final isCurrent = i == completedCount;
-      final isNext = i == completedCount + 1;
-      final isMajor = majorEvents.contains(globalOrder);
+      final isMajor = majorEvents.contains(i + 1);
 
+      // Leader line (dashed). Horizontal between dot and label X.
+      // In AR the labels column sits to the LEFT of the anchor —
+      // line direction flips automatically because labelPos.dx is
+      // less than anchor.dx in that case.
+      _drawDashedLine(canvas, dotPos, Offset(labelPos.dx, dotY), leaderPaint);
+
+      // Dot (smaller than singleton stars — these are dots, not stars).
       double radius;
       Color color;
       if (isDone) {
-        radius = isMajor ? 7 : 4;
+        radius = isMajor ? 4 : 3;
         color = const Color(0xFFD4A843);
       } else if (isCurrent) {
-        radius = isMajor ? 8 : 5;
+        radius = isMajor ? 5 : 4;
         color = const Color(0xFFE8C854);
-      } else if (isNext) {
-        radius = 3;
-        color = const Color(0xFFD4A843).withAlpha(40);
       } else {
         radius = 2;
-        color = const Color(0xFFD4A843).withAlpha(10);
+        color = const Color(0xFFD4A843).withAlpha(50);
       }
-
-      if (isDone || isCurrent) {
-        final glowPaint = Paint()
-          ..color = const Color(0xFFD4A843).withAlpha(isCurrent ? 15 : 8)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-        canvas.drawCircle(pos, isMajor ? 20 : 14, glowPaint);
+      canvas.drawCircle(dotPos, radius, Paint()..color = color);
+      if (isDone) {
+        canvas.drawCircle(
+          dotPos,
+          radius,
+          Paint()
+            ..color = const Color(0xFFD4A843).withAlpha(150)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 0.5,
+        );
       }
-
       if (isCurrent) {
-        final pulseRadius = (isMajor ? 16.0 : 12.0) + pulseValue * 6;
-        final pulsePaint = Paint()
-          ..color = const Color(0xFFD4A843)
-              .withAlpha((100 * (1 - pulseValue)).round())
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1;
-        canvas.drawCircle(pos, pulseRadius, pulsePaint);
-      }
-
-      if (isMajor) {
-        _drawStar(canvas, pos, radius * 1.6, Paint()..color = color);
-        if (isDone) {
-          _drawStar(
-            canvas,
-            pos,
-            radius * 1.6,
-            Paint()
-              ..color = const Color(0xFFD4A843).withAlpha(150)
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 0.7,
-          );
-        }
-      } else {
-        canvas.drawCircle(pos, radius, Paint()..color = color);
-        if (isDone) {
-          canvas.drawCircle(
-            pos,
-            radius,
-            Paint()
-              ..color = const Color(0xFFD4A843).withAlpha(150)
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 0.5,
-          );
-        }
-      }
-
-      if (isMajor && isDone) {
-        final sparkle = Paint()
-          ..color = const Color(0xFFD4A843).withAlpha(80)
-          ..strokeWidth = 0.5;
-        canvas.drawLine(
-            Offset(pos.dx, pos.dy - 14), Offset(pos.dx, pos.dy + 14), sparkle);
-        canvas.drawLine(
-            Offset(pos.dx - 14, pos.dy), Offset(pos.dx + 14, pos.dy), sparkle);
-      }
-
-      if (isDone || isCurrent) {
-        final event = events[i];
-        final label = isAr ? event.titleAr : event.title;
-        final isRight = pos.dx > 180;
-        final labelX = isRight ? pos.dx - 16 : pos.dx + 16;
-
-        textPainter
-          ..text = TextSpan(
-            text: label,
-            style: TextStyle(
-              color: Color(isCurrent ? 0xFFE8D8B8 : 0x73E8D8B8),
-              fontSize: isCurrent ? 9 : 8,
-              fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
-              fontFamily: 'Georgia',
-            ),
-          )
-          ..textDirection = isAr ? TextDirection.rtl : TextDirection.ltr
-          ..layout(maxWidth: 120);
-        final textOffset = Offset(
-          isRight ? labelX - textPainter.width : labelX,
-          pos.dy - textPainter.height / 2 - 6,
+        final pulseRadius = 8.0 + pulseValue * 4;
+        canvas.drawCircle(
+          dotPos,
+          pulseRadius,
+          Paint()
+            ..color = const Color(0xFFD4A843)
+                .withAlpha((90 * (1 - pulseValue)).round())
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1,
         );
-        textPainter.paint(canvas, textOffset);
-
-        textPainter
-          ..text = TextSpan(
-            text: '${event.year} CE',
-            style: const TextStyle(
-              color: Color(0x33D4A843),
-              fontSize: 7,
-              fontFamily: 'sans-serif',
-            ),
-          )
-          ..layout(maxWidth: 80);
-        final dateOffset = Offset(
-          isRight ? labelX - textPainter.width : labelX,
-          textOffset.dy + 12,
-        );
-        textPainter.paint(canvas, dateOffset);
       }
+
+      // Event title + year CE label. Visible for done / current /
+      // locked alike — the cluster stacks need to label every dot
+      // so users can identify which event is which (the sequential-
+      // reveal logic from singletons doesn't fit a same-year cluster).
+      final event = events[i];
+      final title = isAr ? event.titleAr : event.title;
+      final color2 = isDone || isCurrent
+          ? Color(isCurrent ? 0xFFE8D8B8 : 0xCCE8D8B8)
+          : const Color(0x66E8D8B8);
+
+      // RTL: labels column is on the LEFT of anchor. Title text aligns
+      // to the RIGHT edge of the column (against the leader line).
+      // LTR: labels column is on the RIGHT. Title aligns LEFT (against
+      // the leader line).
+      textPainter
+        ..text = TextSpan(
+          text: title,
+          style: TextStyle(
+            color: color2,
+            fontSize: isCurrent ? 9.5 : 9,
+            fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
+            fontFamily: 'Georgia',
+          ),
+        )
+        ..textDirection = isAr ? TextDirection.rtl : TextDirection.ltr
+        ..layout(maxWidth: 130);
+      final titleX = isAr
+          ? labelPos.dx - textPainter.width
+          : labelPos.dx;
+      textPainter.paint(
+        canvas,
+        Offset(titleX, labelPos.dy - textPainter.height / 2 - 4),
+      );
+
+      textPainter
+        ..text = TextSpan(
+          text: '${event.year} CE',
+          style: const TextStyle(
+            color: Color(0x33D4A843),
+            fontSize: 7,
+            fontFamily: 'sans-serif',
+          ),
+        )
+        ..layout(maxWidth: 80);
+      final dateX = isAr
+          ? labelPos.dx - textPainter.width
+          : labelPos.dx;
+      textPainter.paint(
+        canvas,
+        Offset(dateX, labelPos.dy + 4),
+      );
+    }
+
+    // Year label, centered vertically against the dot stack's middle
+    // (anchor.dy regardless of N). Sits on the OPPOSITE side of the
+    // labels column — LTR labels are right of anchor → year is left;
+    // AR labels are left of anchor → year is right.
+    final yearText = '${events[start].year} CE';
+    textPainter
+      ..text = TextSpan(
+        text: yearText,
+        style: TextStyle(
+          color: const Color(0xFFD4A843).withAlpha(170),
+          fontSize: 9.5,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Georgia',
+          letterSpacing: 0.4,
+        ),
+      )
+      ..textDirection = TextDirection.ltr
+      ..layout(maxWidth: 80);
+    final yearX = isAr
+        ? anchor.dx + clusterYearOffsetX
+        : anchor.dx - clusterYearOffsetX - textPainter.width;
+    textPainter.paint(
+      canvas,
+      Offset(yearX, anchor.dy - textPainter.height / 2),
+    );
+  }
+
+  // Simple dashed-line painter for leader lines.
+  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
+    const dashWidth = 3.0;
+    const gapWidth = 2.5;
+    final dx = end.dx - start.dx;
+    final dy = end.dy - start.dy;
+    final totalLen = sqrt(dx * dx + dy * dy);
+    if (totalLen < 1) return;
+    final stepLen = dashWidth + gapWidth;
+    final ux = dx / totalLen;
+    final uy = dy / totalLen;
+    double walked = 0;
+    while (walked < totalLen) {
+      final segEnd = walked + dashWidth;
+      final clamped = segEnd > totalLen ? totalLen : segEnd;
+      canvas.drawLine(
+        Offset(start.dx + ux * walked, start.dy + uy * walked),
+        Offset(start.dx + ux * clamped, start.dy + uy * clamped),
+        paint,
+      );
+      walked += stepLen;
     }
   }
 
@@ -603,7 +884,9 @@ class _SkyPainter extends CustomPainter {
       old.completedCount != completedCount ||
       old.pulseValue != pulseValue ||
       old.isAr != isAr ||
-      old.events.length != events.length;
+      old.events.length != events.length ||
+      old.clusterDotGapY != clusterDotGapY ||
+      old.clusterYearOffsetX != clusterYearOffsetX;
 
   void _drawStar(Canvas canvas, Offset c, double r, Paint paint) {
     final inner = r * 0.38;
