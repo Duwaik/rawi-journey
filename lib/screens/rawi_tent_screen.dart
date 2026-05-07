@@ -569,13 +569,13 @@ class _RawiTentScreenState extends State<RawiTentScreen>
                           builder: (_) => const DhikrCollectionScreen()));
                     }, key: TutorialKeys.tentDhikr),
                     const SizedBox(height: 8),
-                    // 5. Living Map placeholder (R28 S1-NAV1 — coming soon)
+                    // 5. Living Map placeholder (R28 S1-NAV1 — coming soon).
+                    // R28 HF4-04: tap-to-snackbar dropped — the "soon"
+                    // pill badge in `_navIconPlaceholder` is always
+                    // visible on the icon's corner. Tap = no-op.
                     _navIconPlaceholder(
                       Icons.explore_outlined,
-                      _isAr ? 'قريباً' : 'Coming soon',
-                      _isAr
-                          ? 'الخريطة الحيّة قريباً'
-                          : 'Living Map is coming soon',
+                      _isAr ? 'الخريطة الحيّة — قريباً' : 'Living Map — Coming soon',
                       key: TutorialKeys.tentLivingMap,
                     ),
                   ],
@@ -916,73 +916,86 @@ class _RawiTentScreenState extends State<RawiTentScreen>
     );
   }
 
-  /// R28 S1-NAV1 / R28 HF3-LMAP1: "coming soon" placeholder slot.
+  /// R28 S1-NAV1 / R28 HF3-LMAP1 / R28 HF4-04: "coming soon"
+  /// placeholder slot.
   ///
-  /// Frame shape matches [_navIconMaterial] (44 px, 12 px radius) but
-  /// the fill + border + icon read as **outlined / muted** instead of
-  /// active. R28-S1's first pass used `Colors.black.withAlpha(120)` +
-  /// faint gold border (alpha 20) which on the A56's dark scene BG
-  /// rendered as a "black bar" — the dark fill blended into the
-  /// background and the icon (alpha 115) was too dim to anchor the
-  /// shape as a recognisable slot.
+  /// Frame shape matches [_navIconMaterial] (44 px, 12 px radius)
+  /// but with the HF3-LMAP1 outlined-ghost styling: gold-wash fill
+  /// (alpha 10), visible gold border (alpha 70, 1.2 px), dimmed
+  /// icon (alpha 150). Reads as placeholder-not-active.
   ///
-  /// HF3-LMAP1 swaps the fill from translucent-black to a barely-there
-  /// gold wash (alpha 10), bumps the border to a clearly-visible gold
-  /// outline (alpha 70, 1.2 px), and brightens the icon to alpha 150 —
-  /// readable but still subordinate to the active nav icons (alpha 255
-  /// on the gold). Net result: outlined ghost-button silhouette, dim
-  /// compass icon visible, clearly placeholder-not-active.
-  ///
-  /// Tap shows a short snackbar explaining the slot — doesn't navigate,
-  /// doesn't crash. Used for the Living Map slot which is reserved for
-  /// a future sprint but has no screen wired yet.
+  /// HF4-04 swap: previous tap-to-snackbar behaviour rendered the
+  /// "Living Map is coming soon" SnackBar over the tent's bottom-
+  /// edge progress bar (SnackBarBehavior.floating + bottomMargin
+  /// 24). Verify-walk on 27 Apr / 7 May flagged it as visually
+  /// broken. Replaced with an always-visible pill badge anchored
+  /// at the icon's top-right corner (LTR) / top-left corner (RTL).
+  /// Tap on the icon area is now a clean no-op — no GestureDetector,
+  /// no SnackBar, no crash. Tooltip still fires on long-press for
+  /// accessibility.
   Widget _navIconPlaceholder(
-      IconData icon, String tooltipLabel, String snackbarMessage,
-      {Key? key}) {
+      IconData icon, String tooltipLabel, {Key? key}) {
     return Tooltip(
       message: tooltipLabel,
-      child: GestureDetector(
-        onTap: () {
-          ScaffoldMessenger.of(context)
-            ..clearSnackBars()
-            ..showSnackBar(
-              SnackBar(
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                duration: const Duration(seconds: 2),
-                backgroundColor: const Color(0xF00E1624),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: AppColors.gold.withAlpha(60)),
+      child: Stack(
+        clipBehavior: Clip.none, // let the badge overflow the 44 px box
+        children: [
+          Container(
+            key: key,
+            width: 44, height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.gold.withAlpha(10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.gold.withAlpha(70),
+                width: 1.2,
+              ),
+            ),
+            child: Icon(icon, size: 22, color: AppColors.gold.withAlpha(150)),
+          ),
+          // Always-visible "soon" / "قريباً" pill badge.
+          // LTR: anchors top-right with a small upward + rightward
+          //      offset so it reads as attached to the icon's corner.
+          // RTL: mirrors to top-left (RTL convention — corner of
+          //      "first read direction").
+          // IgnorePointer so the badge never blocks taps that the
+          // icon itself ignores anyway.
+          Positioned(
+            top: -6,
+            right: _isAr ? null : -8,
+            left: _isAr ? -8 : null,
+            child: IgnorePointer(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(70),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
-                content: Text(
-                  snackbarMessage,
-                  textAlign: TextAlign.center,
+                child: Text(
+                  _isAr ? 'قريباً' : 'soon',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.bg, // deep navy on gold
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: _isAr ? 0.0 : 0.3,
+                    height: 1.0,
+                  ),
                   textDirection:
                       _isAr ? TextDirection.rtl : TextDirection.ltr,
-                  style: GoogleFonts.nunito(
-                    color: AppColors.gold.withAlpha(220),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
                 ),
               ),
-            );
-        },
-        child: Container(
-          key: key,
-          width: 44, height: 44,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.gold.withAlpha(10),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.gold.withAlpha(70),
-              width: 1.2,
             ),
           ),
-          child: Icon(icon, size: 22, color: AppColors.gold.withAlpha(150)),
-        ),
+        ],
       ),
     );
   }
