@@ -1068,6 +1068,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // because "Journey view default" + "LIST"/"CONSTELLATION"
           // labels don't fit comfortably in the inline segmented-pref
           // row pattern used for shorter S/M/L + joystick pickers.
+          // R28 HF4-02: "CONSTELLATION" → "STARS" display rename.
+          // Pref string value stays `'constellation'` so existing
+          // installs don't lose their saved preference.
           _segmentedPrefRowStacked(
             icon: Icons.auto_awesome_rounded,
             label: _isAr ? 'طريقة عرض الرحلة' : 'Journey view default',
@@ -1075,7 +1078,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               values: const ['list', 'constellation'],
               labels: _isAr
                   ? const ['قائمة', 'نجوم']
-                  : const ['LIST', 'CONSTELLATION'],
+                  : const ['LIST', 'STARS'],
               selected: _journeyView,
               onChanged: _setJourneyView,
               segmentWidth: null, // flex each segment to fill the row

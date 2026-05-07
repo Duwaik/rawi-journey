@@ -782,9 +782,14 @@ class _EventListScreenState extends State<EventListScreen>
                       _JourneyViewMode.list,
                       _JourneyViewMode.constellation,
                     ],
+                    // R28 HF4-02: EN display "CONSTELLATION" (13 chars,
+                    // visually unbalanced vs "LIST") → "STARS" (5 chars,
+                    // matches AR "نجوم" semantics). Internal enum value
+                    // stays `_JourneyViewMode.constellation` per spec —
+                    // string-only rename, no routing / behaviour change.
                     labels: [
                       isAr ? 'قائمة' : 'LIST',
-                      isAr ? 'نجوم' : 'CONSTELLATION',
+                      isAr ? 'نجوم' : 'STARS',
                     ],
                     selected: _viewMode,
                     onChanged: (v) => setState(() => _viewMode = v),
