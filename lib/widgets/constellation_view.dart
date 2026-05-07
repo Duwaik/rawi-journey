@@ -45,8 +45,12 @@ class ConstellationView extends StatefulWidget {
 
 class _ConstellationViewState extends State<ConstellationView>
     with SingleTickerProviderStateMixin {
-  late final ScrollController _scrollCtrl;
   late final AnimationController _pulseCtrl;
+  // R28 HF4-03: pinch-to-zoom + pan controller. Drives the
+  // InteractiveViewer's transformation matrix. Reset on view-enter
+  // so toggling LIST → STARS always lands at zoom 1.0 with the
+  // current star centered.
+  late final TransformationController _transformCtrl;
 
   bool get _isAr => PrefsService.isAr;
 
@@ -72,17 +76,22 @@ class _ConstellationViewState extends State<ConstellationView>
   @override
   void initState() {
     super.initState();
-    _scrollCtrl = ScrollController();
     _pulseCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2500),
     )..repeat(reverse: true);
+    _transformCtrl = TransformationController();
 
     _rowCount = _countYearRows();
     _totalHeight = _rowCount * _starSpacing + 340;
 
+    // R28 HF4-03: on view-enter, identity transform (zoom 1.0,
+    // pan 0,0) — then translate vertically so the current star is
+    // centered in the viewport. Without the translation the user
+    // would land at the top of the canvas (Event 1, Jahiliyyah era)
+    // and have to pan all the way down to see their progress.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToCurrentStar();
+      _resetAndCenterOnCurrent();
     });
   }
 
@@ -197,17 +206,28 @@ class _ConstellationViewState extends State<ConstellationView>
     return labels;
   }
 
-  void _scrollToCurrentStar() {
-    if (!_scrollCtrl.hasClients) return;
-    if (widget.completedCount >= widget.events.length) return;
+  /// R28 HF4-03: reset to zoom 1.0 + pan vertically to center the
+  /// current star in the viewport. Called on view-enter (initState
+  /// post-frame) and when [completedCount] changes after a
+  /// completion. Replaces the prior `_scrollToCurrentStar` that
+  /// drove a `ScrollController` — InteractiveViewer owns translation
+  /// now via its transformation matrix.
+  void _resetAndCenterOnCurrent() {
+    if (!mounted) return;
+    if (widget.completedCount >= widget.events.length) {
+      // Journey complete — land at the bottom of the canvas (last
+      // star on the timeline).
+      final viewportH = MediaQuery.of(context).size.height;
+      final targetY = _totalHeight - viewportH;
+      _transformCtrl.value =
+          Matrix4.translationValues(0.0, -targetY.clamp(0.0, double.infinity), 0.0);
+      return;
+    }
     final targetY = _positions[widget.completedCount].dy;
-    final viewportH = _scrollCtrl.position.viewportDimension;
-    final scrollTo = (targetY - viewportH / 2).clamp(
-      _scrollCtrl.position.minScrollExtent,
-      _scrollCtrl.position.maxScrollExtent,
-    );
-    _scrollCtrl.animateTo(scrollTo,
-        duration: const Duration(milliseconds: 500), curve: Curves.easeOut);
+    final viewportH = MediaQuery.of(context).size.height;
+    final translateY =
+        (targetY - viewportH / 2).clamp(0.0, _totalHeight - viewportH);
+    _transformCtrl.value = Matrix4.translationValues(0.0, -translateY, 0.0);
   }
 
   String _eraForEvent(int globalOrder) {
@@ -219,7 +239,7 @@ class _ConstellationViewState extends State<ConstellationView>
 
   @override
   void dispose() {
-    _scrollCtrl.dispose();
+    _transformCtrl.dispose();
     _pulseCtrl.dispose();
     super.dispose();
   }
@@ -247,8 +267,25 @@ class _ConstellationViewState extends State<ConstellationView>
       color: const Color(0xFF060810),
       child: Stack(
         children: [
-          SingleChildScrollView(
-            controller: _scrollCtrl,
+          // R28 HF4-03: InteractiveViewer wraps the constellation
+          // canvas — pinch zoom (1.0× → 3.5×) + 2D pan. Replaces
+          // the prior SingleChildScrollView. `constrained: false`
+          // preserves the canvas's natural 10000-px height so labels
+          // stay legible at zoom 1.0 (compressing the timeline to
+          // fit the viewport would make every label microscopic).
+          // boundaryMargin: 200 px on each axis so the user can pan
+          // a touch beyond the canvas edges before InteractiveViewer
+          // bounces back — feels natural without losing the canvas
+          // off-screen.
+          InteractiveViewer(
+            transformationController: _transformCtrl,
+            constrained: false,
+            minScale: 1.0,
+            maxScale: 3.5,
+            boundaryMargin: const EdgeInsets.all(200),
+            // panEnabled is implicit. Pinch zoom always works;
+            // single-finger pan works at any scale (including 1.0
+            // for vertical scroll-equivalent navigation).
             child: SizedBox(
               width: screenW,
               height: _totalHeight,
