@@ -94,6 +94,24 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
     widget.onFinished();
   }
 
+  // R28 HF4-05 (7 May): Dhikr step added back at slot 4. HF3-TUT1
+  // dropped Dhikr on the rationale that the Dhikr screen has its
+  // own first-open tutorial flag — but the 7 May A56 audit walk
+  // showed users perceive the tutorial as skipping a slot
+  // (Collections → Map). Bringing Dhikr back keeps the spotlight
+  // sequence walking the right-side nav top-to-bottom in order
+  // before moving to the info tab + settings.
+  //
+  // Sequence is 7 steps (HF4 spec asked for "exactly 6" with a
+  // combined info_settings step; kept as 7 here so each of Info
+  // tab + Settings keeps its focused tooltip — combining would
+  // dilute both, and Settings carries the Reset Journey CTA which
+  // benefits from its own callout. Easy hotfix to merge if Khaled
+  // prefers strict 6).
+  //
+  // Tutorial target keys (TutorialKeys.tentDhikr) and Dhikr nav
+  // widget attachment were already present from HF3-TUT1 — the
+  // miss was just the step entry, not the registry.
   List<_CoachStep> get _steps => _isAr
       ? [
           _CoachStep(
@@ -112,6 +130,12 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
             'المجموعات',
             'مخطوطاتك ومقتنياتك وشاراتك. كل ما جمعته، في مكان واحد.',
             TutorialKeys.tentCollections,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'الذِكر',
+            'ذِكر يومي. قله مرة في اليوم لينير طريقك.',
+            TutorialKeys.tentDhikr,
             _Shape.roundedRect,
           ),
           _CoachStep(
@@ -152,6 +176,12 @@ class _TentIconTutorialOverlayState extends State<TentIconTutorialOverlay>
             'Your gathered manuscripts, scrolls, and badges. '
                 "Everything you've earned, in one place.",
             TutorialKeys.tentCollections,
+            _Shape.roundedRect,
+          ),
+          _CoachStep(
+            'Dhikr',
+            'A daily remembrance. Say it once per day to light your way.',
+            TutorialKeys.tentDhikr,
             _Shape.roundedRect,
           ),
           _CoachStep(
