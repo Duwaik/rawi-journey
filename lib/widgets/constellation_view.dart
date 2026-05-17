@@ -273,16 +273,22 @@ class _ConstellationViewState extends State<ConstellationView>
           // preserves the canvas's natural 10000-px height so labels
           // stay legible at zoom 1.0 (compressing the timeline to
           // fit the viewport would make every label microscopic).
-          // boundaryMargin: 200 px on each axis so the user can pan
-          // a touch beyond the canvas edges before InteractiveViewer
-          // bounces back — feels natural without losing the canvas
-          // off-screen.
+          //
+          // R28 HF5-01: boundaryMargin EdgeInsets.all(200) →
+          // EdgeInsets.zero. The 200-px drift exposed the transparent
+          // InteractiveViewer surface against the Scaffold's dark
+          // background as a black void when panning past the content
+          // edges (verified on A56 during the 17 May HF4 review —
+          // black strip on the right at zoom 1.0× and at 2-3×, both
+          // pan directions). Zero margin clamps pan exactly at the
+          // canvas edges — no void. Stiff-vs-bounce-back is polish
+          // for later; zero is the correct base behavior.
           InteractiveViewer(
             transformationController: _transformCtrl,
             constrained: false,
             minScale: 1.0,
             maxScale: 3.5,
-            boundaryMargin: const EdgeInsets.all(200),
+            boundaryMargin: EdgeInsets.zero,
             // panEnabled is implicit. Pinch zoom always works;
             // single-finger pan works at any scale (including 1.0
             // for vertical scroll-equivalent navigation).
