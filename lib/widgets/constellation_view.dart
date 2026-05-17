@@ -333,7 +333,20 @@ class _ConstellationViewState extends State<ConstellationView>
           // pan directions). Zero margin clamps pan exactly at the
           // canvas edges — no void. Stiff-vs-bounce-back is polish
           // for later; zero is the correct base behavior.
-          InteractiveViewer(
+          //
+          // R28 HF6-02: wrap in SafeArea(top: false) so the
+          // InteractiveViewer viewport doesn't extend behind the
+          // Android system nav bar. Pre-fix the oldest events
+          // (570 CE, bottom of the timeline) rendered partially
+          // under the back/home/recent buttons. top:false — the
+          // header is already correctly below the status bar, only
+          // the bottom inset needs honoring. The _LockedInfoCard
+          // modal stays OUTSIDE this SafeArea (it's a separate
+          // Positioned.fill sibling — its scrim should cover the
+          // full screen including the nav region).
+          SafeArea(
+            top: false,
+            child: InteractiveViewer(
             transformationController: _transformCtrl,
             constrained: false,
             minScale: 1.0,
@@ -442,6 +455,7 @@ class _ConstellationViewState extends State<ConstellationView>
               ),
             ),
           ),
+          ), // R28 HF6-02: close SafeArea(top: false)
 
           // Locked info card (content-leak-free, title + era + badge).
           if (_lockedInfoIdx != null)
