@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/journey_event.dart';
 import '../services/prefs_service.dart';
+import 'spine_painter.dart';
 
 /// R28-S4-SPINE-P1 — Stars view, alternating-spine continuous scroll.
 ///
@@ -153,14 +154,32 @@ class _ConstellationViewState extends State<ConstellationView> {
           physics: const BouncingScrollPhysics(),
           child: SizedBox(
             // Explicit height = sum of child heights + end padding,
-            // so a Positioned.fill SpinePainter (S4S-02) can span the
+            // so the Positioned.fill SpinePainter (S4S-02) spans the
             // exact content height.
             height: layout.totalHeight,
-            child: Column(
+            child: Stack(
               children: [
-                const SizedBox(height: _endPadding),
-                ...layout.children,
-                const SizedBox(height: _endPadding),
+                // S4S-02: spine BEHIND the events (z-order — the
+                // full-opacity event dots will paint on top in S4S-03).
+                // Positioned.fill takes the Stack's size, which the
+                // SizedBox pins to the exact content height, so painter
+                // Y == layout Y and the gapTops align 1:1 with the
+                // year-marker boxes.
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: SpinePainter(
+                      gapTops: layout.gapTops,
+                      gapHeight: _yearMarkerHeight,
+                    ),
+                  ),
+                ),
+                Column(
+                  children: [
+                    const SizedBox(height: _endPadding),
+                    ...layout.children,
+                    const SizedBox(height: _endPadding),
+                  ],
+                ),
               ],
             ),
           ),
