@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/journey_event.dart';
 import '../services/prefs_service.dart';
+import 'event_node.dart';
 import 'spine_painter.dart';
 
 /// R28-S4-SPINE-P1 — Stars view, alternating-spine continuous scroll.
@@ -71,6 +72,15 @@ class _ConstellationViewState extends State<ConstellationView> {
 
   bool get _isAr => PrefsService.isAr;
 
+  /// Progression state from the host's `completedCount` convention
+  /// (the codebase's single progression source of truth). [i] is the
+  /// chronological index (position in the globalOrder-ascending list).
+  EventNodeState _stateFor(int i) {
+    if (i < widget.completedCount) return EventNodeState.completed;
+    if (i == widget.completedCount) return EventNodeState.active;
+    return EventNodeState.locked;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -104,11 +114,15 @@ class _ConstellationViewState extends State<ConstellationView> {
     for (int i = events.length - 1; i >= 0; i--) {
       children.add(SizedBox(
         height: _eventSpacing,
-        child: _PlaceholderEventRow(
-          // S4S-01 placeholder; S4S-03 swaps in the real EventNode.
+        child: EventNode(
           event: events[i],
           chronoIndex: i,
+          state: _stateFor(i),
           isAr: _isAr,
+          // S4S-06 lifts the HF6 routing into this callback. Until
+          // then every node is non-navigating (visual verification of
+          // S4S-03 only).
+          onTap: null,
         ),
       ));
       y += _eventSpacing;
@@ -182,39 +196,6 @@ class _ConstellationViewState extends State<ConstellationView> {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// S4S-01 placeholder. Replaced by the real `EventNode` (alternating
-/// L/R dot + branch + label + state visuals + tap) in S4S-03.
-class _PlaceholderEventRow extends StatelessWidget {
-  final JourneyEvent event;
-  final int chronoIndex;
-  final bool isAr;
-
-  const _PlaceholderEventRow({
-    required this.event,
-    required this.chronoIndex,
-    required this.isAr,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final right = chronoIndex % 2 == 0;
-    return Align(
-      alignment: right ? Alignment.centerRight : Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Text(
-          isAr ? event.titleAr : event.title,
-          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-          style: GoogleFonts.nunito(
-            color: const Color(0xFFF4E9D5).withAlpha(180),
-            fontSize: 12.5,
           ),
         ),
       ),
