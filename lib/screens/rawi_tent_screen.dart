@@ -944,13 +944,23 @@ class _RawiTentScreenState extends State<RawiTentScreen>
             key: key,
             width: 44, height: 44,
             alignment: Alignment.center,
+            // R28 HF6-03: match the sibling nav-icon backdrop EXACTLY
+            // (_navIcon / _navIconMaterial: black alpha 180 fill,
+            // gold alpha 40 border, radius 12). HF3-LMAP1's
+            // "outlined ghost" treatment (gold alpha 10 wash + gold
+            // alpha 70 1.2 px border) was nearly invisible against
+            // the morning/light tent BG variants — the "soon" badge
+            // read louder than the icon. The dark rounded square
+            // gives the compass the same solid anchor every other
+            // right-side icon has, visible on any BG. Icon stays at
+            // alpha 150 (subordinate to the active icons' full gold)
+            // so it still reads as a placeholder — the "soon" badge
+            // + dimmed glyph signal "exists, not yet active"; only
+            // the missing backdrop was the bug.
             decoration: BoxDecoration(
-              color: AppColors.gold.withAlpha(10),
+              color: Colors.black.withAlpha(180),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.gold.withAlpha(70),
-                width: 1.2,
-              ),
+              border: Border.all(color: AppColors.gold.withAlpha(40)),
             ),
             child: Icon(icon, size: 22, color: AppColors.gold.withAlpha(150)),
           ),
