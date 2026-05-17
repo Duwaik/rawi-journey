@@ -1,35 +1,46 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../app_colors.dart';
 import '../models/journey_event.dart';
 import '../services/prefs_service.dart';
 
-/// R28 S1-FEAT2 / CODE1: standalone constellation view. Lives inside
-/// Events List as the CONSTELLATION tab (alternative to the LIST
-/// tab). Replaces the retired `SeerahSkyScreen` that used to be
-/// reachable from the tent's Stars nav icon (also removed — see
-/// NAV1). The host (Events List) owns the screen chrome: back arrow,
-/// title, segmented toggle, bottom CTA. This widget renders ONLY the
-/// scrollable sky body + its internal locked info card.
+/// R28-S4-SPINE-P1 — Stars view, alternating-spine continuous scroll.
 ///
-/// **Tap behaviour (R28 S1-FEAT2):**
-/// - Completed star → `onLaunch(event)` (host launches in replay mode,
-///   which is detected inside the event screen via
-///   `PrefsService.isEventCompleted` — no explicit param needed).
-/// - Current star → `onLaunch(event)` (plays normally).
-/// - Locked star → shows an internal info card with **title + era +
-///   locked badge only**. No content leak (no description, no BG, no
-///   branching hint).
+/// Supersedes the HF6 InteractiveViewer + Mockup-B cluster rendering
+/// (preserved in git history @ 3517fb5 and the `r28-s4-p1-archive`
+/// tag) and the local-only year-paged R28-S4-P1 (hard-reset away).
+/// The year-paged design failed A56 visual verify — sparse years
+/// (1–3 events) left ~80% of each page empty and the mini-
+/// constellation metaphor collapsed.
+///
+/// Spine design: ONE vertical continuous SingleChildScrollView, a
+/// central gold spine line, events alternating L/R of the spine,
+/// year markers ON the spine (Option 2 — interrupting the spine).
+/// This kills empty-year syndrome (continuous flow, no page
+/// boundaries) and density-clash (alternating L/R doubles usable
+/// width for the Medina 624–632 CE block).
+///
+/// DIRECTION — bottom-to-top: the seerah climbs upward. Oldest
+/// event (570 CE, Year of the Elephant) at the BOTTOM of the scroll
+/// content; newest (632 CE) at the TOP. Implemented purely as a
+/// children-order reversal in the Column — the SingleChildScrollView
+/// itself is NOT `reverse: true`, so offset 0 == top of content and
+/// the S4S-05 persistence math stays natural.
+///
+/// Class name + constructor are unchanged from HF6 so the host
+/// (`event_list_screen.dart`, STARS branch) needs zero edits:
+///   • [events]         — full journey list, globalOrder-ascending
+///   • [completedCount] — index `completedCount` is the current /
+///                        active event (HF6 "current star" convention)
+///   • [onLaunch]       — host's existing `_openEvent` (Navigation
+///                        Contract preserved)
+///
+/// Phase 1 (S4S-01..06): structure, spine, nodes, year markers,
+/// scroll-to-current + persistence, tap routing. Phase 2 (S4S-07/08):
+/// AR locale parity + first-entry tutorial.
 class ConstellationView extends StatefulWidget {
   final List<JourneyEvent> events;
   final int completedCount;
-
-  /// Called when the user taps a completed or current star. The host
-  /// launches the event via its existing `_openEvent` flow. The
-  /// Navigation Contract (R28 S1-BUG1) ensures exit returns to tent.
   final void Function(JourneyEvent event) onLaunch;
 
   const ConstellationView({
@@ -43,564 +54,148 @@ class ConstellationView extends StatefulWidget {
   State<ConstellationView> createState() => _ConstellationViewState();
 }
 
-class _ConstellationViewState extends State<ConstellationView>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulseCtrl;
-  // R28 HF4-03: pinch-to-zoom + pan controller. Drives the
-  // InteractiveViewer's transformation matrix. Reset on view-enter
-  // so toggling LIST → STARS always lands at zoom 1.0 with the
-  // current star centered.
-  late final TransformationController _transformCtrl;
+class _ConstellationViewState extends State<ConstellationView> {
+  // ── Layout constants (tunable; spec S4S-03/04) ──────────────────
+  /// Vertical distance between consecutive event dots.
+  static const double _eventSpacing = 70.0;
+
+  /// Total vertical footprint of a year marker (box + small margin).
+  /// This is the gap SpinePainter (S4S-02) skips.
+  static const double _yearMarkerHeight = 30.0;
+
+  /// Top + bottom breathing room on the scroll content.
+  static const double _endPadding = 40.0;
+
+  late final ScrollController _scrollCtrl;
 
   bool get _isAr => PrefsService.isAr;
-
-  // ── Major events (larger stars + cross sparkle) ─────────────────────
-  static const _majorEvents = {
-    3, 11, 14, 17, 24, 31, 47, 67, 86, 101, 152, 155,
-  };
-
-  // ── Era regions ─────────────────────────────────────────────────────
-  static const _eras = [
-    (range: 47, en: 'The Prophetic Dawn', ar: 'الفجر النبوي'),
-    (range: 82, en: 'The Community Rises', ar: 'نهوض الأمّة'),
-    (range: 120, en: 'The Turning Tide', ar: 'تحوّل المدّ'),
-    (range: 155, en: 'The Final Chapter', ar: 'الفصل الأخير'),
-  ];
-
-  static const double _starSpacing = 65.0;
-  late final double _totalHeight;
-  late final int _rowCount;
-  late List<Offset> _positions;
-  int? _lockedInfoIdx;
 
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    )..repeat(reverse: true);
-    _transformCtrl = TransformationController();
-
-    _rowCount = _countYearRows();
-    _totalHeight = _rowCount * _starSpacing + 340;
-
-    // R28 HF4-03: on view-enter, identity transform (zoom 1.0,
-    // pan 0,0) — then translate vertically so the current star is
-    // centered in the viewport. Without the translation the user
-    // would land at the top of the canvas (Event 1, Jahiliyyah era)
-    // and have to pan all the way down to see their progress.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _resetAndCenterOnCurrent();
-    });
-  }
-
-  int _countYearRows() {
-    int rows = 0;
-    int i = 0;
-    while (i < widget.events.length) {
-      int j = i;
-      while (j < widget.events.length &&
-          widget.events[j].year == widget.events[i].year) {
-        j++;
-      }
-      rows++;
-      i = j;
-    }
-    return rows;
-  }
-
-  /// Per-event anchor position. For singleton-year events the anchor
-  /// IS the visual position (star + label). For same-year clusters
-  /// (2+ events at the same `event.year`), all events in the cluster
-  /// share the SAME anchor — the cluster's center point on the
-  /// timeline. The painter then renders a tight dot-stack at that
-  /// anchor, dashed leader lines fanning out to a labels column,
-  /// and a year label centered vertically against the dot stack
-  /// (R28 HF4-01 Mockup B).
-  ///
-  /// This replaces the R28-S1-FEAT3 + R28-HF3-CONST1 vertical-stagger
-  /// approach. Stagger pushed adjacent-year rows apart on every
-  /// cluster — with 155 events and multiple dense-year clusters
-  /// (570 CE, Badr week, late Mecca) the timeline kept stretching.
-  /// Mockup B is geometrically stable: N events in one year doesn't
-  /// move surrounding years.
-  // R28 HF6-01: horizontal breathing room added on EACH side of the
-  // viewport so the canvas SizedBox actually contains all its content.
-  //
-  // Diagnostic (HF6-01): pre-fix the canvas was `SizedBox(width:
-  // screenW, ...)` — exactly viewport width — but the painter draws
-  // cluster labels at `anchor.dx + _clusterLabelOffsetX(90) + up to
-  // 130 px of title text`, and singleton stars oscillate to
-  // centerX ± 0.28·screenW. On the A56 (~384 logical px) the
-  // rightmost content reached ~520 px, overflowing the screenW
-  // canvas by ~136 px. HF4-03's `boundaryMargin: EdgeInsets.all(200)`
-  // was silently compensating (the 200 px "drift" was really pan
-  // room to reach overflow content — but it also let the user pan
-  // into genuine void = the HF5 black-strip bug). HF5's
-  // `EdgeInsets.zero` killed the compensation: child width ==
-  // viewport width + zero margin → ZERO horizontal pan range
-  // (pan dead), and the scale gesture's clamp had no slack (zoom
-  // dead), and the overflow labels became permanently unreachable.
-  //
-  // Correct fix: size the canvas to its real content. 170 px each
-  // side covers the worst-case overflow (LTR cluster labels right /
-  // AR cluster labels left, ~136 px) with margin. Content is then
-  // recentred in the wider canvas via centerX = canvasW / 2.
-  // `boundaryMargin: EdgeInsets.zero` now clamps at the TRUE content
-  // edges — pan works (canvasW − viewportW of horizontal range),
-  // zoom works (child genuinely larger than viewport in both axes),
-  // and there is no void because the canvas's own deep-sky gradient
-  // fills the full canvas width.
-  static const double _canvasPadX = 170.0;
-
-  /// [canvasW] = screenW + 2·_canvasPadX (the SizedBox width). The
-  /// wave [amplitude] stays a fraction of the VIEWPORT width
-  /// ([screenW]) so the singleton spread isn't stretched by the
-  /// wider canvas — only the centerline shifts to canvasW/2 so all
-  /// content sits inside the padded canvas.
-  List<Offset> _generatePositions(
-      double canvasW, double screenW, double bottomPad) {
-    final positions = List<Offset>.filled(widget.events.length, Offset.zero);
-    final centerX = canvasW / 2;
-    final amplitude = screenW * 0.28;
-    final bottomAllowance = 140.0 + bottomPad;
-
-    int row = 0;
-    int i = 0;
-    while (i < widget.events.length) {
-      int j = i;
-      while (j < widget.events.length &&
-          widget.events[j].year == widget.events[i].year) {
-        j++;
-      }
-      final clusterSize = j - i;
-      final y = _totalHeight - (bottomAllowance + row * _starSpacing);
-      final wave = sin(row * 0.6 + 0.3) * amplitude;
-      final baseX = centerX + wave;
-
-      if (clusterSize == 1) {
-        final jitter = sin(row * 2.1) * 15;
-        positions[i] = Offset(baseX + jitter, y);
-      } else {
-        // R28 HF4-01: shared anchor for the whole cluster. The
-        // painter stacks dots tightly around this point and fans
-        // labels out to one side.
-        final anchor = Offset(baseX, y);
-        for (int k = 0; k < clusterSize; k++) {
-          positions[i + k] = anchor;
-        }
-      }
-      row++;
-      i = j;
-    }
-    return positions;
-  }
-
-  // ── R28 HF4-01 cluster geometry ────────────────────────────────────
-  // Constants used by both the painter and the tap-target builder so
-  // hit regions sit exactly where the labels render.
-  static const double _clusterDotGapY = 7.0;     // vertical gap between dots in stack
-  static const double _clusterLabelGapY = 24.0;  // vertical gap between labels (readable)
-  static const double _clusterLabelOffsetX = 90.0; // distance from anchor to labels column
-  static const double _clusterYearOffsetX = 50.0;  // distance from anchor to year label
-
-  /// Per-event LABEL position. For singletons this equals the dot
-  /// position (positions[i]); the painter's existing label logic
-  /// lays the text adjacent. For cluster events the label sits in
-  /// the labels column to the right (LTR) / left (RTL) of the
-  /// anchor, vertically spread by [_clusterLabelGapY].
-  ///
-  /// Used by the tap-target builder so a tap on the LABEL (not just
-  /// the small dot) activates the event — labels are larger touch
-  /// targets and where the user's eye actually goes.
-  List<Offset> _computeLabelPositions(List<Offset> dotPositions) {
-    final labels = List<Offset>.filled(dotPositions.length, Offset.zero);
-    int i = 0;
-    while (i < widget.events.length) {
-      int j = i;
-      while (j < widget.events.length &&
-          widget.events[j].year == widget.events[i].year) {
-        j++;
-      }
-      final clusterSize = j - i;
-      if (clusterSize == 1) {
-        labels[i] = dotPositions[i];
-      } else {
-        final anchor = dotPositions[i];
-        for (int k = 0; k < clusterSize; k++) {
-          final dy = (k - (clusterSize - 1) / 2.0) * _clusterLabelGapY;
-          final dx = _isAr
-              ? -_clusterLabelOffsetX
-              : _clusterLabelOffsetX;
-          labels[i + k] = Offset(anchor.dx + dx, anchor.dy + dy);
-        }
-      }
-      i = j;
-    }
-    return labels;
-  }
-
-  /// R28 HF4-03: reset to zoom 1.0 + pan vertically to center the
-  /// current star in the viewport. Called on view-enter (initState
-  /// post-frame) and when [completedCount] changes after a
-  /// completion. Replaces the prior `_scrollToCurrentStar` that
-  /// drove a `ScrollController` — InteractiveViewer owns translation
-  /// now via its transformation matrix.
-  void _resetAndCenterOnCurrent() {
-    if (!mounted) return;
-    final mq = MediaQuery.of(context).size;
-    final viewportW = mq.width;
-    final viewportH = mq.height;
-    // R28 HF6-01: the canvas is now wider than the viewport
-    // (screenW + 2·_canvasPadX) with content recentred at canvasW/2.
-    // Translate X so the viewport starts centered on the content
-    // band, not pinned to the left padding. InteractiveViewer will
-    // clamp this to a valid transform if it's slightly off.
-    final canvasW = viewportW + 2 * _canvasPadX;
-    final translateX = ((canvasW - viewportW) / 2).clamp(0.0, double.infinity);
-
-    if (widget.completedCount >= widget.events.length) {
-      // Journey complete — land at the bottom of the canvas (last
-      // star on the timeline).
-      final targetY = _totalHeight - viewportH;
-      _transformCtrl.value = Matrix4.translationValues(
-          -translateX, -targetY.clamp(0.0, double.infinity), 0.0);
-      return;
-    }
-    final targetY = _positions[widget.completedCount].dy;
-    final translateY =
-        (targetY - viewportH / 2).clamp(0.0, _totalHeight - viewportH);
-    _transformCtrl.value =
-        Matrix4.translationValues(-translateX, -translateY, 0.0);
-  }
-
-  String _eraForEvent(int globalOrder) {
-    for (final era in _eras) {
-      if (globalOrder <= era.range) return _isAr ? era.ar : era.en;
-    }
-    return _isAr ? _eras.last.ar : _eras.last.en;
+    _scrollCtrl = ScrollController();
+    // S4S-05 (scroll-to-current + persistence) wires a post-frame
+    // jump here. S4S-01 just establishes the scroll architecture.
   }
 
   @override
   void dispose() {
-    _transformCtrl.dispose();
-    _pulseCtrl.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
-  void _handleStarTap(int idx) {
-    final isCompleted = idx < widget.completedCount;
-    final isCurrent = idx == widget.completedCount;
-    if (isCompleted || isCurrent) {
-      // R28 S1-FEAT2: completed → replay (event screen auto-detects
-      // via `PrefsService.isEventCompleted`); current → play.
-      widget.onLaunch(widget.events[idx]);
-    } else {
-      // Locked: show the minimal info card (title + era + badge only).
-      setState(() => _lockedInfoIdx = idx);
+  /// Builds the reverse-chronological child list (newest at top of
+  /// the Column → oldest at the bottom) and, in lock-step, records
+  /// each year marker's Y top so S4S-02's SpinePainter can gap there.
+  ///
+  /// Per spec S4S-04 placement rule: the year marker for year Y is
+  /// inserted IMMEDIATELY AFTER (i.e. below, since the column renders
+  /// top=newest) the chronologically-first event of year Y — so the
+  /// marker sits at the LOWEST visual position of its year, the clean
+  /// boundary between Y and the older year beneath it.
+  ({List<Widget> children, List<double> gapTops, double totalHeight})
+      _buildLayout() {
+    final events = widget.events;
+    final children = <Widget>[];
+    final gapTops = <double>[];
+    double y = _endPadding;
+
+    for (int i = events.length - 1; i >= 0; i--) {
+      children.add(SizedBox(
+        height: _eventSpacing,
+        child: _PlaceholderEventRow(
+          // S4S-01 placeholder; S4S-03 swaps in the real EventNode.
+          event: events[i],
+          chronoIndex: i,
+          isAr: _isAr,
+        ),
+      ));
+      y += _eventSpacing;
+
+      final isChronoFirstOfYear =
+          i == 0 || events[i - 1].year != events[i].year;
+      if (isChronoFirstOfYear) {
+        gapTops.add(y);
+        children.add(SizedBox(
+          height: _yearMarkerHeight,
+          child: _PlaceholderYearRow(
+            // S4S-01 placeholder; S4S-04 swaps in the real YearMarker.
+            year: events[i].year,
+            isAr: _isAr,
+          ),
+        ));
+        y += _yearMarkerHeight;
+      }
     }
+
+    return (
+      children: children,
+      gapTops: gapTops,
+      totalHeight: y + _endPadding,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenW = MediaQuery.of(context).size.width;
-    final bottomPad = MediaQuery.of(context).padding.bottom;
-    // R28 HF6-01: canvas is wider than the viewport so it contains
-    // all cluster-label / singleton-star content. boundaryMargin
-    // stays EdgeInsets.zero (HF5) — the canvas is now the right size,
-    // so zero margin clamps correctly with no void.
-    final canvasW = screenW + 2 * _canvasPadX;
-    _positions = _generatePositions(canvasW, screenW, bottomPad);
+    final layout = _buildLayout();
 
-    return Container(
+    return ColoredBox(
       color: const Color(0xFF060810),
-      child: Stack(
-        children: [
-          // R28 HF4-03: InteractiveViewer wraps the constellation
-          // canvas — pinch zoom (1.0× → 3.5×) + 2D pan. Replaces
-          // the prior SingleChildScrollView. `constrained: false`
-          // preserves the canvas's natural 10000-px height so labels
-          // stay legible at zoom 1.0 (compressing the timeline to
-          // fit the viewport would make every label microscopic).
-          //
-          // R28 HF5-01: boundaryMargin EdgeInsets.all(200) →
-          // EdgeInsets.zero. The 200-px drift exposed the transparent
-          // InteractiveViewer surface against the Scaffold's dark
-          // background as a black void when panning past the content
-          // edges (verified on A56 during the 17 May HF4 review —
-          // black strip on the right at zoom 1.0× and at 2-3×, both
-          // pan directions). Zero margin clamps pan exactly at the
-          // canvas edges — no void. Stiff-vs-bounce-back is polish
-          // for later; zero is the correct base behavior.
-          //
-          // R28 HF6-02: wrap in SafeArea(top: false) so the
-          // InteractiveViewer viewport doesn't extend behind the
-          // Android system nav bar. Pre-fix the oldest events
-          // (570 CE, bottom of the timeline) rendered partially
-          // under the back/home/recent buttons. top:false — the
-          // header is already correctly below the status bar, only
-          // the bottom inset needs honoring. The _LockedInfoCard
-          // modal stays OUTSIDE this SafeArea (it's a separate
-          // Positioned.fill sibling — its scrim should cover the
-          // full screen including the nav region).
-          SafeArea(
-            top: false,
-            child: InteractiveViewer(
-            transformationController: _transformCtrl,
-            constrained: false,
-            minScale: 1.0,
-            maxScale: 3.5,
-            boundaryMargin: EdgeInsets.zero,
-            // panEnabled is implicit. Pinch zoom always works;
-            // single-finger pan works at any scale (including 1.0
-            // for vertical scroll-equivalent navigation).
-            child: SizedBox(
-              // R28 HF6-01: canvasW (= screenW + 2·_canvasPadX), not
-              // screenW. The gradient backdrop below fills the full
-              // canvas so the padded region is never a transparent
-              // void.
-              width: canvasW,
-              height: _totalHeight,
-              child: Stack(
-                children: [
-                  // Deep-sky gradient backdrop
-                  Positioned.fill(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: RadialGradient(
-                          center: Alignment(0, -0.3),
-                          radius: 1.5,
-                          colors: [Color(0xFF0C1030), Color(0xFF060810)],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Background dust (atmospheric, not events)
-                  for (int i = 0; i < 60; i++)
-                    Positioned(
-                      left: (3 + (i * 17 + i * i * 3) % 94) * canvasW / 100,
-                      top: ((i * 23 + i * i * 7) %
-                              (_totalHeight - 20).toInt())
-                          .toDouble(),
-                      child: Container(
-                        width: i % 5 == 0 ? 1.5 : 1,
-                        height: i % 5 == 0 ? 1.5 : 1,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withAlpha(
-                              (20 + (i % 7) * 8).clamp(0, 255)),
-                        ),
-                      ),
-                    ),
-
-                  // Constellation lines + stars + cluster geometry
-                  AnimatedBuilder(
-                    animation: _pulseCtrl,
-                    builder: (_, _) => CustomPaint(
-                      // R28 HF6-01: canvasW so the painter's
-                      // `size.width / 2` centerline matches the
-                      // _generatePositions centerX (= canvasW / 2).
-                      size: Size(canvasW, _totalHeight),
-                      painter: _SkyPainter(
-                        events: widget.events,
-                        positions: _positions,
-                        labelPositions:
-                            _computeLabelPositions(_positions),
-                        completedCount: widget.completedCount,
-                        majorEvents: _majorEvents,
-                        pulseValue: _pulseCtrl.value,
-                        isAr: _isAr,
-                        clusterDotGapY: _clusterDotGapY,
-                        clusterYearOffsetX: _clusterYearOffsetX,
-                      ),
-                    ),
-                  ),
-
-                  // Tap targets — dispatch to _handleStarTap.
-                  // R28 HF4-01: for cluster events, tap region sits at
-                  // the LABEL (where the user's eye reads + finger
-                  // lands), not at the tightly-stacked tiny dot. Label
-                  // position widened to accommodate the title text.
-                  for (int i = 0; i < widget.events.length; i++) ...(() {
-                    final labels = _computeLabelPositions(_positions);
-                    final isCluster = labels[i] != _positions[i];
-                    if (isCluster) {
-                      return [
-                        Positioned(
-                          left: labels[i].dx - 60,
-                          top: labels[i].dy - 12,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _handleStarTap(i),
-                            child: const SizedBox(width: 130, height: 26),
-                          ),
-                        ),
-                      ];
-                    }
-                    return [
-                      Positioned(
-                        left: _positions[i].dx - 22,
-                        top: _positions[i].dy - 22,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => _handleStarTap(i),
-                          child: const SizedBox(width: 44, height: 44),
-                        ),
-                      ),
-                    ];
-                  }()),
-                ],
-              ),
+      // R28-HF6-02 preserved structurally: SafeArea(top:false) keeps
+      // the timeline content above the Android system nav bar. The
+      // Events List header + LIST/STARS toggle already own the
+      // status-bar inset, so top:false avoids double-insetting.
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          controller: _scrollCtrl,
+          // NOT reverse:true — bottom-to-top is the children order.
+          physics: const BouncingScrollPhysics(),
+          child: SizedBox(
+            // Explicit height = sum of child heights + end padding,
+            // so a Positioned.fill SpinePainter (S4S-02) can span the
+            // exact content height.
+            height: layout.totalHeight,
+            child: Column(
+              children: [
+                const SizedBox(height: _endPadding),
+                ...layout.children,
+                const SizedBox(height: _endPadding),
+              ],
             ),
           ),
-          ), // R28 HF6-02: close SafeArea(top: false)
-
-          // Locked info card (content-leak-free, title + era + badge).
-          if (_lockedInfoIdx != null)
-            Positioned.fill(
-              child: _LockedInfoCard(
-                event: widget.events[_lockedInfoIdx!],
-                eraLabel: _eraForEvent(widget.events[_lockedInfoIdx!].globalOrder),
-                isAr: _isAr,
-                onDismiss: () => setState(() => _lockedInfoIdx = null),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// ── Locked info card ────────────────────────────────────────────────────────
-
-class _LockedInfoCard extends StatelessWidget {
+/// S4S-01 placeholder. Replaced by the real `EventNode` (alternating
+/// L/R dot + branch + label + state visuals + tap) in S4S-03.
+class _PlaceholderEventRow extends StatelessWidget {
   final JourneyEvent event;
-  final String eraLabel;
+  final int chronoIndex;
   final bool isAr;
-  final VoidCallback onDismiss;
 
-  const _LockedInfoCard({
+  const _PlaceholderEventRow({
     required this.event,
-    required this.eraLabel,
+    required this.chronoIndex,
     required this.isAr,
-    required this.onDismiss,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      // Tap-outside dismisses.
-      behavior: HitTestBehavior.opaque,
-      onTap: onDismiss,
-      child: Container(
-        color: Colors.black.withAlpha(153), // 0.60
-        alignment: Alignment.center,
+    final right = chronoIndex % 2 == 0;
+    return Align(
+      alignment: right ? Alignment.centerRight : Alignment.centerLeft,
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: GestureDetector(
-          // Swallow taps on the card so they don't dismiss.
-          onTap: () {},
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0E1624),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.gold.withAlpha(80)),
-              boxShadow: [
-                BoxShadow(
-                    color: AppColors.gold.withAlpha(20),
-                    blurRadius: 20,
-                    spreadRadius: 2),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Locked badge (gold outline, lock glyph)
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.gold.withAlpha(20),
-                    border:
-                        Border.all(color: AppColors.gold.withAlpha(100), width: 1.2),
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(Icons.lock_outline_rounded,
-                      size: 22, color: AppColors.gold.withAlpha(200)),
-                ),
-                const SizedBox(height: 14),
-                // Title — event title in current locale.
-                Text(
-                  isAr ? event.titleAr : event.title,
-                  textAlign: TextAlign.center,
-                  textDirection:
-                      isAr ? TextDirection.rtl : TextDirection.ltr,
-                  style: GoogleFonts.cinzelDecorative(
-                    color: AppColors.gold,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                // Era.
-                Text(
-                  eraLabel,
-                  textAlign: TextAlign.center,
-                  textDirection:
-                      isAr ? TextDirection.rtl : TextDirection.ltr,
-                  style: GoogleFonts.nunito(
-                    color: AppColors.gold.withAlpha(140),
-                    fontSize: 11,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Locked caption — intentionally generic. Spec: NO
-                // content leak. No description, no hint at what the
-                // event is about beyond title + era.
-                Text(
-                  isAr
-                      ? 'اكتمل الأحداث السابقة لفتح هذا النجم'
-                      : 'Complete earlier events to unlock',
-                  textAlign: TextAlign.center,
-                  textDirection:
-                      isAr ? TextDirection.rtl : TextDirection.ltr,
-                  style: GoogleFonts.nunito(
-                    color: AppColors.textBody.withAlpha(180),
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Close button.
-                GestureDetector(
-                  onTap: onDismiss,
-                  child: Container(
-                    height: 38,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withAlpha(20),
-                      borderRadius: BorderRadius.circular(10),
-                      border:
-                          Border.all(color: AppColors.gold.withAlpha(60)),
-                    ),
-                    child: Text(
-                      isAr ? 'إغلاق' : 'Close',
-                      style: GoogleFonts.nunito(
-                        color: AppColors.gold,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        child: Text(
+          isAr ? event.titleAr : event.title,
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          style: GoogleFonts.nunito(
+            color: const Color(0xFFF4E9D5).withAlpha(180),
+            fontSize: 12.5,
           ),
         ),
       ),
@@ -608,417 +203,25 @@ class _LockedInfoCard extends StatelessWidget {
   }
 }
 
-// ── Custom painter for stars + constellation lines ──────────────────────────
-
-class _SkyPainter extends CustomPainter {
-  final List<JourneyEvent> events;
-  /// Per-event anchor position. For singletons this is also the
-  /// star + label position. For same-year clusters all events in
-  /// the cluster share one anchor (the cluster's center point).
-  final List<Offset> positions;
-  /// Per-event label position. For singletons equals [positions];
-  /// for cluster events points into the offset labels column.
-  final List<Offset> labelPositions;
-  final int completedCount;
-  final Set<int> majorEvents;
-  final double pulseValue;
+/// S4S-01 placeholder. Replaced by the real boxed `YearMarker`
+/// (on-spine, Option 2) in S4S-04.
+class _PlaceholderYearRow extends StatelessWidget {
+  final int year;
   final bool isAr;
-  // R28 HF4-01 cluster geometry (from the parent state).
-  final double clusterDotGapY;
-  final double clusterYearOffsetX;
 
-  _SkyPainter({
-    required this.events,
-    required this.positions,
-    required this.labelPositions,
-    required this.completedCount,
-    required this.majorEvents,
-    required this.pulseValue,
-    required this.isAr,
-    required this.clusterDotGapY,
-    required this.clusterYearOffsetX,
-  });
+  const _PlaceholderYearRow({required this.year, required this.isAr});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final total = events.length;
-
-    // ── Constellation lines (R28 HF4-01) ────────────────────────────
-    // Skip lines BETWEEN events in the same cluster (they share a
-    // single anchor point — drawing line(p, p) is degenerate). Lines
-    // ENTERING a cluster connect prev event → cluster anchor, and
-    // EXITING connect cluster anchor → next event.
-    for (int i = 1; i < total; i++) {
-      if (events[i - 1].year == events[i].year) {
-        continue; // intra-cluster, skip
-      }
-      final p0 = positions[i - 1];
-      final p1 = positions[i];
-      final done0 = (i - 1) < completedCount;
-      final done1 = i < completedCount;
-      final isCurrent = i == completedCount;
-      final bothDone = done0 && (done1 || isCurrent);
-
-      final paint = Paint()
-        ..color = bothDone
-            ? const Color(0xFFD4A843).withAlpha(130)
-            : isCurrent
-                ? const Color(0xFFD4A843).withAlpha(40)
-                : const Color(0xFFD4A843).withAlpha(15)
-        ..strokeWidth = bothDone ? 1.5 : 0.5
-        ..style = PaintingStyle.stroke;
-
-      canvas.drawLine(p0, p1, paint);
-    }
-
-    // ── Stars / cluster dots + labels ───────────────────────────────
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-    int i = 0;
-    while (i < total) {
-      // Find the cluster bounds for the current year.
-      int j = i;
-      while (j < total && events[j].year == events[i].year) {
-        j++;
-      }
-      final clusterSize = j - i;
-      if (clusterSize == 1) {
-        // R28 HF6-01: pass the canvas centerline so the label
-        // left/right placement heuristic tracks the (now wider)
-        // canvas instead of a hardcoded 180 px (~half of an old
-        // ~360 px screen).
-        _paintSingleStar(canvas, textPainter, i, size.width / 2);
-      } else {
-        _paintCluster(canvas, textPainter, i, j);
-      }
-      i = j;
-    }
-  }
-
-  // ── Singleton star + adjacent label (legacy rendering) ─────────────
-  void _paintSingleStar(
-      Canvas canvas, TextPainter textPainter, int i, double centerX) {
-    final pos = positions[i];
-    final globalOrder = i + 1;
-    final isDone = i < completedCount;
-    final isCurrent = i == completedCount;
-    final isNext = i == completedCount + 1;
-    final isMajor = majorEvents.contains(globalOrder);
-
-    double radius;
-    Color color;
-    if (isDone) {
-      radius = isMajor ? 7 : 4;
-      color = const Color(0xFFD4A843);
-    } else if (isCurrent) {
-      radius = isMajor ? 8 : 5;
-      color = const Color(0xFFE8C854);
-    } else if (isNext) {
-      radius = 3;
-      color = const Color(0xFFD4A843).withAlpha(40);
-    } else {
-      radius = 2;
-      color = const Color(0xFFD4A843).withAlpha(10);
-    }
-
-    if (isDone || isCurrent) {
-      final glowPaint = Paint()
-        ..color = const Color(0xFFD4A843).withAlpha(isCurrent ? 15 : 8)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-      canvas.drawCircle(pos, isMajor ? 20 : 14, glowPaint);
-    }
-
-    if (isCurrent) {
-      final pulseRadius = (isMajor ? 16.0 : 12.0) + pulseValue * 6;
-      final pulsePaint = Paint()
-        ..color = const Color(0xFFD4A843)
-            .withAlpha((100 * (1 - pulseValue)).round())
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1;
-      canvas.drawCircle(pos, pulseRadius, pulsePaint);
-    }
-
-    if (isMajor) {
-      _drawStar(canvas, pos, radius * 1.6, Paint()..color = color);
-      if (isDone) {
-        _drawStar(
-          canvas,
-          pos,
-          radius * 1.6,
-          Paint()
-            ..color = const Color(0xFFD4A843).withAlpha(150)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 0.7,
-        );
-      }
-    } else {
-      canvas.drawCircle(pos, radius, Paint()..color = color);
-      if (isDone) {
-        canvas.drawCircle(
-          pos,
-          radius,
-          Paint()
-            ..color = const Color(0xFFD4A843).withAlpha(150)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 0.5,
-        );
-      }
-    }
-
-    if (isMajor && isDone) {
-      final sparkle = Paint()
-        ..color = const Color(0xFFD4A843).withAlpha(80)
-        ..strokeWidth = 0.5;
-      canvas.drawLine(
-          Offset(pos.dx, pos.dy - 14), Offset(pos.dx, pos.dy + 14), sparkle);
-      canvas.drawLine(
-          Offset(pos.dx - 14, pos.dy), Offset(pos.dx + 14, pos.dy), sparkle);
-    }
-
-    if (isDone || isCurrent) {
-      final event = events[i];
-      final label = isAr ? event.titleAr : event.title;
-      final isRight = pos.dx > centerX;
-      final labelX = isRight ? pos.dx - 16 : pos.dx + 16;
-
-      textPainter
-        ..text = TextSpan(
-          text: label,
-          style: TextStyle(
-            color: Color(isCurrent ? 0xFFE8D8B8 : 0x73E8D8B8),
-            fontSize: isCurrent ? 9 : 8,
-            fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
-            fontFamily: 'Georgia',
-          ),
-        )
-        ..textDirection = isAr ? TextDirection.rtl : TextDirection.ltr
-        ..layout(maxWidth: 120);
-      final textOffset = Offset(
-        isRight ? labelX - textPainter.width : labelX,
-        pos.dy - textPainter.height / 2 - 6,
-      );
-      textPainter.paint(canvas, textOffset);
-
-      textPainter
-        ..text = TextSpan(
-          text: '${event.year} CE',
-          style: const TextStyle(
-            color: Color(0x33D4A843),
-            fontSize: 7,
-            fontFamily: 'sans-serif',
-          ),
-        )
-        ..layout(maxWidth: 80);
-      final dateOffset = Offset(
-        isRight ? labelX - textPainter.width : labelX,
-        textOffset.dy + 12,
-      );
-      textPainter.paint(canvas, dateOffset);
-    }
-  }
-
-  // ── Cluster of N≥2 events at the same year (R28 HF4-01 Mockup B) ──
-  // Renders:
-  //   • Tight vertical dot stack at the cluster anchor (one dot
-  //     per event, stacked clusterDotGapY apart).
-  //   • Dashed leader lines from each dot horizontally to its
-  //     label in the offset labels column.
-  //   • Event title + "year CE" lines at each label position.
-  //   • Single year label centered vertically against the dot
-  //     stack's middle, on the OPPOSITE side from the labels column.
-  void _paintCluster(
-      Canvas canvas, TextPainter textPainter, int start, int end) {
-    final n = end - start;
-    final anchor = positions[start];
-    // Vertical centerline of the dot stack = anchor.dy. Stack spans
-    // (n - 1) * dotGapY total; first dot at anchor.dy - half the span.
-    final dotsHalfSpan = (n - 1) / 2.0 * clusterDotGapY;
-
-    // Leader-line color (matches existing constellation line low-alpha
-    // gold). Dashed via short segments.
-    final leaderPaint = Paint()
-      ..color = const Color(0xFFD4A843).withAlpha(80)
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
-
-    for (int k = 0; k < n; k++) {
-      final i = start + k;
-      final dotY = anchor.dy + (k * clusterDotGapY) - dotsHalfSpan;
-      final dotPos = Offset(anchor.dx, dotY);
-      final labelPos = labelPositions[i];
-
-      final isDone = i < completedCount;
-      final isCurrent = i == completedCount;
-      final isMajor = majorEvents.contains(i + 1);
-
-      // Leader line (dashed). Horizontal between dot and label X.
-      // In AR the labels column sits to the LEFT of the anchor —
-      // line direction flips automatically because labelPos.dx is
-      // less than anchor.dx in that case.
-      _drawDashedLine(canvas, dotPos, Offset(labelPos.dx, dotY), leaderPaint);
-
-      // Dot (smaller than singleton stars — these are dots, not stars).
-      double radius;
-      Color color;
-      if (isDone) {
-        radius = isMajor ? 4 : 3;
-        color = const Color(0xFFD4A843);
-      } else if (isCurrent) {
-        radius = isMajor ? 5 : 4;
-        color = const Color(0xFFE8C854);
-      } else {
-        radius = 2;
-        color = const Color(0xFFD4A843).withAlpha(50);
-      }
-      canvas.drawCircle(dotPos, radius, Paint()..color = color);
-      if (isDone) {
-        canvas.drawCircle(
-          dotPos,
-          radius,
-          Paint()
-            ..color = const Color(0xFFD4A843).withAlpha(150)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 0.5,
-        );
-      }
-      if (isCurrent) {
-        final pulseRadius = 8.0 + pulseValue * 4;
-        canvas.drawCircle(
-          dotPos,
-          pulseRadius,
-          Paint()
-            ..color = const Color(0xFFD4A843)
-                .withAlpha((90 * (1 - pulseValue)).round())
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1,
-        );
-      }
-
-      // Event title + year CE label. Visible for done / current /
-      // locked alike — the cluster stacks need to label every dot
-      // so users can identify which event is which (the sequential-
-      // reveal logic from singletons doesn't fit a same-year cluster).
-      final event = events[i];
-      final title = isAr ? event.titleAr : event.title;
-      final color2 = isDone || isCurrent
-          ? Color(isCurrent ? 0xFFE8D8B8 : 0xCCE8D8B8)
-          : const Color(0x66E8D8B8);
-
-      // RTL: labels column is on the LEFT of anchor. Title text aligns
-      // to the RIGHT edge of the column (against the leader line).
-      // LTR: labels column is on the RIGHT. Title aligns LEFT (against
-      // the leader line).
-      textPainter
-        ..text = TextSpan(
-          text: title,
-          style: TextStyle(
-            color: color2,
-            fontSize: isCurrent ? 9.5 : 9,
-            fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
-            fontFamily: 'Georgia',
-          ),
-        )
-        ..textDirection = isAr ? TextDirection.rtl : TextDirection.ltr
-        ..layout(maxWidth: 130);
-      final titleX = isAr
-          ? labelPos.dx - textPainter.width
-          : labelPos.dx;
-      textPainter.paint(
-        canvas,
-        Offset(titleX, labelPos.dy - textPainter.height / 2 - 4),
-      );
-
-      textPainter
-        ..text = TextSpan(
-          text: '${event.year} CE',
-          style: const TextStyle(
-            color: Color(0x33D4A843),
-            fontSize: 7,
-            fontFamily: 'sans-serif',
-          ),
-        )
-        ..layout(maxWidth: 80);
-      final dateX = isAr
-          ? labelPos.dx - textPainter.width
-          : labelPos.dx;
-      textPainter.paint(
-        canvas,
-        Offset(dateX, labelPos.dy + 4),
-      );
-    }
-
-    // Year label, centered vertically against the dot stack's middle
-    // (anchor.dy regardless of N). Sits on the OPPOSITE side of the
-    // labels column — LTR labels are right of anchor → year is left;
-    // AR labels are left of anchor → year is right.
-    final yearText = '${events[start].year} CE';
-    textPainter
-      ..text = TextSpan(
-        text: yearText,
-        style: TextStyle(
-          color: const Color(0xFFD4A843).withAlpha(170),
-          fontSize: 9.5,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'Georgia',
-          letterSpacing: 0.4,
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        '$year CE',
+        style: GoogleFonts.nunito(
+          color: const Color(0xFFD4A017),
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
         ),
-      )
-      ..textDirection = TextDirection.ltr
-      ..layout(maxWidth: 80);
-    final yearX = isAr
-        ? anchor.dx + clusterYearOffsetX
-        : anchor.dx - clusterYearOffsetX - textPainter.width;
-    textPainter.paint(
-      canvas,
-      Offset(yearX, anchor.dy - textPainter.height / 2),
+      ),
     );
-  }
-
-  // Simple dashed-line painter for leader lines.
-  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
-    const dashWidth = 3.0;
-    const gapWidth = 2.5;
-    final dx = end.dx - start.dx;
-    final dy = end.dy - start.dy;
-    final totalLen = sqrt(dx * dx + dy * dy);
-    if (totalLen < 1) return;
-    final stepLen = dashWidth + gapWidth;
-    final ux = dx / totalLen;
-    final uy = dy / totalLen;
-    double walked = 0;
-    while (walked < totalLen) {
-      final segEnd = walked + dashWidth;
-      final clamped = segEnd > totalLen ? totalLen : segEnd;
-      canvas.drawLine(
-        Offset(start.dx + ux * walked, start.dy + uy * walked),
-        Offset(start.dx + ux * clamped, start.dy + uy * clamped),
-        paint,
-      );
-      walked += stepLen;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SkyPainter old) =>
-      old.completedCount != completedCount ||
-      old.pulseValue != pulseValue ||
-      old.isAr != isAr ||
-      old.events.length != events.length ||
-      old.clusterDotGapY != clusterDotGapY ||
-      old.clusterYearOffsetX != clusterYearOffsetX;
-
-  void _drawStar(Canvas canvas, Offset c, double r, Paint paint) {
-    final inner = r * 0.38;
-    final path = Path()
-      ..moveTo(c.dx, c.dy - r)
-      ..lineTo(c.dx + inner, c.dy - inner)
-      ..lineTo(c.dx + r, c.dy)
-      ..lineTo(c.dx + inner, c.dy + inner)
-      ..lineTo(c.dx, c.dy + r)
-      ..lineTo(c.dx - inner, c.dy + inner)
-      ..lineTo(c.dx - r, c.dy)
-      ..lineTo(c.dx - inner, c.dy - inner)
-      ..close();
-    canvas.drawPath(path, paint);
   }
 }
