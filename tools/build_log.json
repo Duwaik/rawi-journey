@@ -16,5 +16,14 @@
     "libapp_so_size_bytes": 8520624,
     "sprint": "R28-HF5",
     "changed_from_previous": "YES"
+  },
+  {
+    "timestamp": "2026-05-17T16:08:43",
+    "apk_path": "D:\\Rawi_Journey\\build\\app\\outputs\\apk\\release\\app-release.apk",
+    "apk_size_bytes": 97913629,
+    "libapp_so_sha256": "aaf2327df1e81d59dbe386317a1fa7fd2c75b887b746369bc18b981906a1b5ee",
+    "libapp_so_size_bytes": 8520624,
+    "sprint": "R28-HF6",
+    "changed_from_previous": "YES"
   }
 ]
