@@ -125,9 +125,44 @@ class _ConstellationViewState extends State<ConstellationView>
   /// (570 CE, Badr week, late Mecca) the timeline kept stretching.
   /// Mockup B is geometrically stable: N events in one year doesn't
   /// move surrounding years.
-  List<Offset> _generatePositions(double screenW, double bottomPad) {
+  // R28 HF6-01: horizontal breathing room added on EACH side of the
+  // viewport so the canvas SizedBox actually contains all its content.
+  //
+  // Diagnostic (HF6-01): pre-fix the canvas was `SizedBox(width:
+  // screenW, ...)` — exactly viewport width — but the painter draws
+  // cluster labels at `anchor.dx + _clusterLabelOffsetX(90) + up to
+  // 130 px of title text`, and singleton stars oscillate to
+  // centerX ± 0.28·screenW. On the A56 (~384 logical px) the
+  // rightmost content reached ~520 px, overflowing the screenW
+  // canvas by ~136 px. HF4-03's `boundaryMargin: EdgeInsets.all(200)`
+  // was silently compensating (the 200 px "drift" was really pan
+  // room to reach overflow content — but it also let the user pan
+  // into genuine void = the HF5 black-strip bug). HF5's
+  // `EdgeInsets.zero` killed the compensation: child width ==
+  // viewport width + zero margin → ZERO horizontal pan range
+  // (pan dead), and the scale gesture's clamp had no slack (zoom
+  // dead), and the overflow labels became permanently unreachable.
+  //
+  // Correct fix: size the canvas to its real content. 170 px each
+  // side covers the worst-case overflow (LTR cluster labels right /
+  // AR cluster labels left, ~136 px) with margin. Content is then
+  // recentred in the wider canvas via centerX = canvasW / 2.
+  // `boundaryMargin: EdgeInsets.zero` now clamps at the TRUE content
+  // edges — pan works (canvasW − viewportW of horizontal range),
+  // zoom works (child genuinely larger than viewport in both axes),
+  // and there is no void because the canvas's own deep-sky gradient
+  // fills the full canvas width.
+  static const double _canvasPadX = 170.0;
+
+  /// [canvasW] = screenW + 2·_canvasPadX (the SizedBox width). The
+  /// wave [amplitude] stays a fraction of the VIEWPORT width
+  /// ([screenW]) so the singleton spread isn't stretched by the
+  /// wider canvas — only the centerline shifts to canvasW/2 so all
+  /// content sits inside the padded canvas.
+  List<Offset> _generatePositions(
+      double canvasW, double screenW, double bottomPad) {
     final positions = List<Offset>.filled(widget.events.length, Offset.zero);
-    final centerX = screenW / 2;
+    final centerX = canvasW / 2;
     final amplitude = screenW * 0.28;
     final bottomAllowance = 140.0 + bottomPad;
 
@@ -214,20 +249,30 @@ class _ConstellationViewState extends State<ConstellationView>
   /// now via its transformation matrix.
   void _resetAndCenterOnCurrent() {
     if (!mounted) return;
+    final mq = MediaQuery.of(context).size;
+    final viewportW = mq.width;
+    final viewportH = mq.height;
+    // R28 HF6-01: the canvas is now wider than the viewport
+    // (screenW + 2·_canvasPadX) with content recentred at canvasW/2.
+    // Translate X so the viewport starts centered on the content
+    // band, not pinned to the left padding. InteractiveViewer will
+    // clamp this to a valid transform if it's slightly off.
+    final canvasW = viewportW + 2 * _canvasPadX;
+    final translateX = ((canvasW - viewportW) / 2).clamp(0.0, double.infinity);
+
     if (widget.completedCount >= widget.events.length) {
       // Journey complete — land at the bottom of the canvas (last
       // star on the timeline).
-      final viewportH = MediaQuery.of(context).size.height;
       final targetY = _totalHeight - viewportH;
-      _transformCtrl.value =
-          Matrix4.translationValues(0.0, -targetY.clamp(0.0, double.infinity), 0.0);
+      _transformCtrl.value = Matrix4.translationValues(
+          -translateX, -targetY.clamp(0.0, double.infinity), 0.0);
       return;
     }
     final targetY = _positions[widget.completedCount].dy;
-    final viewportH = MediaQuery.of(context).size.height;
     final translateY =
         (targetY - viewportH / 2).clamp(0.0, _totalHeight - viewportH);
-    _transformCtrl.value = Matrix4.translationValues(0.0, -translateY, 0.0);
+    _transformCtrl.value =
+        Matrix4.translationValues(-translateX, -translateY, 0.0);
   }
 
   String _eraForEvent(int globalOrder) {
@@ -261,7 +306,12 @@ class _ConstellationViewState extends State<ConstellationView>
   Widget build(BuildContext context) {
     final screenW = MediaQuery.of(context).size.width;
     final bottomPad = MediaQuery.of(context).padding.bottom;
-    _positions = _generatePositions(screenW, bottomPad);
+    // R28 HF6-01: canvas is wider than the viewport so it contains
+    // all cluster-label / singleton-star content. boundaryMargin
+    // stays EdgeInsets.zero (HF5) — the canvas is now the right size,
+    // so zero margin clamps correctly with no void.
+    final canvasW = screenW + 2 * _canvasPadX;
+    _positions = _generatePositions(canvasW, screenW, bottomPad);
 
     return Container(
       color: const Color(0xFF060810),
@@ -293,7 +343,11 @@ class _ConstellationViewState extends State<ConstellationView>
             // single-finger pan works at any scale (including 1.0
             // for vertical scroll-equivalent navigation).
             child: SizedBox(
-              width: screenW,
+              // R28 HF6-01: canvasW (= screenW + 2·_canvasPadX), not
+              // screenW. The gradient backdrop below fills the full
+              // canvas so the padded region is never a transparent
+              // void.
+              width: canvasW,
               height: _totalHeight,
               child: Stack(
                 children: [
@@ -313,7 +367,7 @@ class _ConstellationViewState extends State<ConstellationView>
                   // Background dust (atmospheric, not events)
                   for (int i = 0; i < 60; i++)
                     Positioned(
-                      left: (3 + (i * 17 + i * i * 3) % 94) * screenW / 100,
+                      left: (3 + (i * 17 + i * i * 3) % 94) * canvasW / 100,
                       top: ((i * 23 + i * i * 7) %
                               (_totalHeight - 20).toInt())
                           .toDouble(),
@@ -332,7 +386,10 @@ class _ConstellationViewState extends State<ConstellationView>
                   AnimatedBuilder(
                     animation: _pulseCtrl,
                     builder: (_, _) => CustomPaint(
-                      size: Size(screenW, _totalHeight),
+                      // R28 HF6-01: canvasW so the painter's
+                      // `size.width / 2` centerline matches the
+                      // _generatePositions centerX (= canvasW / 2).
+                      size: Size(canvasW, _totalHeight),
                       painter: _SkyPainter(
                         events: widget.events,
                         positions: _positions,
@@ -612,7 +669,11 @@ class _SkyPainter extends CustomPainter {
       }
       final clusterSize = j - i;
       if (clusterSize == 1) {
-        _paintSingleStar(canvas, textPainter, i);
+        // R28 HF6-01: pass the canvas centerline so the label
+        // left/right placement heuristic tracks the (now wider)
+        // canvas instead of a hardcoded 180 px (~half of an old
+        // ~360 px screen).
+        _paintSingleStar(canvas, textPainter, i, size.width / 2);
       } else {
         _paintCluster(canvas, textPainter, i, j);
       }
@@ -621,7 +682,8 @@ class _SkyPainter extends CustomPainter {
   }
 
   // ── Singleton star + adjacent label (legacy rendering) ─────────────
-  void _paintSingleStar(Canvas canvas, TextPainter textPainter, int i) {
+  void _paintSingleStar(
+      Canvas canvas, TextPainter textPainter, int i, double centerX) {
     final pos = positions[i];
     final globalOrder = i + 1;
     final isDone = i < completedCount;
@@ -702,7 +764,7 @@ class _SkyPainter extends CustomPainter {
     if (isDone || isCurrent) {
       final event = events[i];
       final label = isAr ? event.titleAr : event.title;
-      final isRight = pos.dx > 180;
+      final isRight = pos.dx > centerX;
       final labelX = isRight ? pos.dx - 16 : pos.dx + 16;
 
       textPainter
