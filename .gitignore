@@ -59,3 +59,6 @@ android/key.properties
 
 # Flutter launcher icons config
 .flutter-plugins
+
+# Claude Code harness runtime artifacts (lock files, not config)
+.claude/scheduled_tasks.lock
