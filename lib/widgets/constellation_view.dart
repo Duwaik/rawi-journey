@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/journey_event.dart';
 import '../services/prefs_service.dart';
 import 'event_node.dart';
 import 'spine_painter.dart';
+import 'year_marker.dart';
 
 /// R28-S4-SPINE-P1 — Stars view, alternating-spine continuous scroll.
 ///
@@ -133,11 +133,7 @@ class _ConstellationViewState extends State<ConstellationView> {
         gapTops.add(y);
         children.add(SizedBox(
           height: _yearMarkerHeight,
-          child: _PlaceholderYearRow(
-            // S4S-01 placeholder; S4S-04 swaps in the real YearMarker.
-            year: events[i].year,
-            isAr: _isAr,
-          ),
+          child: YearMarker(year: events[i].year),
         ));
         y += _yearMarkerHeight;
       }
@@ -197,29 +193,6 @@ class _ConstellationViewState extends State<ConstellationView> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// S4S-01 placeholder. Replaced by the real boxed `YearMarker`
-/// (on-spine, Option 2) in S4S-04.
-class _PlaceholderYearRow extends StatelessWidget {
-  final int year;
-  final bool isAr;
-
-  const _PlaceholderYearRow({required this.year, required this.isAr});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        '$year CE',
-        style: GoogleFonts.nunito(
-          color: const Color(0xFFD4A017),
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
