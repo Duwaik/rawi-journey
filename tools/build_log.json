@@ -25,5 +25,23 @@
     "libapp_so_size_bytes": 8520624,
     "sprint": "R28-HF6",
     "changed_from_previous": "YES"
+  },
+  {
+    "timestamp": "2026-05-17T21:26:49",
+    "apk_path": "D:\\Rawi_Journey\\build\\app\\outputs\\apk\\release\\app-release.apk",
+    "apk_size_bytes": 97913629,
+    "libapp_so_sha256": "aaf2327df1e81d59dbe386317a1fa7fd2c75b887b746369bc18b981906a1b5ee",
+    "libapp_so_size_bytes": 8520624,
+    "sprint": "HF6-baseline-check",
+    "changed_from_previous": "NO"
+  },
+  {
+    "timestamp": "2026-05-18T03:38:33",
+    "apk_path": "D:\\Rawi_Journey\\build\\app\\outputs\\apk\\release\\app-release.apk",
+    "apk_size_bytes": 97684253,
+    "libapp_so_sha256": "2880c9b3d26354011a1e90ee142a2d68cb1c54177f5e425320bf6de030ab8681",
+    "libapp_so_size_bytes": 8455088,
+    "sprint": "R28-S4-SPINE-P1",
+    "changed_from_previous": "YES"
   }
 ]
