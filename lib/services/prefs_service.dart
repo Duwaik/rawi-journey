@@ -56,6 +56,13 @@ class PrefsService {
   // who already have several arcs unlocked.
   static const String _keyArcSealBrokenPrefix  = 'arc_seal_broken_';
   static const String _keyScrollSealBackfillDone = 'scroll_seal_backfill_done';
+  // R28-S4-SPINE-P1 S4S-05: Stars spine-scroll resume. Offset is the
+  // ScrollController position persisted on scroll-end; the companion
+  // completion-count guards it — when the user completes a new event
+  // the saved offset is stale, so on entry we re-centre on the new
+  // current event instead of restoring it. -1 sentinels = never saved.
+  static const String _keyConstellationScrollOffset = 'constellation_scroll_offset';
+  static const String _keyConstellationSavedAtCount  = 'constellation_saved_at_completion';
 
   // ── LANGUAGE ──────────────────────────────────────────────────────────────
   static String get language => _prefs?.getString(_keyLanguage) ?? 'en';
@@ -432,6 +439,35 @@ class PrefsService {
       journeyViewDefault == 'constellation';
   static Future<void> setJourneyViewDefault(String v) async =>
       await _prefs?.setString(_keyJourneyViewDefault, v);
+
+  // ── STARS SPINE-SCROLL RESUME (R28-S4-SPINE-P1 S4S-05) ────────────────────
+  /// Last resting ScrollController offset of the Stars spine view.
+  /// -1.0 sentinel = never saved → caller auto-centres on the current
+  /// event instead.
+  static double get lastConstellationScrollOffset =>
+      _prefs?.getDouble(_keyConstellationScrollOffset) ?? -1.0;
+
+  /// Completion count captured when [lastConstellationScrollOffset]
+  /// was saved. -1 sentinel = never saved. On entry, if this differs
+  /// from the live completion count the user has finished an event
+  /// since the save, so the offset is stale and the view re-centres.
+  static int get lastConstellationSavedAtCompletionCount =>
+      _prefs?.getInt(_keyConstellationSavedAtCount) ?? -1;
+
+  /// Atomic save (offset + guard written together so a half-written
+  /// state can never strand a restore on the wrong completion count).
+  static Future<void> setLastConstellationScroll(
+      double offset, int completionCount) async {
+    await _prefs?.setDouble(_keyConstellationScrollOffset, offset);
+    await _prefs?.setInt(_keyConstellationSavedAtCount, completionCount);
+  }
+
+  /// Drop the saved offset (used when a completed event invalidates
+  /// it) so the next entry falls back to current-event centring.
+  static Future<void> clearLastConstellationScroll() async {
+    await _prefs?.remove(_keyConstellationScrollOffset);
+    await _prefs?.remove(_keyConstellationSavedAtCount);
+  }
 
   /// R25-S3-7: QA/dev helper — clear every tutorial-seen flag so the
   /// next run shows all overlays again. Gated behind kDebugMode at the
