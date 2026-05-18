@@ -142,18 +142,24 @@ class _ConstellationViewState extends State<ConstellationView> {
 
     for (int i = events.length - 1; i >= 0; i--) {
       eventCenterY[i] = y + _eventSpacing / 2;
+      final state = _stateFor(i);
       children.add(
         SizedBox(
           height: _eventSpacing,
           child: EventNode(
             event: events[i],
             chronoIndex: i,
-            state: _stateFor(i),
+            state: state,
             isAr: _isAr,
-            // S4S-06 lifts the HF6 routing into this callback. Until
-            // then every node is non-navigating (visual verification of
-            // S4S-03 only).
-            onTap: null,
+            // S4S-06 routing — lifted verbatim from HF6 _handleStarTap
+            // (completed | current → onLaunch; locked → no-op). Locked
+            // passes null so EventNode's opaque GestureDetector is a
+            // true no-op (no navigation, no feedback) — matching HF6,
+            // which only ever launched completed/current stars. The
+            // ≥44px hit target itself was established in S4S-03.
+            onTap: state == EventNodeState.locked
+                ? null
+                : () => widget.onLaunch(events[i]),
           ),
         ),
       );
