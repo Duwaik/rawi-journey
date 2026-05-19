@@ -1880,6 +1880,22 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     );
   }
 
+  /// R28-RFT-04 · Reader last-page CTA → the verdict question.
+  /// Mirrors the linear-mode completion path (phase → verdict + phase
+  /// animation + question VO). Guarded to the explore phase so a
+  /// double-tap or a back-then-forward can't re-trigger. RFT-06 will
+  /// fold Reader verdict-entry into the state-based trigger; this is
+  /// the single entry point it will route through. Branching-event
+  /// Reader flow uses this same entry (last page read == question
+  /// time) — the Explorer-only in-scene-convergence branch at
+  /// _allDiscovered is not on the Reader path; flagged in handoff.
+  void _enterVerdictFromReader() {
+    if (_phase != _Phase.explore) return;
+    setState(() => _phase = _Phase.verdict);
+    _phaseCtrl.forward();
+    _playChoiceVo('q');
+  }
+
   /// Back to events for replays.
   void _continue() {
     AudioService.stopSfx();
@@ -2306,6 +2322,8 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
                   : ReaderBottomCard(
                       hotspots: _scene.hotspots,
                       isAr: _isAr,
+                      // R28-RFT-04 · last-page CTA → verdict.
+                      onReachedQuestion: _enterVerdictFromReader,
                     ),
             ),
 

@@ -26,10 +26,16 @@ class ReaderBottomCard extends StatefulWidget {
   final List<SceneHotspot> hotspots;
   final bool isAr;
 
+  /// R28-RFT-04 · fired when the reader taps the last-page CTA
+  /// ("Continue to the question"). The host runs the verdict
+  /// transition. Null → CTA still renders but is inert (defensive).
+  final VoidCallback? onReachedQuestion;
+
   const ReaderBottomCard({
     super.key,
     required this.hotspots,
     required this.isAr,
+    this.onReachedQuestion,
   });
 
   static const Color parchment = Color(0xFFF5E6C8);
@@ -201,6 +207,61 @@ class _ReaderBottomCardState extends State<ReaderBottomCard>
                         ),
                       );
                     },
+                  ),
+                ),
+              )
+            // ── R28-RFT-04 · Last-page CTA → the verdict question ──
+            // Replaces the (previously hidden / no-op) last-page
+            // forward affordance with an explicit gold CTA. Forward-
+            // only: swiping BACK to re-read earlier pages still works
+            // (PageView handles it); this just gives the final page a
+            // way OUT to the question.
+            else
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: bottomPad + 12,
+                child: Center(
+                  child: GestureDetector(
+                    onTap: () => widget.onReachedQuestion?.call(),
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 22, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        textDirection: widget.isAr
+                            ? TextDirection.rtl
+                            : TextDirection.ltr,
+                        children: [
+                          Text(
+                            widget.isAr
+                                ? 'تابع إلى السؤال'
+                                : 'Continue to the question',
+                            textDirection: widget.isAr
+                                ? TextDirection.rtl
+                                : TextDirection.ltr,
+                            style: GoogleFonts.nunito(
+                              color: ReaderBottomCard.ink,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            widget.isAr
+                                ? Icons.arrow_back_rounded
+                                : Icons.arrow_forward_rounded,
+                            size: 18,
+                            color: ReaderBottomCard.ink,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
