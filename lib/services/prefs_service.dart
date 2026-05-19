@@ -641,6 +641,16 @@ class PrefsService {
   static Future<void> setJourneyMode(String mode) async =>
       await _prefs?.setString(_keyJourneyMode, mode);
 
+  // R28-RFT-09 Part B: one-time Reader-mode invitation, offered once
+  // after Event 1 completes (registration no longer asks the mode
+  // question — new users default to Explorer). Once the user picks
+  // either option this flips true and the invitation never reappears.
+  static const String _keyReaderInvitationShown = 'reader_invitation_shown';
+  static bool get readerInvitationShown =>
+      _prefs?.getBool(_keyReaderInvitationShown) ?? false;
+  static Future<void> setReaderInvitationShown() async =>
+      await _prefs?.setBool(_keyReaderInvitationShown, true);
+
   // ── DHIKR TUTORIAL (Explorer Mode, one-time on Event 1) ──────────────
   static const String _keyDhikrTutorialSeen = 'dhikr_tutorial_seen';
   static bool get isDhikrTutorialSeen =>

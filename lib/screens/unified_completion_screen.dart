@@ -14,6 +14,7 @@ import '../models/journey_event.dart';
 import '../models/scroll_entry.dart';
 import '../services/audio_service.dart';
 import '../services/prefs_service.dart';
+import '../widgets/reader_invitation_card.dart';
 import 'passage_screen.dart';
 import 'rawi_tent_screen.dart';
 
@@ -126,6 +127,17 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
 
   // ── Gating ──────────────────────────────────────────────────────────
   bool _canExit = false;
+
+  // R28-RFT-09 Part B: one-time Reader invitation after Event 1. While
+  // pending it gates exit (the card has two explicit buttons, no skip);
+  // resolving it reveals Continue. RFT-08 relocates this into the new
+  // user-gated Screen B (spec: "RFT-08 depends on RFT-09 for invitation
+  // widget integration") — this is the contained interim wiring.
+  bool _invitationResolved = false;
+  bool get _invitationPending =>
+      widget.event.globalOrder == 1 &&
+      !PrefsService.readerInvitationShown &&
+      !_invitationResolved;
 
   ScrollEntry? get _entry => scrollEntries[widget.event.id];
   DhikrCard? get _card => dhikrCards[widget.event.id];
@@ -325,6 +337,12 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       _continueFade.forward();
       return;
     }
+    // R28-RFT-09 Part B: Event 1 first-completion → the Reader
+    // invitation gates exit. Neither the 4 s auto-exit nor Continue
+    // fires until the user picks an option (the card has no skip; both
+    // buttons resolve and write the mode pref + readerInvitationShown).
+    // onResolved then reveals Continue.
+    if (_invitationPending) return;
     Future.delayed(const Duration(milliseconds: 4000), () {
       if (!mounted) return;
       _continueJourney();
@@ -655,6 +673,26 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       }
       children.add(blocks[i]);
     }
+    // R28-RFT-09 Part B: one-time Reader invitation, Event 1 only,
+    // before Continue. RFT-08 will move this into Screen B (between the
+    // figure caption and the nav buttons) when it splits the screen.
+    if (_invitationPending) {
+      children.add(const SizedBox(height: 24));
+      children.add(_sectionDivider());
+      children.add(const SizedBox(height: 24));
+      children.add(ReaderInvitationCard(
+        isAr: _isAr,
+        onResolved: (_) {
+          if (!mounted) return;
+          setState(() {
+            _invitationResolved = true;
+            _canExit = true;
+          });
+          _continueFade.forward();
+        },
+      ));
+    }
+
     children.add(_buildContinueSection());
     return children;
   }

@@ -25,12 +25,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _nameFocus = FocusNode();
   int _currentPage = 0;
   String _selectedGender = 'male';
-  // R19-05: age is now an integer (4-99), and mode is explicitly chosen.
+  // R19-05: age is an integer (4-99).
   int _selectedAge = 18;
-  String _selectedMode = 'explorer';
-  // Tracks whether the user has explicitly picked a mode (disables auto
-  // pre-selection from age changes once they've made a choice).
-  bool _modeChosen = false;
+  // R28-RFT-09 Part A: mode is no longer chosen at registration — new
+  // users default to Explorer (the Reader invitation after Event 1
+  // does the opt-in). This stays 'explorer' and is written verbatim by
+  // _finish()'s setJourneyMode. The mode-selection UI + the age-driven
+  // auto-pick + the _modeChosen tracker were all removed.
+  final String _selectedMode = 'explorer';
   late String _selectedLang;
 
   static const _totalPages = 2;
@@ -465,15 +467,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   initialItem: _selectedAge - minAge,
                 ),
                 onSelectedItemChanged: (i) {
+                  // R28-RFT-09 Part A: age no longer auto-picks a mode
+                  // (mode is Explorer-default; opt-in is post-Event-1).
                   setState(() {
                     _selectedAge = minAge + i;
-                    if (!_modeChosen) {
-                      _selectedMode = _selectedAge < 13
-                          ? 'explorer'
-                          : _selectedAge >= 40
-                              ? 'reader'
-                              : 'explorer';
-                    }
                   });
                 },
                 childDelegate: ListWheelChildBuilderDelegate(
@@ -511,59 +508,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
           ),
 
-          const SizedBox(height: 18),
-          Container(
-            height: 1,
-            color: AppColors.gold.withAlpha(30),
-          ),
-          const SizedBox(height: 18),
-
-          // ── Mode section ───────────────────────────────────────────
-          Text(
-            isAr ? 'اختر تجربتك' : 'Choose your experience',
-            textAlign: TextAlign.center,
-            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-            style: GoogleFonts.cinzelDecorative(
-              fontSize: 18,
-              color: AppColors.gold,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            isAr
-                ? 'يمكنك التبديل في أي وقت من الإعدادات'
-                : 'You can switch anytime in Settings',
-            textAlign: TextAlign.center,
-            textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              color: AppColors.textMuted,
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          _buildModeCard(
-            mode: 'explorer',
-            icon: Icons.explore_rounded,
-            titleEn: 'Explorer',
-            titleAr: 'المستكشف',
-            lineEn: 'Discover. Explore. Earn light through dhikr.',
-            lineAr: 'استكشف. اكتشف. اكسب النور بالذكر.',
-            isAr: isAr,
-          ),
-          const SizedBox(height: 10),
-          _buildModeCard(
-            mode: 'reader',
-            icon: Icons.auto_stories_rounded,
-            titleEn: 'Reader',
-            titleAr: 'القارئ',
-            lineEn: 'Read. Learn. Reflect at your own pace.',
-            lineAr: 'اقرأ. تعلّم. تأمّل بهدوء.',
-            isAr: isAr,
-          ),
-
-          const SizedBox(height: 20),
+          // R28-RFT-09 Part A: the Explorer/Reader mode-selection
+          // section (divider + "Choose your experience" heading +
+          // subtext + the two _buildModeCard tiles) was removed here.
+          // New users default to Explorer; the Reader opt-in is the
+          // post-Event-1 invitation (Part B). This screen is now
+          // Age-only; mode was a SECTION on this page, never its own
+          // step, so there is no step indicator to renumber.
+          const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -585,86 +537,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
           const SizedBox(height: 20),
         ],
-      ),
-    );
-  }
-
-  Widget _buildModeCard({
-    required String mode,
-    required IconData icon,
-    required String titleEn,
-    required String titleAr,
-    required String lineEn,
-    required String lineAr,
-    required bool isAr,
-  }) {
-    final selected = _selectedMode == mode;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedMode = mode;
-          _modeChosen = true;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: selected
-              ? AppColors.gold.withAlpha(22)
-              : Colors.white.withAlpha(6),
-          border: Border.all(
-            color: selected
-                ? AppColors.gold
-                : AppColors.textMuted.withAlpha(40),
-            width: selected ? 1.6 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 34,
-              color: selected ? AppColors.gold : AppColors.textMuted,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isAr ? titleAr : titleEn,
-                    style: GoogleFonts.cinzelDecorative(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: selected
-                          ? AppColors.gold
-                          : AppColors.textBody,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isAr ? lineAr : lineEn,
-                    textDirection:
-                        isAr ? TextDirection.rtl : TextDirection.ltr,
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      color: AppColors.textMuted.withAlpha(200),
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (selected)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 6),
-                child: Icon(Icons.check_circle_rounded,
-                    size: 20, color: AppColors.gold),
-              ),
-          ],
-        ),
       ),
     );
   }
