@@ -26,6 +26,8 @@ import '../widgets/cinematic/badge_overlay.dart';
 import '../widgets/cinematic/go_deeper_section.dart';
 import '../widgets/event_1_tutorial_overlay.dart';
 import '../widgets/event_scene_info_tab.dart';
+import '../data/observation_notes.dart';
+import '../widgets/observation_note_card.dart';
 import '../widgets/rawi_dialog.dart';
 import '../widgets/scroll_hint_wrapper.dart';
 import '../widgets/top_bar_icon_button.dart';
@@ -78,6 +80,14 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
   /// during this cinematic moment, then auto-flows into the
   /// UnifiedCompletionScreen (no "Continue" tap required).
   bool _cinematicRevealActive = false;
+
+  // R28-RFT-07 · OBS3 observation-note beat. Shown user-gated between
+  // the answered verdict and the cinematic reveal. The Completer
+  // pauses _selectChoice's async flow until the user taps Continue
+  // (same pattern as _badgeDismissCompleter / _chapterDismissCompleter).
+  bool _showObservationNote = false;
+  int _observationChoiceIdx = 0;
+  Completer<void>? _observationCompleter;
   bool _showXpAnimation = false;
   bool _showBadgeOverlay = false;
   int _previousXp = 0;
@@ -1780,6 +1790,20 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           _newBadges = badges;
         }
 
+        // R28-RFT-07 · OBS3 observation-note beat — inserted between
+        // the answered verdict and the cinematic reveal. User-gated:
+        // the Completer pauses this flow until the user taps Continue
+        // on the note (no auto-advance). The note copy varies by the
+        // chosen answer (placeholder until Khaled's content pass).
+        _observationCompleter = Completer<void>();
+        setState(() {
+          _observationChoiceIdx = choiceIdx;
+          _showObservationNote = true;
+        });
+        await _observationCompleter!.future;
+        if (!mounted) return;
+        setState(() => _showObservationNote = false);
+
         // R26 S1v4-EE6.2: cinematic reveal + auto-flow to Unified.
         // Replaces the old `_showContinueButton = true` tap gate — the
         // user no longer taps a Continue button to leave the scene.
@@ -2619,10 +2643,29 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           // R26 S1v4-EE6.2: hide the verdict card during the cinematic
           // reveal beat so only the revealed scene + figure are on
           // screen during the 4 s held moment.
+          // R28-RFT-07: also hide the verdict card while the
+          // observation note is up (the note replaces it, then
+          // Continue resumes into the cinematic reveal).
           if ((_phase == _Phase.verdict || _phase == _Phase.complete)
               && !_showChapterComplete && !_showXpAnimation && !_showBadgeOverlay
-              && !_cinematicRevealActive)
+              && !_cinematicRevealActive && !_showObservationNote)
             _buildConvergenceQuestion(bottomPad),
+
+          // ── R28-RFT-07 · OBS3 observation note (user-gated) ───────
+          // Sits above the verdict card; Continue completes the
+          // Completer that _selectChoice is awaiting, then the
+          // existing cinematic reveal runs unchanged.
+          if (_showObservationNote)
+            ObservationNoteCard(
+              note: observationNoteFor(
+                  widget.event.id, _observationChoiceIdx),
+              isAr: _isAr,
+              onContinue: () {
+                if (_observationCompleter?.isCompleted == false) {
+                  _observationCompleter?.complete();
+                }
+              },
+            ),
 
           // ── The Crossroads (choice card after The Gate) ────────────
           if (_showBranchCard && widget.event.branchPoint != null)
