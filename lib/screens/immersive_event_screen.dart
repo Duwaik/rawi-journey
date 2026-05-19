@@ -2383,7 +2383,18 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
 
           // R25-S3-HF-3: scene dots at bottom — title moved to top bar
           // so dots no longer need to clear a title block above them.
-          if (_phase == _Phase.explore && _activeHotspot == null)
+          // R28-RFT-03: + `&& _explorerMode` gate. These scene-progress
+          // dots are an Explorer affordance; in Reader mode the
+          // ReaderBottomCard already renders its own page dots, so
+          // without this gate BOTH stacked at the bottom (the "two
+          // stacked page-dot indicators" bug). Diagnostic: the cause was
+          // NOT old scaffold cruft (spec hypothesis) — it was an
+          // incomplete Reader-gating pass. The sibling EventSceneInfoTab
+          // got `&& _explorerMode` in R28-S3-P1-10; this block was
+          // missed in that same pass. Now matches the sibling gate.
+          if (_phase == _Phase.explore &&
+              _activeHotspot == null &&
+              _explorerMode)
             Positioned(
               bottom: bottomPad + 30, left: 0, right: 0,
               child: Center(
