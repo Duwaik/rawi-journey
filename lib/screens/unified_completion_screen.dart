@@ -128,6 +128,16 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   // ── Gating ──────────────────────────────────────────────────────────
   bool _canExit = false;
 
+  // R28-RFT-08 · 2-screen split. 0 = Screen A (Reflection: scroll +
+  // dhikr + 25% warning), 1 = Screen B (Completion: XP + chapter +
+  // badge + witnessed-caption + Reader invitation + nav). The A→B
+  // transition is user-gated (CTA tap, no auto-advance). Every section
+  // builder + animation controller + the dhikr / passage / badge / XP
+  // subsystems are reused verbatim (frozen-systems rule) — only their
+  // grouping and the orchestration between beats changed.
+  int _screen = 0;
+  bool _aContinueReady = false;
+
   // R28-RFT-09 Part B: one-time Reader invitation after Event 1. While
   // pending it gates exit (the card has two explicit buttons, no skip);
   // resolving it reveals Continue. RFT-08 relocates this into the new
@@ -213,7 +223,10 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
             if (_hasDhikr) {
               _dhikrFade.forward();
             } else {
-              _startXpCountUp();
+              // R28-RFT-08: Screen A has no XP. With no dhikr the
+              // reflection beat is done → reveal A's user-gated
+              // Continue (XP now lives on Screen B).
+              _revealAContinue();
             }
           });
         });
@@ -283,16 +296,41 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   }
 
   // ── Stagger orchestration ────────────────────────────────────────────
+  // R28-RFT-08: Screen A intro only — screen fade + the scroll
+  // reflection (3 s reveal). Chapter / badge / XP moved to Screen B's
+  // intro (_runScreenBIntro), reached via the user-gated A→B Continue.
   Future<void> _runStaggeredIntro() async {
     _screenFade.forward();
+    _scrollFade.forward();
+    if (_entry != null) {
+      _scrollRevealCtrl.forward();
+    } else {
+      // No scroll entry: the reflection beat is only (optional) dhikr.
+      if (_hasDhikr) {
+        _dhikrFade.forward();
+      } else {
+        _revealAContinue();
+      }
+    }
+  }
 
-    // Section 1: Chapter (0ms)
+  /// R28-RFT-08 · Screen A reflection done → reveal the user-gated
+  /// Continue that advances to Screen B (NOT auto-advance).
+  void _revealAContinue() {
+    if (!mounted) return;
+    setState(() => _aContinueReady = true);
+  }
+
+  /// R28-RFT-08 · A→B transition (user tapped Screen A's Continue).
+  /// Runs Screen B's stagger: chapter → badge → XP. Nav buttons reveal
+  /// after the XP count-up (_afterXp). No auto-exit — B is user-gated.
+  Future<void> _goToScreenB() async {
+    if (_screen == 1) return;
+    setState(() => _screen = 1);
     if (_showChapter) {
       _chapterFade.forward();
       HapticFeedback.heavyImpact();
     }
-
-    // Section 2: Badge (200ms)
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
     if (_hasBadges) {
@@ -300,17 +338,9 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       _badgeIconCtrl.forward();
       HapticFeedback.mediumImpact();
     }
-
-    // Section 3: Scroll (400ms) — 3s reveal
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
-    _scrollFade.forward();
-    if (_entry != null) {
-      _scrollRevealCtrl.forward();
-    } else {
-      // No scroll entry — skip straight to XP
-      _startXpCountUp();
-    }
+    _startXpCountUp();
   }
 
   void _startXpCountUp() {
@@ -327,26 +357,14 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
 
   void _afterXp() {
     if (!mounted) return;
-    // R26 S1v4-EE6.3: XP is the LAST beat now. After the count-up
-    // completes, hold on the XP card for 4 s (spec "4-second display,
-    // no tap required") and then auto-exit to the tent. On replays
-    // we still fall back to the Continue button so the user can
-    // linger on a past event without being auto-kicked out.
-    if (widget.alreadyCompleted) {
-      setState(() => _canExit = true);
-      _continueFade.forward();
-      return;
-    }
-    // R28-RFT-09 Part B: Event 1 first-completion → the Reader
-    // invitation gates exit. Neither the 4 s auto-exit nor Continue
-    // fires until the user picks an option (the card has no skip; both
-    // buttons resolve and write the mode pref + readerInvitationShown).
-    // onResolved then reveals Continue.
+    // R28-RFT-08: XP is Screen B's last auto beat. The 4 s auto-exit
+    // is GONE — Screen B is fully user-gated (spec: "NOT auto-
+    // advance"). Reveal the two nav buttons. RFT-09: if the Event-1
+    // Reader invitation is still pending it renders above the nav and
+    // its onResolved reveals them; otherwise reveal now.
     if (_invitationPending) return;
-    Future.delayed(const Duration(milliseconds: 4000), () {
-      if (!mounted) return;
-      _continueJourney();
-    });
+    setState(() => _canExit = true);
+    _continueFade.forward();
   }
 
   // ── Dhikr hold helpers ───────────────────────────────────────────────
@@ -394,9 +412,9 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       _dhikrResolved = true;
       _dhikrAcknowledged = true; // R26 S1v2-EE6
     });
-    // R26 S1v4-EE6.3: dhikr resolved → fade in XP, run count-up, then
-    // _afterXp auto-exits to tent. No Continue button between steps.
-    _startXpCountUp();
+    // R28-RFT-08: dhikr resolved → Screen A reflection complete.
+    // Reveal the user-gated Continue (XP/badge/etc. are Screen B).
+    _revealAContinue();
   }
 
   // ── Dhikr actions ────────────────────────────────────────────────────
@@ -415,8 +433,8 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       _dhikrResolved = true;
       _dhikrAcknowledged = true; // R26 S1v2-EE6
     });
-    // R26 S1v4-EE6.3: flow to XP (not Continue).
-    _startXpCountUp();
+    // R28-RFT-08: dhikr said → Screen A done → reveal Continue.
+    _revealAContinue();
   }
 
   /// R26 S1v2-EE6: Skip path. If the user is at Light == 25 AND hasn't
@@ -441,10 +459,10 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       }
     }
     setState(() => _dhikrResolved = true);
-    // R26 S1v4-EE6.3: skip still flows into XP → auto-exit. The
-    // -25% Light penalty lands in `_continueJourney` since
-    // `_dhikrAcknowledged` stays false.
-    _startXpCountUp();
+    // R28-RFT-08: skip still completes Screen A → reveal Continue.
+    // The -25% Light penalty still lands in `_continueJourney` /
+    // `_returnToTent` since `_dhikrAcknowledged` stays false.
+    _revealAContinue();
   }
 
   /// R26 S1v2-EE6: warning popup when Light = 25 and user is skipping
@@ -540,11 +558,14 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   }
 
   // ── Exit ─────────────────────────────────────────────────────────────
-  void _continueJourney() {
-    // R26 S1v2-EE6: apply the -25% Light penalty for finishing an
-    // event without acknowledging dhikr. Clamp floor 10 lives in
-    // PrefsService.setNoorLevel. Skipped on replays (already-
-    // completed revisits never touch Light).
+  /// R28-RFT-08 · shared event-exit prelude. The LOCKED behaviour
+  /// (-25% Light penalty for finishing without acknowledging dhikr,
+  /// skipped on replays — floor 10 in PrefsService.setNoorLevel — plus
+  /// the audio fades) extracted so the two Screen-B nav buttons can
+  /// never diverge.
+  void _exitPrelude() {
+    // R26 S1v2-EE6: -25% Light for finishing without acknowledging
+    // dhikr. Skipped on replays (already-completed never touch Light).
     if (!widget.alreadyCompleted && !_dhikrAcknowledged) {
       final current = PrefsService.noorLevel;
       PrefsService.setNoorLevel(current - 25);
@@ -553,6 +574,27 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     AudioService.fadeOut(duration: const Duration(milliseconds: 250));
     AudioService.fadeOutVoiceover(
         duration: const Duration(milliseconds: 200));
+  }
+
+  /// R28-RFT-08 · "Return to Tent" — contract-safe second nav button.
+  /// Same exit prelude, straight to the tent, NO Passage cinematic;
+  /// Passage-seen is left untouched so it can still play later via
+  /// "Continue Journey" or a natural trigger. Honors the LOCKED
+  /// Navigation Contract (event exit → tent). Khaled-chosen behaviour
+  /// (S5-P1 nav-button question).
+  void _returnToTent() {
+    _exitPrelude();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: RawiTentScreen.routeName),
+        builder: (_) => const RawiTentScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
+  void _continueJourney() {
+    _exitPrelude();
 
     // R20 Part E: The Passage — cinematic era transition shown once
     // after 5 pivotal events. Skipped on replays and when already seen.
@@ -640,9 +682,21 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
             // scene BGs (and gives the usual navy look on black BGs).
             color: const Color(0xFF04060D).withValues(alpha: 0.72),
             child: SafeArea(
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(24, 24, 24, bottomPad + 24),
-                children: _buildSectionChildren(),
+              // R28-RFT-08: 2-screen split. Screen A (Reflection) and
+              // Screen B (Completion) are the same scrim+ListView shell
+              // (no jarring route push between beats); only the child
+              // list differs. AnimatedSwitcher cross-fades A→B on the
+              // user-gated Continue.
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: ListView(
+                  key: ValueKey<int>(_screen),
+                  padding:
+                      EdgeInsets.fromLTRB(24, 24, 24, bottomPad + 24),
+                  children: _screen == 0
+                      ? _buildScreenAChildren()
+                      : _buildScreenBChildren(),
+                ),
               ),
             ),
           ),
@@ -651,19 +705,9 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
     );
   }
 
-  // ── R18-01: Section assembly with dividers between blocks ───────────
-  // R26 S1v4-EE6.3: order is scroll → dhikr → XP (was scroll → XP →
-  // dhikr). Chapter + badge stay first when present — spec doesn't
-  // cover those rare sections, so their placement is unchanged.
-  List<Widget> _buildSectionChildren() {
-    final blocks = <Widget>[];
-    if (_showChapter) blocks.add(_buildChapterSection());
-    if (_hasBadges) blocks.add(_buildBadgeSection());
-    blocks.add(_buildScrollSection());
-    if (_hasDhikr) blocks.add(_buildDhikrSection());
-    blocks.add(_buildXpSection());
-
-    // Weave 24px spacers + gold divider lines between each section.
+  // ── R18-01 / R28-RFT-08: Section assembly ───────────────────────────
+  // Weave 24px spacers + a gold divider between consecutive blocks.
+  List<Widget> _weave(List<Widget> blocks) {
     final children = <Widget>[];
     for (var i = 0; i < blocks.length; i++) {
       if (i > 0) {
@@ -673,9 +717,38 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
       }
       children.add(blocks[i]);
     }
-    // R28-RFT-09 Part B: one-time Reader invitation, Event 1 only,
-    // before Continue. RFT-08 will move this into Screen B (between the
-    // figure caption and the nav buttons) when it splits the screen.
+    return children;
+  }
+
+  /// R28-RFT-08 · Screen A — Reflection: the scroll line + (optional)
+  /// dhikr. The 25% Light warning is part of the dhikr skip path
+  /// (_onNotNow → _showLightWarningDialog), unchanged. A user-gated
+  /// "Continue" appears once the reflection beat is done. NO XP /
+  /// badge / chapter / nav here.
+  List<Widget> _buildScreenAChildren() {
+    final blocks = <Widget>[_buildScrollSection()];
+    if (_hasDhikr) blocks.add(_buildDhikrSection());
+    final children = _weave(blocks);
+    if (_aContinueReady) {
+      children.add(const SizedBox(height: 24));
+      children.add(_sectionDivider());
+      children.add(const SizedBox(height: 24));
+      children.add(_buildAContinue());
+    }
+    return children;
+  }
+
+  /// R28-RFT-08 · Screen B — Completion: chapter? + badge? + XP +
+  /// "Rawi has just witnessed" caption + the Event-1 Reader invitation
+  /// (RFT-09, relocated here per spec — between the caption and the
+  /// nav buttons) + the two nav buttons. Fully user-gated.
+  List<Widget> _buildScreenBChildren() {
+    final blocks = <Widget>[];
+    if (_showChapter) blocks.add(_buildChapterSection());
+    if (_hasBadges) blocks.add(_buildBadgeSection());
+    blocks.add(_buildXpSection());
+    blocks.add(_buildWitnessCaption());
+    final children = _weave(blocks);
     if (_invitationPending) {
       children.add(const SizedBox(height: 24));
       children.add(_sectionDivider());
@@ -692,8 +765,7 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
         },
       ));
     }
-
-    children.add(_buildContinueSection());
+    children.add(_buildBNav());
     return children;
   }
 
@@ -1479,38 +1551,140 @@ class _UnifiedCompletionScreenState extends State<UnifiedCompletionScreen>
   // ── Section 6: Continue button ───────────────────────────────────────
   // B25: SizeTransition so the button grows from 0 height when revealed,
   // pushing content naturally — no pre-allocated blank space below dhikr.
-  Widget _buildContinueSection() {
+  // R28-RFT-08 \u00B7 Screen A user-gated Continue. Spec offered "CTA or
+  // swipe-up" \u2014 CTA chosen (clearer, no hidden-gesture cost). Shown
+  // once the reflection beat (scroll + any dhikr) is done; advances
+  // A\u2192B.
+  Widget _buildAContinue() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton(
+          onPressed: _goToScreenB,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.gold,
+            foregroundColor: const Color(0xFF0B1E2D),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14)),
+            elevation: 0,
+          ),
+          child: Text(
+            _isAr ? '\u062A\u0627\u0628\u0639' : 'Continue',
+            style: GoogleFonts.nunito(
+                fontSize: 16, fontWeight: FontWeight.w800),
+            textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // R28-RFT-08 \u00B7 Screen B "Rawi has just witnessed" caption \u2014 uses the
+  // event's existing localized title (no new content).
+  Widget _buildWitnessCaption() {
+    final title = _isAr ? widget.event.titleAr : widget.event.title;
+    return Column(
+      children: [
+        const SizedBox(height: 4),
+        Text(
+          _isAr
+              ? '\u0631\u0623\u0649 \u0627\u0644\u0631\u0627\u0648\u064A:'
+              : 'Rawi has just witnessed:',
+          textAlign: TextAlign.center,
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          style: GoogleFonts.nunito(
+            color: AppColors.gold.withAlpha(200),
+            fontSize: 13,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
+          style: GoogleFonts.cinzelDecorative(
+            color: AppColors.gold,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            height: 1.35,
+          ),
+        ),
+        const SizedBox(height: 4),
+      ],
+    );
+  }
+
+  // R28-RFT-08 \u00B7 Screen B nav \u2014 two buttons, both contract-safe (exit
+  // \u2192 tent; differ only in the Passage cinematic). SizeTransition +
+  // FadeTransition on _continueFade so they grow in with no pre-
+  // allocated blank space.
+  Widget _buildBNav() {
     return SizeTransition(
       sizeFactor: _continueFade,
-      axisAlignment: -1.0, // anchor to top so growth pushes down
+      axisAlignment: -1.0,
       child: FadeTransition(
         opacity: _continueFade,
         child: Padding(
           padding: const EdgeInsets.only(top: 24),
-          child: SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: _canExit ? _continueJourney : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gold,
-                foregroundColor: const Color(0xFF0B1E2D),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+          child: Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _canExit ? _continueJourney : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: const Color(0xFF0B1E2D),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    _isAr
+                        ? '\u0623\u0643\u0645\u0644 \u0627\u0644\u0631\u062D\u0644\u0629 \u2190'
+                        : 'Continue Journey \u2192',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    textDirection:
+                        _isAr ? TextDirection.rtl : TextDirection.ltr,
+                  ),
                 ),
-                elevation: 0,
               ),
-              child: Text(
-                _isAr
-                    ? '\u0623\u0643\u0645\u0644 \u0627\u0644\u0631\u062D\u0644\u0629 \u2190'
-                    : 'Continue Journey \u2192',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: _canExit ? _returnToTent : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.gold,
+                    side: BorderSide(
+                        color: AppColors.gold.withAlpha(120)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    _isAr
+                        ? '\u0627\u0644\u0639\u0648\u062F\u0629 \u0625\u0644\u0649 \u0627\u0644\u062E\u064A\u0645\u0629'
+                        : 'Return to Tent',
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textDirection:
+                        _isAr ? TextDirection.rtl : TextDirection.ltr,
+                  ),
                 ),
-                textDirection: _isAr ? TextDirection.rtl : TextDirection.ltr,
               ),
-            ),
+            ],
           ),
         ),
       ),
