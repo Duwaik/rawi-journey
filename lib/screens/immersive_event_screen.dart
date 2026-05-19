@@ -2284,10 +2284,29 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
           // verdict / complete phases so the end-of-event cinematic reveal
           // doesn't compete with a parchment card on screen. Phase 2 will
           // wire the end-of-event flow onto this same surface.
+          //
+          // R28-RFT-01: also gated behind Event1TutorialOverlay. While
+          // the tutorial is up the card is NOT mounted (AnimatedSwitcher
+          // child = SizedBox.shrink) — so its pages / page-dots can't be
+          // read or tapped behind the overlay, and its P1-11 establishing
+          // beat doesn't start early. On tutorial dismiss the card mounts
+          // and FadeTransitions in over 250 ms (AnimatedSwitcher default);
+          // its initState then runs, so page 1 begins its writing
+          // animation post-tutorial — matching the spec's on-completion
+          // behavior. Reinterpretation flagged: there is no dedicated
+          // Reader tutorial; Event1TutorialOverlay (Explorer-flavored,
+          // event-1 only) is the sole event-scene tutorial, so the
+          // realistic leak is "event 1 entered in Reader". Khaled-chosen
+          // scope; needs A56 confirmation.
           if (!_explorerMode && _phase == _Phase.explore)
-            ReaderBottomCard(
-              hotspots: _scene.hotspots,
-              isAr: _isAr,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _showEvent1Tutorial
+                  ? const SizedBox.shrink()
+                  : ReaderBottomCard(
+                      hotspots: _scene.hotspots,
+                      isAr: _isAr,
+                    ),
             ),
 
           // ── Dim overlay (non-interactive) ──────────────────────────
