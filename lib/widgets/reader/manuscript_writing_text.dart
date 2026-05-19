@@ -53,6 +53,15 @@ class ManuscriptWritingText extends StatefulWidget {
   final VoidCallback? onComplete;
   final ManuscriptWritingController? controller;
 
+  /// R28-RFT-02 · optional scroll-follow. When the caller's page text
+  /// can overflow the viewport, pass the SAME [ScrollController] that
+  /// drives the enclosing scrollable (do NOT add a second one — the
+  /// spec's diagnostic-first note). While revealing, the widget keeps
+  /// the write cursor near viewport-centre by animating this
+  /// controller. Null → no scroll-follow (short pages, or callers that
+  /// don't scroll).
+  final ScrollController? followController;
+
   const ManuscriptWritingText({
     super.key,
     required this.text,
@@ -62,6 +71,7 @@ class ManuscriptWritingText extends StatefulWidget {
     this.textDirection,
     this.onComplete,
     this.controller,
+    this.followController,
   });
 
   @override
@@ -201,7 +211,46 @@ class _ManuscriptWritingTextState extends State<ManuscriptWritingText>
       }
     }
 
+    _maybeFollowCursor();
     setState(() {});
+  }
+
+  /// R28-RFT-02 · keep the write cursor near viewport-centre while
+  /// revealing. The full text is laid out from frame 1 (un-revealed
+  /// units are opacity-0 spans, not unmounted), so the scroll content
+  /// height is constant and the cursor's Y is well-approximated by the
+  /// reveal fraction × content height — robust across EN char-by-char,
+  /// AR word-by-word, and mixed spans, with no costly per-tick
+  /// TextPainter remeasure (reasoned deviation from the spec's
+  /// "rendered text up to cursor index"; flagged in handoff).
+  ///
+  /// Forward-only and epsilon-throttled: never yanks the view back up
+  /// mid-type, and only re-animates when the target moves a meaningful
+  /// amount — so `animateTo` doesn't fire every 35 ms EN char. Stops
+  /// firing once `_completed`, so the reader can freely scroll back to
+  /// re-read (spec acceptance 3). On page swipe the caller rebuilds a
+  /// fresh page+controller (keyed by hotspot id) → next page at top.
+  void _maybeFollowCursor() {
+    final ctrl = widget.followController;
+    if (ctrl == null || _completed || _units.isEmpty) return;
+    if (!ctrl.hasClients) return;
+    final pos = ctrl.position;
+    // Page shorter than viewport → nothing to follow (spec: pages that
+    // don't overflow trigger no scroll at all).
+    if (pos.maxScrollExtent <= 0) return;
+    final double content = pos.maxScrollExtent + pos.viewportDimension;
+    final double frac = _revealedCount / _units.length;
+    final double cursorY = content * frac;
+    final double target =
+        (cursorY - pos.viewportDimension / 2).clamp(0.0, pos.maxScrollExtent);
+    // Forward-only + 4px epsilon: smooth follow, no jitter, no fight
+    // with a reader who scrolled up.
+    if (target <= pos.pixels + 4.0) return;
+    ctrl.animateTo(
+      target,
+      duration: const Duration(milliseconds: 100),
+      curve: Curves.easeOut,
+    );
   }
 
   /// Public — called by [ManuscriptWritingController.completeNow].

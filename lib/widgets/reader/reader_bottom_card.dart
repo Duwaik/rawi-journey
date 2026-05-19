@@ -320,6 +320,10 @@ class _PageContentState extends State<_PageContent> {
                   text: text,
                   isAr: widget.isAr,
                   controller: _writingCtrl,
+                  // R28-RFT-02 · scroll-follow uses THIS page's existing
+                  // _scrollCtrl (the same one driving the Scrollbar +
+                  // SingleChildScrollView) — no second controller.
+                  followController: _scrollCtrl,
                   textAlign: TextAlign.start,
                   textDirection: widget.isAr
                       ? TextDirection.rtl
