@@ -454,6 +454,42 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
       _checkHotspotProximity();
       _updateHotspotProximity(nextHotspotId: _nextHotspotId);
     });
+
+    // R28-RFT-06 · State-based verdict safety net.
+    //
+    // Diagnostic (vs. spec hypothesis): the verdict trigger is
+    // transition-based, living in _dismissPanel (fires only when the
+    // 4th hotspot is *freshly* dismissed). On scene RE-ENTRY the saved
+    // hotspots are restored from PrefsService.loadHotspotProgress into
+    // `_discovered`, but _dismissPanel never re-runs — so an event with
+    // all hotspots done but the verdict not yet answered had NO path to
+    // the verdict (Continue just reopened the scene). Confirmed.
+    //
+    // Reasoned deviation (flagged in handoff): the spec proposes a
+    // persisted `verdictShown` flag, but answering the verdict is
+    // ATOMIC with event completion (_selectChoice → completeEvent), so
+    // `PrefsService.isEventCompleted` (== _alreadyCompleted) is already
+    // the exact "verdict answered, don't re-trigger" guard — there is
+    // no answered-but-not-completed state. A separate `verdictShown`
+    // pref would in fact BREAK the spec's own verify check 4 (complete
+    // all 4 → back BEFORE the verdict appears → re-enter → verdict must
+    // fire): it would already be true. So the guard is `!_already
+    // Completed`, no redundant pref. Routes through the same
+    // _enterVerdictPhase() as the transition trigger.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_phase == _Phase.explore &&
+          _allDiscovered &&
+          !_alreadyCompleted &&
+          !_showEvent1Tutorial &&
+          !_showBranchCard &&
+          _activeHotspot == null) {
+        DebugLogService.log('verdict',
+            'RFT-06 state-based verdict entry (event ${widget.event.id}, '
+            'all ${_scene.hotspots.length} HS restored, not completed)');
+        _enterVerdictPhase();
+      }
+    });
   }
 
   /// B1 safety net: periodic silent health check that heals stuck
@@ -1679,36 +1715,10 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     // can re-read any card freely and use explicit buttons at the
     // bottom to open the verdict or return to the event list.
     if (_allDiscovered && _phase == _Phase.explore && !_alreadyCompleted) {
-      // ── Feature 6: All-done celebration bounce ────────────────────
-      _triggerFigureBounce(celebration: true);
-
-      // ── Fog of War: full reveal + golden tint ─────────────────────
-      _triggerFogReveal();
-
-      if (_isBranching) {
-        // Branching mode: question renders in-scene after convergence
-        // NO tutorial here — tutorial was shown at the branch card
-        Future.delayed(const Duration(milliseconds: 400), () {
-          if (mounted) {
-            setState(() => _phase = _Phase.verdict);
-            _phaseCtrl.forward();
-            _playChoiceVo('q');
-          }
-        });
-      } else {
-        // Linear mode: verdict overlay
-        final adLid = RawiDialogue.getId(RawiDialogue.allDone, _discovered.length);
-        _showBubble(RawiDialogue.get(
-            RawiDialogue.allDone, _discovered.length, isAr: _isAr, name: PrefsService.userName),
-            voPath: _companionVoPath(adLid));
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) {
-            setState(() => _phase = _Phase.verdict);
-            _phaseCtrl.forward();
-            _playChoiceVo('q');
-          }
-        });
-      }
+      // R28-RFT-06: transition trigger (4th HS just dismissed). Body
+      // extracted into _enterVerdictPhase() so the state-based entry
+      // safety net (initState post-frame) reuses the exact same path.
+      _enterVerdictPhase();
     } else if (dismissed != null && _discovered.contains(dismissed.id)) {
       // Post-discovery nudge
       _postDiscoveryCount++;
@@ -1894,6 +1904,46 @@ class _ImmersiveEventScreenState extends State<ImmersiveEventScreen>
     setState(() => _phase = _Phase.verdict);
     _phaseCtrl.forward();
     _playChoiceVo('q');
+  }
+
+  /// R28-RFT-06 · Explorer all-hotspots-done → verdict. The single
+  /// source of truth for Explorer verdict entry, called from BOTH:
+  ///   • the transition trigger in _dismissPanel (4th HS just
+  ///     dismissed this session), and
+  ///   • the state-based safety net (initState post-frame) when the
+  ///     scene is re-entered with all HS restored from
+  ///     loadHotspotProgress — the path _dismissPanel never re-runs,
+  ///     which was the RFT-06 stuck-with-no-verdict bug.
+  /// Keeps the celebration bounce + fog reveal + (linear) all-done
+  /// bubble. Branching → in-scene question post-convergence; linear →
+  /// overlay. Caller guards _allDiscovered && explore &&
+  /// !_alreadyCompleted.
+  void _enterVerdictPhase() {
+    _triggerFigureBounce(celebration: true);
+    _triggerFogReveal();
+    if (_isBranching) {
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) {
+          setState(() => _phase = _Phase.verdict);
+          _phaseCtrl.forward();
+          _playChoiceVo('q');
+        }
+      });
+    } else {
+      final adLid =
+          RawiDialogue.getId(RawiDialogue.allDone, _discovered.length);
+      _showBubble(
+          RawiDialogue.get(RawiDialogue.allDone, _discovered.length,
+              isAr: _isAr, name: PrefsService.userName),
+          voPath: _companionVoPath(adLid));
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          setState(() => _phase = _Phase.verdict);
+          _phaseCtrl.forward();
+          _playChoiceVo('q');
+        }
+      });
+    }
   }
 
   /// Back to events for replays.
